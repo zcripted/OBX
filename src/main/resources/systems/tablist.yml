@@ -1,0 +1,60 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core Tablist
+# ────────────────────────────────────────────────────────────────────────────
+# Customise the in-game player list (TAB) header, footer, and individual
+# entry name. Every template accepts the full Adventure / MiniMessage tag
+# set:
+#   • Legacy color codes  &a, &l, etc.
+#   • Hex colors          &#RRGGBB or <#RRGGBB>
+#   • Named colors        <gray>, <yellow>, <gold>, ...
+#   • Gradients           <gradient:#A:#B>...</gradient>
+#   • Decorations         <bold>, <italic>, <underlined>, <strikethrough>
+#   • Hover tooltip       <hover:show_text:'line one\nline two'>...</hover>
+#   • Click events        <click:run_command:'/sf'>...</click>
+#   • Shadow color        <shadow:#RRGGBB>...</shadow>   (1.21.4+ Adventure)
+#
+# Adventure MiniMessage reference:
+#   https://docs.advntr.dev/minimessage/format.html
+#
+# Available placeholders inside any template:
+#   {player}       - Player's account name
+#   {displayname}  - Player's display name (may include nickname / prefix)
+#   {world}        - World the player is currently in
+#   {online}       - Online player count
+#   {max}          - Server slot count
+#   {ping}         - Player's latency in ms (best-effort, "?" on legacy servers)
+#   {time}         - Current server wall-clock time (HH:mm:ss)
+#   {tps}          - Server TPS rounded to one decimal (best-effort)
+#   {motd-1}       - First MOTD line (resolved through the existing MOTD service)
+# ════════════════════════════════════════════════════════════════════════════
+
+enabled: true
+
+# How often (in server ticks, 20 ticks = 1 second) the tablist is refreshed
+# for every online player so that placeholders like {online}, {ping}, {time}
+# stay current. Set to 0 (or a negative number) to update only on join.
+refresh-interval-ticks: 40
+
+# Header lines shown above the player list. Lines are joined with newlines.
+header:
+  - " "
+  - "          <gradient:#FFAA00:#FFFF55><bold>SF-Core Network</bold></gradient>          "
+  - "<gray>Online: <yellow>{online}</yellow><gray>/<yellow>{max}</yellow>   <gray>TPS: <yellow>{tps}</yellow>"
+  - " "
+
+# Footer lines shown below the player list.
+footer:
+  - " "
+  - "<gray>World: <yellow>{world}</yellow>   <gray>Ping: <yellow>{ping}</yellow><gray>ms"
+  - "<gray>Time: <yellow>{time}</yellow>"
+  - "<gradient:#55FFFF:#55FF55>discord.gg/sergeantfuzzy</gradient>"
+  - " "
+
+# Per-player entry shown in the list itself. Set to an empty string to keep
+# the vanilla / scoreboard team name behaviour.
+player-format: "<#AAAAAA>{player}</#AAAAAA>"
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

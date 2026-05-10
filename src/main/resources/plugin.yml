@@ -1,0 +1,589 @@
+﻿name: SF-Core
+main: dev.sergeantfuzzy.sfcore.Main
+version: ${project.version}
+description: Essentials-style core utilities. Single JAR, runtime-adapts to Paper / Spigot / PurPur / Folia from 1.8.8 to 26.1.x.
+author: SergeantFuzzy
+website: https://sfcore.sergeantfuzzy.dev
+folia-supported: true
+load: POSTWORLD
+# api-version tells modern (1.13+) Paper / Spigot that this plugin uses the
+# post-flattening API. Without it the server treats the plugin as "legacy"
+# and bootstraps Bukkit's CraftLegacy material translation table — that init
+# is what stalls modern startup for 15-30+ seconds with the warning
+# "[CraftLegacy] Initializing Legacy Material Support. Unless you have
+# legacy plugins and/or data this is a bug!"
+#
+# 1.13 is intentionally the lowest value: it satisfies every 1.13+ server
+# (skipping the legacy init) while older 1.8 - 1.12 servers ignore the field
+# entirely, so the single-JAR cross-version target is preserved. Material
+# lookups in this plugin already cascade through name-fallback chains
+# (e.g. WarpMenuStyling.resolveMaterial), so we never relied on the legacy
+# translator in the first place.
+api-version: '1.13'
+commands:
+  sf:
+    description: Shows SF-Core help, information, and admin tools.
+    aliases: [sfcore, sfc]
+    usage: "/sf <subcommand>"
+  help:
+    description: Opens the SF-Core paginated help GUI.
+    aliases: ["?"]
+    usage: "/<command>"
+    permission: sfcore.help.gui
+  home:
+    description: Teleport to one of your homes.
+    usage: "/<command> [name]"
+    permission: sfcore.home
+  sethome:
+    description: Set a named home at your current location.
+    usage: "/<command> [name]"
+    permission: sfcore.home.set
+  delhome:
+    description: Delete one of your homes.
+    usage: "/<command> <name>"
+    permission: sfcore.home.delete
+  homes:
+    description: List all of your homes.
+    usage: "/<command>"
+    permission: sfcore.home.list
+  spawn:
+    description: Teleport to the server spawn point or manage spawn.
+    usage: "/spawn [tp|set|delete|info]"
+    permission: sfcore.spawn.tp
+  setspawn:
+    description: Set the server spawn point to your current location.
+    usage: "/<command>"
+    permission: sfcore.spawn.set
+  back:
+    description: Return to your previous location.
+    usage: "/<command>"
+    permission: sfcore.back
+  kill:
+    description: Kill the living entity in your crosshairs.
+    aliases: [crosskill, aimkill, targetkill]
+    usage: "/<command>"
+    permission: sfcore.kill
+  tps:
+    description: Show server TPS, MSPT, uptime, and online player counts.
+    aliases: [lag, mspt, performance]
+    usage: "/<command>"
+    permission: sfcore.tps
+  pl:
+    description: List all loaded server plugins grouped by platform with status colors.
+    aliases: [plugins]
+    usage: "/<command>"
+    permission: sfcore.pl
+  top:
+    description: Teleport to the highest safe block above you.
+    aliases: [above, ground, up]
+    usage: "/<command> [player]"
+    permission: sfcore.top
+  heal:
+    description: Restore your health to full.
+    usage: "/<command>"
+    permission: sfcore.heal
+  feed:
+    description: Restore your hunger bar.
+    usage: "/<command>"
+    permission: sfcore.feed
+  vital:
+    description: Restore health and hunger in one action.
+    aliases: [restore, regen]
+    usage: "/<command> [player]"
+    permission: sfcore.vital
+  god:
+    description: Toggle complete invincibility.
+    aliases: [gmode, godmode, invincible, immortal]
+    usage: "/<command> [player]"
+    permission: sfcore.god
+  vanish:
+    description: Toggle staff vanish — invisible to other players, ignored by mobs.
+    aliases: [v, hide, sneak, ghost]
+    usage: "/<command> [player]"
+    permission: sfcore.vanish
+  invsee:
+    description: View another player's inventory.
+    aliases: [inv, isee, inventory, ivs, inventorysee]
+    usage: "/<command> <player>"
+    permission: sfcore.invsee.basic
+  craft:
+    description: Open a virtual crafting table.
+    aliases: [workbench, crafting]
+    usage: "/<command>"
+    permission: sfcore.craft
+  research:
+    description: Display detailed information about a Minecraft item.
+    aliases: [discover, itemprofile, iteminfo]
+    usage: "/<command> [item]"
+    permission: sfcore.research
+  anvil:
+    description: Open a virtual anvil.
+    aliases: [forge]
+    usage: "/<command>"
+    permission: sfcore.anvil
+  enchant:
+    description: Open a virtual enchanting table.
+    aliases: [enchanting, enchanttable]
+    usage: "/<command>"
+    permission: sfcore.enchant
+  smith:
+    description: Open a virtual smithing table.
+    aliases: [smithing, smithtable]
+    usage: "/<command>"
+    permission: sfcore.smith
+  ban:
+    description: Permanently ban a player from the server.
+    usage: "/<command> <player> [reason]"
+    permission: sfcore.moderation.ban
+  unban:
+    description: Remove an active ban from a player.
+    usage: "/<command> <player> [reason]"
+    permission: sfcore.moderation.unban
+  kick:
+    description: Kick an online player from the server.
+    usage: "/<command> <player> [reason]"
+    permission: sfcore.moderation.kick
+  mute:
+    description: Prevent a player from chatting.
+    usage: "/<command> <player> [reason]"
+    permission: sfcore.moderation.mute
+  unmute:
+    description: Remove an active mute from a player.
+    usage: "/<command> <player> [reason]"
+    permission: sfcore.moderation.unmute
+  tempban:
+    description: Temporarily ban a player using the configured default duration.
+    aliases: [tban]
+    usage: "/<command> <player> [reason]"
+    permission: sfcore.moderation.tempban
+  warn:
+    description: Issue a staff warning to a player.
+    usage: "/<command> <player> [reason]"
+    permission: sfcore.moderation.warn
+  banlist:
+    description: Show all active server bans.
+    aliases: [blist]
+    usage: "/<command>"
+    permission: sfcore.moderation.banlist
+  status:
+    description: View a player's moderation profile and action history.
+    usage: "/<command> <player>"
+    permission: sfcore.moderation.status
+  staff:
+    description: Open the staff overview menu listing all online players.
+    aliases: [staffmenu, sm]
+    usage: "/<command>"
+    permission: sfcore.staff.menu
+  gamemode:
+    description: Change your or another player's gamemode.
+    aliases: [gm, gmode, mode, gms, gmc, gma, gmsp]
+    usage: "/<command> <mode> [player]"
+    permission: sfcore.gamemode
+  warp:
+    description: Teleport to warps or manage them.
+    aliases: [warps, w, goto, go, travel]
+    usage: "/warp [name|tp|set|delete|info|list|gui]"
+    permission: sfcore.warp
+  language:
+    description: Change your preferred SF-Core language.
+    usage: "/<command> <English|EN|German|DE>"
+    permission: sfcore.language
+  sprache:
+    description: Ändert deine bevorzugte SF-Core-Sprache.
+    usage: "/<command> <Englisch|EN|Deutsch|DE>"
+    permission: sfcore.language
+permissions:
+  sfcore.*:
+    description: Grants access to all SF-Core permissions.
+    children:
+      sfcore.help: true
+      sfcore.info: true
+      sfcore.about: true
+      sfcore.permissions.view: true
+      sfcore.commands.list: true
+      sfcore.admin.*: true
+      sfcore.debug.*: true
+      sfcore.updates.*: true
+      sfcore.home: true
+      sfcore.home.set: true
+      sfcore.home.delete: true
+      sfcore.home.list: true
+      sfcore.spawn.*: true
+      sfcore.gamemode: true
+      sfcore.gamemode.self: true
+      sfcore.gamemode.others: true
+      sfcore.back: true
+      sfcore.kill: true
+      sfcore.tps: true
+      sfcore.pl: true
+      sfcore.top: true
+      sfcore.heal: true
+      sfcore.feed: true
+      sfcore.vital: true
+      sfcore.god: true
+      sfcore.vanish.*: true
+      sfcore.invsee.*: true
+      sfcore.craft: true
+      sfcore.research: true
+      sfcore.anvil: true
+      sfcore.enchant: true
+      sfcore.smith: true
+      sfcore.moderation.*: true
+      sfcore.staff.*: true
+      sfcore.warp.*: true
+      sfcore.admin.menu: true
+      sfcore.version: true
+      sfcore.language: true
+  sfcore.help:
+    description: Allows access to /sf help.
+    default: true
+  sfcore.help.gui:
+    description: Allows opening the paginated help GUI via /help, /?, /bukkit:?, /bukkit:help.
+    default: true
+  sfcore.info:
+    description: Allows access to /sf info.
+    default: true
+  sfcore.about:
+    description: Allows access to /sf about.
+    default: true
+  sfcore.permissions.view:
+    description: Allows viewing command permissions via /sf permissions.
+    default: false
+  sfcore.commands.list:
+    description: Allows listing commands via /sf commands.
+    default: true
+  sfcore.admin.menu:
+    description: Allows opening the admin menu via /sf.
+    default: op
+  sfcore.admin.*:
+    description: Grants admin-level SF-Core actions.
+    default: op
+    children:
+      sfcore.admin.reload: true
+      sfcore.admin.reload.config: true
+      sfcore.admin.reload.features: true
+      sfcore.admin.diagnostics: true
+      sfcore.admin.diagnostics.full: true
+      sfcore.admin.menu: true
+      sfcore.admin.modules.joinleave: true
+      sfcore.admin.modules.joinmotd: true
+      sfcore.moderation.*: true
+      sfcore.staff.*: true
+  sfcore.admin.reload:
+    description: Allows running /sf reload.
+    default: op
+  sfcore.admin.reload.config:
+    description: Allows running /sf reload config.
+    default: op
+  sfcore.admin.reload.features:
+    description: Allows running /sf reload <file>.
+    default: op
+  sfcore.admin.diagnostics:
+    description: Allows running /sf diagnostics.
+    default: op
+  sfcore.admin.diagnostics.full:
+    description: Allows running /sf diagnostics full.
+    default: op
+  sfcore.admin.modules.joinleave:
+    description: Allows toggling the join/leave broadcast module.
+    default: op
+  sfcore.admin.modules.joinmotd:
+    description: Allows toggling the in-game join MOTD module.
+    default: op
+  sfcore.version:
+    description: Allows viewing SF-Core version via /sf version.
+    default: op
+  sfcore.updates.*:
+    description: Grants update/version management.
+    default: op
+    children:
+      sfcore.updates.check: true
+      sfcore.updates.notify: true
+      sfcore.version: true
+  sfcore.updates.check:
+    description: Allows checking for updates via /sf updates and /sf updates check.
+    default: op
+  sfcore.updates.notify:
+    description: Allows toggling update notifications via /sf updates notify.
+    default: op
+  sfcore.debug.*:
+    description: Grants config & debug tools.
+    default: op
+    children:
+      sfcore.debug: true
+      sfcore.debug.config: true
+      sfcore.debug.config.validate: true
+      sfcore.debug.toggle: true
+      sfcore.debug.dump: true
+  sfcore.debug:
+    description: Allows viewing debug status via /sf debug.
+    default: op
+  sfcore.debug.config:
+    description: Allows viewing config status via /sf config.
+    default: op
+  sfcore.debug.config.validate:
+    description: Allows validating configs via /sf config validate.
+    default: op
+  sfcore.debug.toggle:
+    description: Allows toggling debug logging via /sf debug enable|disable.
+    default: op
+  sfcore.debug.dump:
+    description: Allows writing debug dumps via /sf debug dump.
+    default: op
+  sfcore.home:
+    description: Allows teleporting to a home.
+    default: true
+  sfcore.home.set:
+    description: Allows creating a home.
+    default: true
+  sfcore.home.delete:
+    description: Allows deleting a home.
+    default: true
+  sfcore.home.list:
+    description: Allows listing homes.
+    default: true
+  sfcore.spawn.*:
+    description: Grants all spawn-related permissions.
+    default: op
+    children:
+      sfcore.spawn.tp: true
+      sfcore.spawn.set: true
+      sfcore.spawn.delete: true
+      sfcore.spawn.info: true
+  sfcore.spawn:
+    description: Legacy spawn permission (teleport).
+    default: true
+    children:
+      sfcore.spawn.tp: true
+  sfcore.spawn.tp:
+    description: Allows teleporting to spawn.
+    default: true
+  sfcore.spawn.set:
+    description: Allows setting spawn.
+    default: op
+  sfcore.spawn.delete:
+    description: Allows deleting/unsetting spawn.
+    default: op
+  sfcore.spawn.info:
+    description: Allows viewing spawn info.
+    default: true
+  sfcore.back:
+    description: Allows teleporting back to your previous location.
+    default: true
+  sfcore.kill:
+    description: Allows killing the entity in your crosshairs.
+    default: op
+  sfcore.tps:
+    description: Allows viewing server performance via /tps.
+    default: op
+  sfcore.pl:
+    description: Allows listing server plugins grouped by platform via /pl.
+    default: op
+  sfcore.top:
+    description: Allows teleporting to the highest safe block above you.
+    default: op
+  sfcore.heal:
+    description: Allows healing yourself.
+    default: op
+  sfcore.feed:
+    description: Allows feeding yourself.
+    default: op
+  sfcore.vital:
+    description: Allows restoring health and hunger.
+    default: op
+  sfcore.god:
+    description: Allows toggling god mode.
+    default: op
+  sfcore.vanish.*:
+    description: Grants all vanish permissions (toggle self + others, higher tier).
+    default: op
+    children:
+      sfcore.vanish: true
+      sfcore.vanish.others: true
+      sfcore.vanish.admin: true
+  sfcore.vanish:
+    description: Allows toggling vanish on yourself via /vanish. Lower tier — visible to other vanished staff with an above-head [L] indicator.
+    default: op
+  sfcore.vanish.others:
+    description: Allows toggling vanish on other players via /vanish <player>.
+    default: op
+  sfcore.vanish.admin:
+    description: Higher-tier vanish — invisible to every other player including other vanished staff. Lets the holder see lower-tier vanished users (with [L] above their head) without revealing themselves.
+    default: op
+  sfcore.invsee.*:
+    description: Grants all inventory-see permissions (basic + full).
+    default: op
+    children:
+      sfcore.invsee.basic: true
+      sfcore.invsee.full: true
+  sfcore.invsee.basic:
+    description: Allows viewing inventories of non-op players that hold no invsee permission. Lower tier.
+    default: op
+  sfcore.invsee.full:
+    description: Allows viewing any player's inventory, including ops and other staff. Higher tier.
+    default: op
+  sfcore.craft:
+    description: Allows opening a virtual crafting table with /craft.
+    default: op
+  sfcore.research:
+    description: Allows viewing detailed item profiles with /research.
+    default: op
+  sfcore.anvil:
+    description: Allows opening a virtual anvil with /anvil.
+    default: op
+  sfcore.enchant:
+    description: Allows opening a virtual enchanting table with /enchant.
+    default: op
+  sfcore.smith:
+    description: Allows opening a virtual smithing table with /smith.
+    default: op
+  sfcore.moderation.*:
+    description: Grants access to all moderation commands.
+    default: op
+    children:
+      sfcore.moderation.ban: true
+      sfcore.moderation.unban: true
+      sfcore.moderation.kick: true
+      sfcore.moderation.mute: true
+      sfcore.moderation.unmute: true
+      sfcore.moderation.tempban: true
+      sfcore.moderation.warn: true
+      sfcore.moderation.banlist: true
+      sfcore.moderation.status: true
+  sfcore.moderation.ban:
+    description: Allows permanently banning players.
+    default: op
+  sfcore.moderation.unban:
+    description: Allows removing active bans.
+    default: op
+  sfcore.moderation.kick:
+    description: Allows kicking online players.
+    default: op
+  sfcore.moderation.mute:
+    description: Allows muting players from chat.
+    default: op
+  sfcore.moderation.unmute:
+    description: Allows removing active mutes.
+    default: op
+  sfcore.moderation.tempban:
+    description: Allows issuing temporary bans.
+    default: op
+  sfcore.moderation.warn:
+    description: Allows issuing player warnings.
+    default: op
+  sfcore.moderation.banlist:
+    description: Allows viewing the active ban list.
+    default: op
+  sfcore.moderation.status:
+    description: Allows viewing a player's moderation profile and history.
+    default: op
+  sfcore.gamemode:
+    description: Allows using /gamemode.
+    default: op
+  sfcore.gamemode.self:
+    description: Allows changing your own gamemode.
+    default: op
+  sfcore.gamemode.self.survival:
+    description: Allows setting your gamemode to survival.
+    default: op
+  sfcore.gamemode.self.creative:
+    description: Allows setting your gamemode to creative.
+    default: op
+  sfcore.gamemode.self.adventure:
+    description: Allows setting your gamemode to adventure.
+    default: op
+  sfcore.gamemode.self.spectator:
+    description: Allows setting your gamemode to spectator.
+    default: op
+  sfcore.gamemode.others:
+    description: Allows changing another player's gamemode.
+    default: op
+  sfcore.gamemode.others.survival:
+    description: Allows setting others to survival.
+    default: op
+  sfcore.gamemode.others.creative:
+    description: Allows setting others to creative.
+    default: op
+  sfcore.gamemode.others.adventure:
+    description: Allows setting others to adventure.
+    default: op
+  sfcore.gamemode.others.spectator:
+    description: Allows setting others to spectator.
+    default: op
+  sfcore.warp.*:
+    description: Grants all warp-related permissions.
+    default: op
+    children:
+      sfcore.warp.tp: true
+      sfcore.warp.tp.others: true
+      sfcore.warp.list: true
+      sfcore.warp.gui: true
+      sfcore.warp.info: true
+      sfcore.warp.set: true
+      sfcore.warp.delete: true
+      sfcore.warp.rename: true
+      sfcore.warp.move: true
+      sfcore.warp.manage: true
+      sfcore.warp.icon: true
+      sfcore.warp.public: true
+      sfcore.warp.hidden.view: true
+  sfcore.warp:
+    description: Allows using /warp.
+    default: true
+  sfcore.warp.tp:
+    description: Allows teleporting yourself to warps.
+    default: true
+  sfcore.warp.tp.others:
+    description: Allows teleporting other players to a warp.
+    default: op
+  sfcore.warp.list:
+    description: Allows listing available warps.
+    default: true
+  sfcore.warp.gui:
+    description: Allows opening the warps GUI.
+    default: true
+  sfcore.warp.info:
+    description: Allows viewing warp info.
+    default: true
+  sfcore.warp.set:
+    description: Allows creating warps.
+    default: op
+  sfcore.warp.delete:
+    description: Allows deleting warps.
+    default: op
+  sfcore.warp.rename:
+    description: Allows renaming warps.
+    default: op
+  sfcore.warp.move:
+    description: Allows moving warps.
+    default: op
+  sfcore.warp.manage:
+    description: Wildcard for warp management (set/delete/rename/move/icon/public).
+    default: op
+    children:
+      sfcore.warp.set: true
+      sfcore.warp.delete: true
+      sfcore.warp.rename: true
+      sfcore.warp.move: true
+      sfcore.warp.icon: true
+      sfcore.warp.public: true
+  sfcore.warp.icon:
+    description: Allows setting warp icons.
+    default: op
+  sfcore.warp.public:
+    description: Allows toggling warp visibility.
+    default: op
+  sfcore.warp.hidden.view:
+    description: Allows seeing hidden warps in lists and GUI.
+    default: op
+  sfcore.language:
+    description: Allows changing your language with /language or /sprache.
+    default: true
+  sfcore.staff.*:
+    description: Wildcard for the staff overview menu and its actions.
+    default: op
+    children:
+      sfcore.staff.menu: true
+  sfcore.staff.menu:
+    description: Allows opening the staff overview menu via /staff.
+    default: op

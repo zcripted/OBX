@@ -1,0 +1,72 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core Chat Management
+# ────────────────────────────────────────────────────────────────────────────
+# Customise the layout and styling of in-game chat. Every template below
+# accepts the full Adventure / MiniMessage tag set:
+#   • Legacy color codes  &a, &l, etc.
+#   • Hex colors          &#RRGGBB or <#RRGGBB>
+#   • Named colors        <gray>, <yellow>, <gold>, ...
+#   • Gradients           <gradient:#A:#B>...</gradient>
+#   • Decorations         <bold>, <italic>, <underlined>, <strikethrough>
+#   • Hover tooltip       <hover:show_text:'line one\nline two'>...</hover>
+#   • Click events        <click:run_command:'/sf'>...</click>
+#   • Shadow color        <shadow:#RRGGBB>...</shadow>   (1.21.4+ Adventure)
+#
+# Adventure MiniMessage reference:
+#   https://docs.advntr.dev/minimessage/format.html
+#
+# Available placeholders inside any template:
+#   {player}       - Player's account name
+#   {displayname}  - Player's display name (may include nickname / prefix)
+#   {message}      - The chat message contents
+#   {world}        - Name of the world the player is currently in
+#   {username}     - The rendered username component (master template only)
+#   {separator}    - The rendered separator component (master template only)
+# ════════════════════════════════════════════════════════════════════════════
+
+enabled: true
+
+# When true, every chat message is also written to the server console using
+# truecolor ANSI escapes that mirror the in-game styling. Requires a terminal
+# (or log viewer) that understands ANSI escape sequences.
+console-mirror: true
+
+# Prepend a timestamp to console-mirrored chat lines.
+console-timestamp: true
+
+# DateTimeFormatter pattern used when console-timestamp is true. Wrap any
+# literal characters in single quotes (for example 'INFO]') so they aren't
+# interpreted as pattern letters. The default mirrors Paper's standard
+# console log format ("[12:34:56 INFO]: ").
+console-timestamp-format: "'['HH:mm:ss' INFO]: '"
+
+# When false, the literal characters "<" and ">" inside a player's message
+# are replaced with visually-similar Unicode chars so players cannot inject
+# MiniMessage tags. Set true to allow MiniMessage parsing of player input
+# (recommended only when a permission gate is enforced upstream).
+allow-formatting-in-messages: false
+
+format:
+  # Master template combining the components below. Each "{<name>}" reference
+  # substitutes the rendered component output. Plain text and additional
+  # MiniMessage tags around the components are honoured.
+  template: "{username} {separator} {message}"
+
+  components:
+    # Player name. Default: light gray (&7 / #AAAAAA).
+    username:
+      template: "<#AAAAAA>{player}</#AAAAAA>"
+    # Separator character placed between username and message.
+    # Default: a typographic right-pointing double-angle quote, light yellow
+    # (&e / #FFFF55).
+    separator:
+      character: "»"
+      template: "<#FFFF55>{character}</#FFFF55>"
+    # The chat message itself. Default: regular white (&f / #FFFFFF).
+    message:
+      template: "<#FFFFFF>{message}</#FFFFFF>"
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

@@ -1,0 +1,35 @@
+# =============================================================================
+# SF-Core MOTD configuration
+# Use <center>...</center> on either line for pixel-based centering in the
+# Minecraft server list. Placeholders: {online}, {max}, {real_online}, {real_max}
+# =============================================================================
+
+enabled: true
+
+motd:
+  center-pixels: 154
+  line-1: "<center>&6SF-Core &7| &eModern + Legacy Support"
+  line-2: "<center>&7Players: &f{online}&7/&f{max}"
+
+player-count:
+  online:
+    mode: "real"
+    fake: 0
+  max: 200
+  hover:
+    enabled: true
+    display-mode: "lines" # profiles = player names, lines = custom hover text
+    sample-profiles:
+      - "ChanceDaRepper"
+      - "HotPotato"
+      - "VeryPotter"
+    lines:
+      - "&6SF-Core Network"
+      - "&7Displayed Count: &f{online}&7/&f{max}"
+      - "&7Live Online: &f{real_online}&7/&f{real_max}"
+      - "&ePowered by SF-Core"
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝
