@@ -226,13 +226,6 @@ public final class AdventureMessageUtil {
         ADVENTURE_CLICK_CHANGE_PAGE = directReady ? clickChangePage : null;
         ADVENTURE_DIRECT_READY = directReady;
 
-        // One-time diagnostic so it's obvious from server logs which gradient path
-        // is active. Goes through java.util.logging so it survives ProGuard and
-        // doesn't depend on Bukkit being initialized at static-init time.
-        java.util.logging.Logger.getLogger("SF-Core").info(
-                "[gradient] Adventure paths — direct=" + directReady
-                        + ", minimessage=" + ready
-                        + ", available=" + ADVENTURE_AVAILABLE);
     }
 
     /**
@@ -304,7 +297,12 @@ public final class AdventureMessageUtil {
             return;
         }
         String resolved = applyPlaceholders(raw, placeholders);
-        if (ADVENTURE_AVAILABLE && trySendAdventure(player, resolved)) {
+        // The direct-build path only needs Adventure *core* (Component/TextColor/
+        // TextDecoration), which Paper ships from 1.16 — it does NOT need MiniMessage.
+        // Gate on ADVENTURE_DIRECT_READY too so a Paper build without MiniMessage
+        // (1.16–1.17) still gets the true per-glyph gradient instead of dropping to
+        // the legacy fallback.
+        if ((ADVENTURE_DIRECT_READY || ADVENTURE_AVAILABLE) && trySendAdventure(player, resolved)) {
             return;
         }
         boolean containsGradient = resolved.indexOf('<') >= 0 && indexOfIgnoreCase(resolved, "<gradient", 0) >= 0;
@@ -415,6 +413,100 @@ public final class AdventureMessageUtil {
         return sb.toString();
     }
 
+    /**
+     * Renders MiniMessage / legacy / gradient markup into a legacy section-coded
+     * string for APIs that only accept a {@code String} (the server-list MOTD,
+     * legacy tablist headers, player-sample names). This is the bridge that lets
+     * those String-only surfaces show the same gradients and hex colors as the
+     * Component-based chat path.
+     *
+     * <p>Output rules:
+     * <ul>
+     *   <li>The 16 standard Minecraft colors are emitted as their plain
+     *       {@code §0}–{@code §f} code so a non-gradient line renders identically
+     *       on every client (including pre-1.16).</li>
+     *   <li>Gradient glyphs and custom hex colors are emitted as
+     *       {@code §x§R§R§G§G§B§B} — a true per-glyph RGB run that renders as a
+     *       smooth gradient on 1.16+ clients.</li>
+     *   <li>Decorations follow the color as {@code §l/§o/§n/§m/§k}.</li>
+     *   <li>Hover/click are dropped — a plain String can't carry them.</li>
+     * </ul>
+     *
+     * <p>Input may use {@code &}-codes, {@code &#RRGGBB} / {@code <#RRGGBB>} hex,
+     * named tags ({@code <gold>}, {@code <bold>}), and {@code <gradient:a:b>…</gradient>}
+     * blocks; gradients are expanded to explicit per-glyph colors first so the
+     * result never depends on a downstream MiniMessage renderer.
+     */
+    public static String renderLegacy(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return raw == null ? "" : raw;
+        }
+        List<Span> spans = parseToSpans(expandGradients(raw));
+        if (spans.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder(raw.length() + 16);
+        boolean colorEmitted = false;
+        for (Span span : spans) {
+            if (span == null || span.text == null || span.text.isEmpty()) {
+                continue;
+            }
+            if (span.color != null && span.color.length() == 6) {
+                String code = hexToStandardCode(span.color);
+                if (code != null) {
+                    sb.append(ChatColor.COLOR_CHAR).append(code);
+                } else {
+                    sb.append(ChatColor.COLOR_CHAR).append('x');
+                    for (int i = 0; i < 6; i++) {
+                        sb.append(ChatColor.COLOR_CHAR).append(Character.toLowerCase(span.color.charAt(i)));
+                    }
+                }
+                colorEmitted = true;
+            } else if (colorEmitted) {
+                // No color on this span but an earlier one set one — reset so the
+                // previous color doesn't bleed into this (uncolored) text.
+                sb.append(ChatColor.COLOR_CHAR).append('r');
+            }
+            if (span.bold) sb.append(ChatColor.COLOR_CHAR).append('l');
+            if (span.italic) sb.append(ChatColor.COLOR_CHAR).append('o');
+            if (span.underlined) sb.append(ChatColor.COLOR_CHAR).append('n');
+            if (span.strikethrough) sb.append(ChatColor.COLOR_CHAR).append('m');
+            if (span.obfuscated) sb.append(ChatColor.COLOR_CHAR).append('k');
+            sb.append(span.text);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Maps a 6-digit hex string to the matching legacy {@code §}-code character
+     * when it is exactly one of the 16 standard Minecraft colors, else returns
+     * {@code null} (caller should emit a {@code §x} hex run instead).
+     */
+    private static String hexToStandardCode(String hex) {
+        if (hex == null || hex.length() != 6) {
+            return null;
+        }
+        switch (hex.toUpperCase(Locale.ROOT)) {
+            case "000000": return "0";
+            case "0000AA": return "1";
+            case "00AA00": return "2";
+            case "00AAAA": return "3";
+            case "AA0000": return "4";
+            case "AA00AA": return "5";
+            case "FFAA00": return "6";
+            case "AAAAAA": return "7";
+            case "555555": return "8";
+            case "5555FF": return "9";
+            case "55FF55": return "a";
+            case "55FFFF": return "b";
+            case "FF5555": return "c";
+            case "FF55FF": return "d";
+            case "FFFF55": return "e";
+            case "FFFFFF": return "f";
+            default: return null;
+        }
+    }
+
     public static void sendLines(Player player, List<String> lines, Map<String, String> placeholders) {
         if (player == null || lines == null) {
             return;
@@ -430,7 +522,7 @@ public final class AdventureMessageUtil {
         }
         String resolved = applyPlaceholders(raw, placeholders);
         for (Player online : server.getOnlinePlayers()) {
-            if (ADVENTURE_AVAILABLE && trySendAdventure(online, resolved)) {
+            if ((ADVENTURE_DIRECT_READY || ADVENTURE_AVAILABLE) && trySendAdventure(online, resolved)) {
                 continue;
             }
             BaseComponent[] components = renderBungee(resolved);
@@ -763,18 +855,12 @@ public final class AdventureMessageUtil {
     }
 
     /**
-     * One-shot log used to confirm at runtime which path the first gradient-bearing
-     * message actually went down. We read so many "still showing 2 solid colors"
-     * reports because the static-init flags don't tell us which path the runtime
-     * picked — this does.
+     * No-op retained so the (now silent) diagnostic call sites don't need to be
+     * touched. The gradient rendering works via whichever path succeeds; the
+     * runtime-path chatter is no longer logged to console.
      */
-    private static final java.util.concurrent.atomic.AtomicBoolean FIRST_GRADIENT_LOGGED =
-            new java.util.concurrent.atomic.AtomicBoolean(false);
-
     private static void logFirstGradientPath(String detail) {
-        if (FIRST_GRADIENT_LOGGED.compareAndSet(false, true)) {
-            java.util.logging.Logger.getLogger("SF-Core").info("[gradient] runtime path: " + detail);
-        }
+        // Intentionally silent.
     }
 
     private static String describeFirstColors(List<Span> spans, int limit) {
@@ -1417,8 +1503,16 @@ public final class AdventureMessageUtil {
             return;
         }
         try {
-            Method ofMethod = ChatColor.class.getMethod("of", String.class);
-            Method setColor = TextComponent.class.getMethod("setColor", ChatColor.class);
+            // Hex colors live on net.md_5.bungee.api.ChatColor (added 1.16), NOT
+            // org.bukkit.ChatColor — that one is the legacy 16-color enum with no
+            // of(String). The previous lookup used the bukkit class, so it always
+            // failed and applyHexColor fell back to closestLegacyColor(), which
+            // snaps every gradient glyph to the nearest of 16 colors → the gradient
+            // collapsed into 2 solid bands. TextComponent.setColor also takes the
+            // bungee ChatColor, so both handles must come from that class.
+            Class<?> bungeeColor = net.md_5.bungee.api.ChatColor.class;
+            Method ofMethod = bungeeColor.getMethod("of", String.class);
+            Method setColor = TextComponent.class.getMethod("setColor", bungeeColor);
             CHAT_COLOR_OF = ofMethod;
             TEXT_COMPONENT_SET_COLOR = setColor;
         } catch (Throwable ignored) {

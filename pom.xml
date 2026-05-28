@@ -93,6 +93,15 @@
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                     </archive>
+                    <!-- ALWAYS regenerate the (plain) jar, even on an incremental
+                         build where the classes look unchanged. Without this, a
+                         non-clean rebuild skips jar:jar and leaves the PREVIOUS run's
+                         obfuscated jar in place; the antrun step below then copies that
+                         obfuscated jar to *-unobf.jar and ProGuard re-obfuscates it, so
+                         both jars come out obfuscated and identically sized. Forcing
+                         creation guarantees the unobfuscated jar is freshly built before
+                         the copy + ProGuard steps run. -->
+                    <forceCreation>true</forceCreation>
                 </configuration>
             </plugin>
             <plugin>
@@ -122,9 +131,12 @@
                         </goals>
                         <configuration>
                             <target>
+                                <!-- ProGuard's scratch input (if any) is cleaned up, but the
+                                     *-unobf.jar is a deliverable (the full, unobfuscated build)
+                                     and must NOT be deleted — it is kept alongside the
+                                     obfuscated ${finalName}.jar. -->
                                 <delete file="${project.build.directory}/original-${project.build.finalName}.${project.packaging}" failonerror="false"/>
-                                <delete file="${project.build.directory}/${project.build.finalName}-unobf.jar" failonerror="false"/>
-                                <echo message="ProGuard obfuscation finished successfully."/>
+                                <echo message="ProGuard obfuscation finished. Artifacts: ${project.build.finalName}.jar (obfuscated), ${project.build.finalName}-unobf.jar (unobfuscated)."/>
                             </target>
                         </configuration>
                     </execution>

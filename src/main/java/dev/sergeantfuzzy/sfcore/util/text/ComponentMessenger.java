@@ -84,23 +84,61 @@ public final class ComponentMessenger {
         if (player == null) {
             return;
         }
-        if (!BUNGEE_AVAILABLE) {
-            player.sendMessage(message);
+        // 1) Adventure's Audience#sendActionBar(Component) — the modern, reliable
+        //    path on Paper 1.16+. The Spigot ChatMessageType.ACTION_BAR reflection
+        //    (step 2) no longer resolves on recent Paper builds, which is why the
+        //    launchpad countdown was leaking into chat via the old fallback.
+        if (ADVENTURE_AVAILABLE && sendAdventureActionBar(player, message)) {
             return;
         }
+        // 2) Spigot fallback: player.spigot().sendMessage(ChatMessageType.ACTION_BAR, ...).
+        if (BUNGEE_AVAILABLE && sendSpigotActionBar(player, message)) {
+            return;
+        }
+        // 3) No action-bar transport available. Intentionally NOT falling back to
+        //    chat — this is called several times per second for the launchpad
+        //    countdown and a chat fallback would flood the player's chat.
+    }
+
+    private static boolean sendAdventureActionBar(Player player, String message) {
+        try {
+            Object component = adventureDeserialize(message);
+            if (component == null) {
+                return false;
+            }
+            Class<?> componentClass = Class.forName(ADVENTURE_COMPONENT_CLASS);
+            Method sendActionBar = null;
+            for (Method method : player.getClass().getMethods()) {
+                if ("sendActionBar".equals(method.getName()) && method.getParameterCount() == 1
+                        && method.getParameterTypes()[0].isAssignableFrom(componentClass)) {
+                    sendActionBar = method;
+                    break;
+                }
+            }
+            if (sendActionBar == null) {
+                return false;
+            }
+            sendActionBar.invoke(player, component);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static boolean sendSpigotActionBar(Player player, String message) {
         try {
             Object components = fromLegacyText(message);
             if (components == null) {
-                player.sendMessage(message);
-                return;
+                return false;
             }
             Object spigot = player.spigot();
             Class<?> chatMessageType = Class.forName(CHAT_MESSAGE_TYPE_CLASS);
             Object actionBar = Enum.valueOf(castEnum(chatMessageType), "ACTION_BAR");
             Method sendMessage = spigot.getClass().getMethod("sendMessage", chatMessageType, baseComponentArrayClass());
             sendMessage.invoke(spigot, new Object[]{actionBar, components});
-        } catch (Exception ignored) {
-            player.sendMessage(message);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
         }
     }
 
@@ -161,7 +199,19 @@ public final class ComponentMessenger {
                 }
                 ClickEvent clickEvent = null;
                 if (part.clickValue != null && !part.clickValue.isEmpty()) {
-                    clickEvent = new ClickEvent(part.runCommand ? ClickEvent.Action.RUN_COMMAND : ClickEvent.Action.SUGGEST_COMMAND, part.clickValue);
+                    ClickEvent.Action action;
+                    if (part.clickActionName != null) {
+                        ClickEvent.Action resolved;
+                        try {
+                            resolved = ClickEvent.Action.valueOf(part.clickActionName);
+                        } catch (IllegalArgumentException olderApi) {
+                            resolved = ClickEvent.Action.SUGGEST_COMMAND; // e.g. COPY_TO_CLIPBOARD on <1.15
+                        }
+                        action = resolved;
+                    } else {
+                        action = part.runCommand ? ClickEvent.Action.RUN_COMMAND : ClickEvent.Action.SUGGEST_COMMAND;
+                    }
+                    clickEvent = new ClickEvent(action, part.clickValue);
                 }
                 if (hoverEvent != null || clickEvent != null) {
                     for (BaseComponent component : components) {
@@ -377,20 +427,28 @@ public final class ComponentMessenger {
         private final List<String> hoverLines;
         private final String clickValue;
         private final boolean runCommand;
+        /** Explicit bungee ClickEvent.Action name (e.g. COPY_TO_CLIPBOARD); null = use runCommand. */
+        private final String clickActionName;
 
-        private InteractiveMessagePart(String message, List<String> hoverLines, String clickValue, boolean runCommand) {
+        private InteractiveMessagePart(String message, List<String> hoverLines, String clickValue, boolean runCommand, String clickActionName) {
             this.message = message;
             this.hoverLines = hoverLines;
             this.clickValue = clickValue;
             this.runCommand = runCommand;
+            this.clickActionName = clickActionName;
         }
 
         public static InteractiveMessagePart plain(String message) {
-            return new InteractiveMessagePart(message, null, null, false);
+            return new InteractiveMessagePart(message, null, null, false, null);
         }
 
         public static InteractiveMessagePart interactive(String message, List<String> hoverLines, String clickValue, boolean runCommand) {
-            return new InteractiveMessagePart(message, hoverLines, clickValue, runCommand);
+            return new InteractiveMessagePart(message, hoverLines, clickValue, runCommand, null);
+        }
+
+        /** A click that copies {@code copyText} to the player's clipboard (1.15+; suggests it otherwise). */
+        public static InteractiveMessagePart copy(String message, List<String> hoverLines, String copyText) {
+            return new InteractiveMessagePart(message, hoverLines, copyText, false, "COPY_TO_CLIPBOARD");
         }
     }
 }

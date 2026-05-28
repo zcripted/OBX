@@ -28,18 +28,64 @@ public class LanguageFile {
         this.file = new File(new File(plugin.getDataFolder(), "languages"), language.fileName());
     }
 
-    public void ensureExists(Map<String, Object> defaults, Map<String, List<String>> sectionComments) {
+    /**
+     * Generates the file from defaults if missing, or self-heals an existing one.
+     * Returns {@code true} when a fresh default file was created, so the caller
+     * can fold all newly-created files into a single console summary rather than
+     * logging one line per file.
+     */
+    public boolean ensureExists(Map<String, Object> defaults, Map<String, List<String>> sectionComments) {
         if (file.exists()) {
+            repairMojibake();
             load();
-            return;
+            return false;
         }
         writeMerged(defaults, sectionComments);
         load();
-        plugin.getLogger().info("[SF-Core] Created default language file: " + file.getName());
+        return true;
+    }
+
+    public String getFileName() {
+        return file.getName();
     }
 
     public void load() {
         this.config = YamlConfiguration.loadConfiguration(file);
+    }
+
+    /**
+     * Self-heals an already-generated language file whose German (or other Latin-1
+     * supplement) characters were double-encoded — i.e. UTF-8 bytes written, then
+     * re-read as CP1252 and re-saved as UTF-8 (so {@code ü} became {@code Ã¼},
+     * {@code ä} became {@code Ã¤}, etc.). Earlier builds shipped that mojibake, and
+     * because {@code syncDefaults} never overwrites existing keys the broken values
+     * would otherwise persist. We rewrite the file (UTF-8, no BOM) only when a known
+     * mojibake sequence is actually present, so a clean file is left untouched and a
+     * server owner's own edits are preserved (these sequences are never valid text).
+     */
+    private void repairMojibake() {
+        if (!file.exists()) {
+            return;
+        }
+        try {
+            String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+            String fixed = content
+                    .replace("Ã¤", "ä")   // Ã¤ -> ä
+                    .replace("Ã¶", "ö")   // Ã¶ -> ö
+                    .replace("Ã¼", "ü")   // Ã¼ -> ü
+                    .replace("ÃŸ", "ß")   // ÃŸ -> ß
+                    .replace("Ã„", "Ä")   // Ã„ -> Ä
+                    .replace("Ã–", "Ö")   // Ã– -> Ö
+                    .replace("Ãœ", "Ü");  // Ãœ -> Ü
+            if (!fixed.equals(content)) {
+                Files.write(file.toPath(), fixed.getBytes(StandardCharsets.UTF_8));
+                dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin,
+                        "Repaired mis-encoded characters in " + file.getName() + ".");
+            }
+        } catch (IOException exception) {
+            plugin.getLogger().warning("Could not check/repair encoding of " + file.getName()
+                    + ": " + exception.getMessage());
+        }
     }
 
     public int syncDefaults(Map<String, Object> defaults, Map<String, List<String>> sectionComments) {

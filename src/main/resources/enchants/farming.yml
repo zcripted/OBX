@@ -1,0 +1,87 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — FARMING enchantments (green)
+# ════════════════════════════════════════════════════════════════════════════
+
+greenthumb:
+  display_name: "&aGreenthumb"
+  category: farming
+  rarity: uncommon
+  max_level: 3
+  applies_to: [HOE, CROP_SEED]
+  description:
+    - "Speed up crop growth around you while held."
+  levels:
+    1: { growth_multiplier: 1.5, radius: 4.0, instant_chance: 0.0 }
+    2: { growth_multiplier: 2.0, radius: 6.0, instant_chance: 0.0 }
+    3: { growth_multiplier: 3.0, radius: 8.0, instant_chance: 0.05 }
+
+harvest_wave:
+  display_name: "&2Harvest Wave"
+  category: farming
+  rarity: rare
+  max_level: 3
+  applies_to: [HOE]
+  description:
+    - "Harvest (and replant) crops in an area."
+  levels:
+    1: { size: 3, replant: false, auto_collect: false }
+    2: { size: 5, replant: true, auto_collect: false }
+    3: { size: 7, replant: true, auto_collect: true }
+
+beastmaster:
+  display_name: "&aBeastmaster"
+  category: farming
+  rarity: uncommon
+  max_level: 3
+  applies_to: [SHEARS, HOE]
+  description:
+    - "Improved yields from animals."
+  levels:
+    1: { wool_bonus: 1, leather_bonus: 1, porkchop_bonus: 0 }
+    2: { wool_bonus: 2, leather_bonus: 2, porkchop_bonus: 1 }
+    3: { wool_bonus: 3, leather_bonus: 2, porkchop_bonus: 1 }
+
+anglers_luck:
+  display_name: "&bAngler's Luck"
+  category: farming
+  rarity: rare
+  max_level: 4
+  applies_to: [FISHING_ROD]
+  description:
+    - "Better fishing loot, less junk."
+  levels:
+    1: { treasure_bonus: 0.15, junk_reduction: 0.0, scroll_chance: 0.0 }
+    2: { treasure_bonus: 0.30, junk_reduction: 0.10, scroll_chance: 0.0 }
+    3: { treasure_bonus: 0.50, junk_reduction: 0.25, scroll_chance: 0.0 }
+    4: { treasure_bonus: 0.75, junk_reduction: 0.50, scroll_chance: 0.05 }
+
+bountiful_yield:
+  display_name: "&aBountiful Yield"
+  category: farming
+  rarity: uncommon
+  max_level: 4
+  applies_to: [HOE, CROP_SEED]
+  description:
+    - "Crops drop extra produce."
+  levels:
+    1: { extra: 1, chance: 0.25, golden_chance: 0.0 }
+    2: { extra: 1, chance: 0.50, golden_chance: 0.0 }
+    3: { extra: 2, chance: 0.50, golden_chance: 0.0 }
+    4: { extra: 2, chance: 0.75, golden_chance: 0.05 }
+
+composter:
+  display_name: "&2Composter"
+  category: farming
+  rarity: uncommon
+  max_level: 2
+  applies_to: [HOE]
+  description:
+    - "Freshly tilled soil comes pre-fertilized."
+  levels:
+    1: { bonemeal: true, double_tier_chance: 0.0 }
+    2: { bonemeal: true, double_tier_chance: 0.25 }
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

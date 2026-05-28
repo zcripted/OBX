@@ -1,0 +1,114 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — TOOLS enchantments (yellow)
+# ════════════════════════════════════════════════════════════════════════════
+
+vein_miner:
+  display_name: "&eVein Miner"
+  category: tools
+  rarity: rare
+  max_level: 4
+  applies_to: [PICKAXE, AXE]
+  conflicts_with: [excavator, treecapitator]
+  description:
+    - "Break connected blocks of the same type at once."
+  levels:
+    1: { max_blocks: 8, auto_collect: false }
+    2: { max_blocks: 16, auto_collect: false }
+    3: { max_blocks: 32, auto_collect: false }
+    4: { max_blocks: 64, auto_collect: true }
+
+smelter:
+  display_name: "&6Smelter"
+  category: tools
+  rarity: uncommon
+  max_level: 1
+  applies_to: [PICKAXE]
+  description:
+    - "Auto-smelt ore drops as you mine."
+  levels:
+    1: { xp_bonus: 1 }
+
+treecapitator:
+  display_name: "&2Treecapitator"
+  category: tools
+  rarity: rare
+  max_level: 3
+  applies_to: [AXE]
+  conflicts_with: [vein_miner, excavator]
+  description:
+    - "Fell an entire tree from a single log break."
+  levels:
+    1: { max_logs: 24, decay_leaves: false, replant: false }
+    2: { max_logs: 48, decay_leaves: true, replant: false }
+    3: { max_logs: 96, decay_leaves: true, replant: true }
+
+excavator:
+  display_name: "&eExcavator"
+  category: tools
+  rarity: rare
+  max_level: 3
+  applies_to: [SHOVEL]
+  conflicts_with: [vein_miner, treecapitator]
+  description:
+    - "Break a wide area of soft blocks at once."
+  levels:
+    1: { cube: false, speed_multiplier: 1.0 }
+    2: { cube: false, speed_multiplier: 1.5 }
+    3: { cube: true, speed_multiplier: 1.5 }
+
+auto_repair:
+  display_name: "&aAuto-Repair"
+  category: tools
+  rarity: epic
+  max_level: 4
+  applies_to: [TOOL, WEAPON, ARMOR]
+  description:
+    - "Slowly mend durability while carried."
+  levels:
+    1: { interval_seconds: 30, amount: 1 }
+    2: { interval_seconds: 20, amount: 1 }
+    3: { interval_seconds: 10, amount: 1 }
+    4: { interval_seconds: 5, amount: 1 }
+
+fortune_strike:
+  display_name: "&eFortune Strike"
+  category: tools
+  rarity: rare
+  max_level: 3
+  applies_to: [PICKAXE]
+  description:
+    - "Chance to double ore drops (stacks with Fortune)."
+  levels:
+    1: { chance: 0.10 }
+    2: { chance: 0.18 }
+    3: { chance: 0.28 }
+
+xp_magnet:
+  display_name: "&aXP Magnet"
+  category: tools
+  rarity: uncommon
+  max_level: 3
+  applies_to: [TOOL]
+  description:
+    - "Pull nearby experience orbs toward you."
+  levels:
+    1: { radius: 4.0, xp_bonus: 0.0 }
+    2: { radius: 7.0, xp_bonus: 0.0 }
+    3: { radius: 12.0, xp_bonus: 0.10 }
+
+geologist:
+  display_name: "&6Geologist"
+  category: tools
+  rarity: rare
+  max_level: 2
+  applies_to: [PICKAXE]
+  description:
+    - "Reveal nearby ores with outline particles when held."
+  levels:
+    1: { radius: 6.0, include_rare: false }
+    2: { radius: 10.0, include_rare: true }
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

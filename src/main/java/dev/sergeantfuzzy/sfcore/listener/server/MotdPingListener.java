@@ -37,6 +37,9 @@ public class MotdPingListener implements Listener {
     private static final ConcurrentHashMap<Class<?>, EventReflection> EVENT_CACHE = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, ProfileFactory> PROFILE_CACHE = new ConcurrentHashMap<>();
 
+    /** Event class names already logged by the one-time ping diagnostic. */
+    private static final java.util.Set<String> LOGGED_PING_CLASSES = ConcurrentHashMap.newKeySet();
+
     private static final Method MISSING_METHOD = sentinelMethod();
     private static final Field MISSING_FIELD = sentinelField();
     private static final Class<?> MISSING_CLASS = MissingClassMarker.class;
@@ -45,6 +48,72 @@ public class MotdPingListener implements Listener {
 
     public MotdPingListener(Main plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Registers an additional handler for Paper's {@code PaperServerListPingEvent}
+     * when that class is present on the runtime.
+     *
+     * <p>This is required for the server-list hover (player sample) to work on
+     * Paper and its forks. {@code PaperServerListPingEvent} declares its OWN
+     * {@link org.bukkit.event.HandlerList}, so a listener registered only for the
+     * base {@link ServerListPingEvent} receives the plain Bukkit event — which
+     * exposes {@code setMotd}/{@code setMaxPlayers} (so the MOTD and counter work)
+     * but has no player-sample API, leaving the hover silently unset. Listening
+     * for the Paper event too means {@link #onServerListPing} runs against an
+     * instance whose class exposes {@code getPlayerSample()} / {@code setHidePlayers()},
+     * so the cached reflection in {@link EventReflection} can populate the hover.
+     *
+     * <p>On non-Paper platforms (base Spigot/CraftBukkit) the class is absent and
+     * this is a no-op; the base {@link ServerListPingEvent} listener still drives
+     * the MOTD and counter there.
+     */
+    @SuppressWarnings("unchecked")
+    public void registerPaperPingListener() {
+        Class<?> paperEventClass;
+        try {
+            paperEventClass = Class.forName("com.destroystokyo.paper.event.server.PaperServerListPingEvent");
+        } catch (Throwable notPaper) {
+            return;
+        }
+        if (!org.bukkit.event.Event.class.isAssignableFrom(paperEventClass)
+                || !ServerListPingEvent.class.isAssignableFrom(paperEventClass)) {
+            return;
+        }
+        try {
+            // Use a named EventExecutor (not a lambda) so the dispatch is fully
+            // predictable under obfuscation/shrinking.
+            Bukkit.getPluginManager().registerEvent(
+                    (Class<? extends org.bukkit.event.Event>) paperEventClass,
+                    this, EventPriority.HIGHEST, new PaperPingExecutor(this), plugin, true);
+            dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin, "MOTD",
+                    "Registered Paper ping listener for " + paperEventClass.getName()
+                            + " (enables the player-count hover).");
+        } catch (Throwable throwable) {
+            plugin.getLogger().warning("[MOTD] Could not register Paper ping listener; "
+                    + "server-list hover may be unavailable: " + throwable.getMessage());
+        }
+    }
+
+    /**
+     * Bridges {@code PaperServerListPingEvent} (resolved only at runtime) into
+     * {@link #onServerListPing(ServerListPingEvent)}. A concrete class rather
+     * than a lambda so nothing about the dispatch depends on invokedynamic
+     * surviving obfuscation.
+     */
+    private static final class PaperPingExecutor implements org.bukkit.plugin.EventExecutor {
+        private final MotdPingListener listener;
+
+        PaperPingExecutor(MotdPingListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void execute(org.bukkit.event.Listener registered, org.bukkit.event.Event event) {
+            if (event instanceof ServerListPingEvent) {
+                listener.onServerListPing((ServerListPingEvent) event);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -67,10 +136,37 @@ public class MotdPingListener implements Listener {
 
         List<String> effectiveLines = resolveHoverLines(motdService, realOnline, realMax);
         if (effectiveLines == null || effectiveLines.isEmpty()) {
+            logPingOnce(event, 0, "skipped:no-hover-lines");
             return;
         }
         eventOps.applyHidePlayers(event, false);
-        eventOps.applyHoverSample(plugin, event, effectiveLines);
+        String sampleResult = eventOps.applyHoverSample(plugin, event, effectiveLines);
+        logPingOnce(event, effectiveLines.size(), sampleResult);
+    }
+
+    /**
+     * Logs the outcome of the first ping seen for each distinct event class. On
+     * Paper two classes fire (the base {@code ServerListPingEvent} and
+     * {@code PaperServerListPingEvent}); seeing both lines makes it obvious which
+     * event carries the player-sample API and whether the hover was actually set.
+     * After the first ping per class this is a single set lookup — safe on the
+     * ping hot path.
+     */
+    private void logPingOnce(ServerListPingEvent event, int hoverLineCount, String sampleResult) {
+        // Log once per distinct event class: INFO when the hover was applied,
+        // WARNING when it couldn't be. Helps confirm the sample reached the wire
+        // (any remaining "no hover" is then client-side cache or a proxy stripping
+        // the sample, not SF-Core).
+        if (!LOGGED_PING_CLASSES.add(event.getClass().getName())) {
+            return;
+        }
+        String message = "ping handled: event=" + event.getClass().getName()
+                + ", hoverLines=" + hoverLineCount + ", sample=" + sampleResult;
+        if (sampleResult != null && sampleResult.startsWith("ok")) {
+            dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin, "MOTD", message);
+        } else {
+            plugin.getLogger().warning("[MOTD] " + message + " (no custom hover shown for this ping).");
+        }
     }
 
     private List<String> resolveHoverLines(MotdService motdService, int realOnline, int realMax) {
@@ -110,10 +206,13 @@ public class MotdPingListener implements Listener {
     }
 
     private Class<?> detectSampleType(Class<?> eventClass) {
-        Class<?> paperListedPlayerInfo = findClass(PAPER_LISTED_PLAYER_INFO);
-        if (paperListedPlayerInfo != null && paperListedPlayerInfo != MISSING_CLASS) {
-            return paperListedPlayerInfo;
-        }
+        // Detect the ACTUAL element type the sample list holds, from the getter /
+        // setter generics — FIRST. Modern Paper's getPlayerSample() returns
+        // List<PlayerProfile> (com.destroystokyo.paper.profile.PlayerProfile);
+        // older APIs used List<ListedPlayerInfo>. The list is element-type-checked,
+        // so building the wrong type makes addAll(...) throw ClassCastException
+        // (exactly the StandardPaperServerListPingEventImpl failure). Only fall back
+        // to the hardcoded ListedPlayerInfo class when the generics can't be read.
         Class<?> resolved = sampleTypeFromMethod(findMethod(eventClass, "getPlayerSample"));
         if (resolved != null) {
             return resolved;
@@ -126,7 +225,15 @@ public class MotdPingListener implements Listener {
         if (resolved != null) {
             return resolved;
         }
-        return sampleTypeFromParam(findMethod(eventClass, "setListedPlayers", List.class), 0);
+        resolved = sampleTypeFromParam(findMethod(eventClass, "setListedPlayers", List.class), 0);
+        if (resolved != null) {
+            return resolved;
+        }
+        Class<?> paperListedPlayerInfo = findClass(PAPER_LISTED_PLAYER_INFO);
+        if (paperListedPlayerInfo != null && paperListedPlayerInfo != MISSING_CLASS) {
+            return paperListedPlayerInfo;
+        }
+        return null;
     }
 
     private static Class<?> sampleTypeFromMethod(Method method) {
@@ -210,36 +317,113 @@ public class MotdPingListener implements Listener {
             }
         }
 
-        void applyHoverSample(Main plugin, ServerListPingEvent event, List<String> hoverLines) {
-            ProfileFactory factory = sampleType == null
-                    ? null
-                    : PROFILE_CACHE.computeIfAbsent(sampleType, type -> ProfileFactory.resolve(plugin, type));
-            List<Object> profiles = factory == null
-                    ? new ArrayList<>(0)
-                    : factory.buildAll(plugin, hoverLines);
-            if (profiles.isEmpty()) {
-                return;
+        /**
+         * Populates the server-list player-sample (the hover tooltip over the
+         * player count). The list returned by {@code getPlayerSample()} is
+         * element-type-checked and that type differs across platforms/versions
+         * (modern Paper: {@code PlayerProfile}; older: {@code ListedPlayerInfo};
+         * some: {@code GameProfile}). Building the wrong type makes
+         * {@code addAll(...)} throw {@link ClassCastException} — the failure seen
+         * on {@code StandardPaperServerListPingEventImpl}. So we TRY each candidate
+         * element type until the list accepts one, restoring the original contents
+         * between failed attempts. Returns a short outcome tag for the diagnostic.
+         */
+        String applyHoverSample(Main plugin, ServerListPingEvent event, List<String> hoverLines) {
+            if (sampleGetter == MISSING_METHOD && sampleSetter == MISSING_METHOD) {
+                return "fail:no-sample-api on " + event.getClass().getName();
             }
+            StringBuilder tried = new StringBuilder();
+            for (Class<?> type : candidateSampleTypes()) {
+                ProfileFactory factory = PROFILE_CACHE.computeIfAbsent(type, t -> ProfileFactory.resolve(plugin, t));
+                List<Object> profiles = factory.buildAll(plugin, hoverLines);
+                if (profiles.isEmpty()) {
+                    // Include the resolved factory shape so a lingering failure is
+                    // diagnosable (e.g. distinguishes "no wrapper found" -> NONE from
+                    // "wrapper threw" -> GAME_PROFILE_WRAP+wrapCtor).
+                    tried.append(type.getSimpleName()).append(":no-build(").append(factory.describe()).append(") ");
+                    continue;
+                }
+                String outcome = trySetSample(event, profiles);
+                if (outcome.startsWith("ok")) {
+                    return outcome + " type=" + type.getSimpleName();
+                }
+                tried.append(type.getSimpleName()).append(':').append(outcome).append(' ');
+            }
+            return "fail:no-candidate-accepted [" + tried.toString().trim() + "]";
+        }
+
+        /**
+         * Element types to attempt, in order: the type detected from the event's
+         * generics first, then the common cross-version sample types. Duplicates
+         * and absent classes are skipped.
+         */
+        private List<Class<?>> candidateSampleTypes() {
+            List<Class<?>> types = new ArrayList<>(5);
+            addCandidate(types, sampleType);
+            addCandidate(types, findClass("com.destroystokyo.paper.profile.PlayerProfile"));
+            addCandidate(types, findClass("org.bukkit.profile.PlayerProfile"));
+            addCandidate(types, findClass("com.mojang.authlib.GameProfile"));
+            addCandidate(types, findClass(PAPER_LISTED_PLAYER_INFO));
+            return types;
+        }
+
+        private static void addCandidate(List<Class<?>> types, Class<?> type) {
+            if (type != null && type != MISSING_CLASS && !types.contains(type)) {
+                types.add(type);
+            }
+        }
+
+        /**
+         * Applies the built profiles via the setter (if any) or by mutating the
+         * getter's list. On a type mismatch ({@link ClassCastException}) the list
+         * is restored to its original contents so a failed attempt doesn't wipe a
+         * real player sample. Returns {@code "ok:..."} on success.
+         */
+        private String trySetSample(ServerListPingEvent event, List<Object> profiles) {
             if (sampleSetter != MISSING_METHOD) {
                 try {
                     sampleSetter.invoke(event, profiles);
-                    return;
-                } catch (Exception ignored) {
-                    // fall through to in-place mutation
+                    return "ok:setter x" + profiles.size();
+                } catch (Throwable ignored) {
+                    // fall through to getter mutation
                 }
             }
-            if (sampleGetter != MISSING_METHOD) {
-                try {
-                    Object current = sampleGetter.invoke(event);
-                    if (current instanceof List) {
-                        @SuppressWarnings("unchecked")
-                        List<Object> list = (List<Object>) current;
-                        list.clear();
-                        list.addAll(profiles);
-                    }
-                } catch (Exception ignored) {
-                    // best-effort
-                }
+            if (sampleGetter == MISSING_METHOD) {
+                return "no-method";
+            }
+            Object current;
+            try {
+                current = sampleGetter.invoke(event);
+            } catch (Throwable t) {
+                return "getter-threw-" + t.getClass().getSimpleName();
+            }
+            if (!(current instanceof List)) {
+                return "non-list";
+            }
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>) current;
+            List<Object> backup = new ArrayList<>(list);
+            try {
+                list.clear();
+                list.addAll(profiles);
+                return "ok:mutate x" + profiles.size();
+            } catch (UnsupportedOperationException immutable) {
+                return "immutable";
+            } catch (ClassCastException cce) {
+                restore(list, backup);
+                return "cce";
+            } catch (Throwable t) {
+                restore(list, backup);
+                return "addAll-" + t.getClass().getSimpleName();
+            }
+        }
+
+        private static void restore(List<Object> list, List<Object> backup) {
+            try {
+                list.clear();
+                list.addAll(backup);
+            } catch (Throwable ignored) {
+                // best effort
             }
         }
     }
@@ -252,12 +436,31 @@ public class MotdPingListener implements Listener {
         private final Class<?> sampleType;
         private final Constructor<?> constructor;
         private final ProfileSource profileSource;
+        /** GAME_PROFILE_WRAP only: how a raw GameProfile becomes a CraftPlayerProfile. */
+        private final Constructor<?> wrapperCtor;
+        private final Method wrapperMethod;
 
         private ProfileFactory(Strategy strategy, Class<?> sampleType, Constructor<?> constructor, ProfileSource profileSource) {
+            this(strategy, sampleType, constructor, profileSource, null, null);
+        }
+
+        private ProfileFactory(Strategy strategy, Class<?> sampleType, Constructor<?> constructor,
+                               ProfileSource profileSource, Constructor<?> wrapperCtor, Method wrapperMethod) {
             this.strategy = strategy;
             this.sampleType = sampleType;
             this.constructor = constructor;
             this.profileSource = profileSource;
+            this.wrapperCtor = wrapperCtor;
+            this.wrapperMethod = wrapperMethod;
+        }
+
+        /** Compact description used by the one-time ping diagnostic. */
+        String describe() {
+            return (strategy == null ? "NONE" : strategy.name())
+                    + (constructor != null ? "+ctor" : "")
+                    + (profileSource != null ? "+src" : "")
+                    + (wrapperCtor != null ? "+wrapCtor" : "")
+                    + (wrapperMethod != null ? "+wrapFn" : "");
         }
 
         static ProfileFactory resolve(Main plugin, Class<?> sampleType) {
@@ -266,6 +469,18 @@ public class MotdPingListener implements Listener {
             }
             String typeName = sampleType.getName();
             if ("org.bukkit.profile.PlayerProfile".equals(typeName) || "com.destroystokyo.paper.profile.PlayerProfile".equals(typeName)) {
+                // PRIMARY: wrap a non-validating com.mojang.authlib.GameProfile into a
+                // CraftPlayerProfile. The public createProfile / createPlayerProfile
+                // factories validate the profile NAME (≤16 chars, [A-Za-z0-9_]) and so
+                // reject the coloured MOTD hover text — that rejection is the
+                // "PlayerProfile:no-build" failure. GameProfile performs no name
+                // validation, and a CraftPlayerProfile built from it is accepted by the
+                // sample list (it implements PlayerProfile).
+                ProfileFactory wrap = resolveGameProfileWrap(plugin, sampleType);
+                if (wrap != null) {
+                    return wrap;
+                }
+                // FALLBACK (older platforms / non-Paper): the validating factory methods.
                 ProfileSource source = ProfileSource.detect(plugin, sampleType);
                 return source == null ? NONE : new ProfileFactory(Strategy.PLAYER_PROFILE, sampleType, null, source);
             }
@@ -282,6 +497,63 @@ public class MotdPingListener implements Listener {
                 return NONE;
             }
             return NONE;
+        }
+
+        /**
+         * Resolves a builder that wraps a raw {@code com.mojang.authlib.GameProfile}
+         * (which does NOT validate names) into the platform's {@code CraftPlayerProfile}
+         * — the concrete type the server-list sample accepts — bypassing the name
+         * validation that the public profile factories enforce. Returns {@code null}
+         * when GameProfile or a suitable wrapper can't be found, so the caller falls
+         * back to the public factory.
+         */
+        private static ProfileFactory resolveGameProfileWrap(Main plugin, Class<?> sampleType) {
+            Class<?> gpClass = findClass("com.mojang.authlib.GameProfile");
+            if (gpClass == null || gpClass == MISSING_CLASS) {
+                return null;
+            }
+            Constructor<?> gpCtor = findConstructor(gpClass, UUID.class, String.class);
+            if (gpCtor == null) {
+                return null;
+            }
+            Class<?> craftClass = findCraftPlayerProfileClass(plugin);
+            if (craftClass == null || !sampleType.isAssignableFrom(craftClass)) {
+                return null;
+            }
+            // Prefer a constructor taking a single GameProfile (CraftPlayerProfile(GameProfile)).
+            for (Constructor<?> candidate : craftClass.getDeclaredConstructors()) {
+                Class<?>[] params = candidate.getParameterTypes();
+                if (params.length == 1 && params[0] == gpClass) {
+                    candidate.setAccessible(true);
+                    return new ProfileFactory(Strategy.GAME_PROFILE_WRAP, sampleType, gpCtor, null, candidate, null);
+                }
+            }
+            // Otherwise a static factory taking a single GameProfile (asBukkitCopy / asBukkitMirror).
+            for (Method method : craftClass.getDeclaredMethods()) {
+                if (!java.lang.reflect.Modifier.isStatic(method.getModifiers())) {
+                    continue;
+                }
+                Class<?>[] params = method.getParameterTypes();
+                if (params.length == 1 && params[0] == gpClass && sampleType.isAssignableFrom(method.getReturnType())) {
+                    method.setAccessible(true);
+                    return new ProfileFactory(Strategy.GAME_PROFILE_WRAP, sampleType, gpCtor, null, null, method);
+                }
+            }
+            return null;
+        }
+
+        /** Locates the runtime {@code CraftPlayerProfile} implementation class. */
+        private static Class<?> findCraftPlayerProfileClass(Main plugin) {
+            // Derive the CraftBukkit base package from the live server class, covering
+            // both the modern unversioned package (1.20.5+) and the older versioned
+            // org.bukkit.craftbukkit.v1_xx_Rn form.
+            String base = plugin.getServer().getClass().getPackage().getName();
+            Class<?> found = findClass(base + ".profile.CraftPlayerProfile");
+            if (found != null && found != MISSING_CLASS) {
+                return found;
+            }
+            found = findClass("org.bukkit.craftbukkit.profile.CraftPlayerProfile");
+            return found == null || found == MISSING_CLASS ? null : found;
         }
 
         private static Constructor<?> chooseListedPlayerInfoConstructor(Class<?> sampleType, ProfileSource source) {
@@ -335,6 +607,13 @@ public class MotdPingListener implements Listener {
                 switch (strategy) {
                     case GAME_PROFILE:
                         return constructor.newInstance(uuid, value);
+                    case GAME_PROFILE_WRAP: {
+                        Object gameProfile = constructor.newInstance(uuid, value);
+                        if (wrapperCtor != null) {
+                            return wrapperCtor.newInstance(gameProfile);
+                        }
+                        return wrapperMethod.invoke(null, gameProfile);
+                    }
                     case PLAYER_PROFILE:
                         return profileSource.create(plugin, uuid, value);
                     case LISTED_PLAYER_INFO:
@@ -395,6 +674,7 @@ public class MotdPingListener implements Listener {
 
         private enum Strategy {
             GAME_PROFILE,
+            GAME_PROFILE_WRAP,
             PLAYER_PROFILE,
             LISTED_PLAYER_INFO
         }
@@ -413,20 +693,45 @@ public class MotdPingListener implements Listener {
         }
 
         static ProfileSource detect(Main plugin, Class<?> expectedType) {
-            Method bukkitCreate = findMethod(Bukkit.class, "createProfile", UUID.class, String.class);
-            if (bukkitCreate != MISSING_METHOD && (expectedType == null || expectedType.isAssignableFrom(bukkitCreate.getReturnType()))) {
-                return new ProfileSource(bukkitCreate, true, bukkitCreate.getReturnType());
-            }
             Class<?> serverClass = plugin.getServer().getClass();
-            Method serverPlayerProfile = findMethod(serverClass, "createPlayerProfile", UUID.class, String.class);
-            if (serverPlayerProfile != MISSING_METHOD && (expectedType == null || expectedType.isAssignableFrom(serverPlayerProfile.getReturnType()))) {
-                return new ProfileSource(serverPlayerProfile, false, serverPlayerProfile.getReturnType());
+            // createProfileExact performs NO name validation. The MOTD hover
+            // "names" are arbitrary coloured text (e.g. "§eOnline: 5/20"), which
+            // the validating createProfile / createPlayerProfile reject on modern
+            // Paper — that rejection is the StandardPaperServerListPingEventImpl
+            // "PlayerProfile:no-build" failure. Prefer the exact factory so the
+            // sample profiles actually build; only fall back to the validating
+            // factories on older platforms that lack it (those were lenient
+            // about names anyway).
+            ProfileSource source = tryFactory(Bukkit.class, "createProfileExact", true, expectedType);
+            if (source == null) {
+                source = tryFactory(serverClass, "createProfileExact", false, expectedType);
             }
-            Method serverProfile = findMethod(serverClass, "createProfile", UUID.class, String.class);
-            if (serverProfile != MISSING_METHOD && (expectedType == null || expectedType.isAssignableFrom(serverProfile.getReturnType()))) {
-                return new ProfileSource(serverProfile, false, serverProfile.getReturnType());
+            if (source == null) {
+                source = tryFactory(Bukkit.class, "createProfile", true, expectedType);
             }
-            return null;
+            if (source == null) {
+                source = tryFactory(serverClass, "createPlayerProfile", false, expectedType);
+            }
+            if (source == null) {
+                source = tryFactory(serverClass, "createProfile", false, expectedType);
+            }
+            return source;
+        }
+
+        /**
+         * Resolves a {@code (UUID, String) -> PlayerProfile} factory method on the
+         * given holder, returning {@code null} when it is absent or its return
+         * type isn't assignable to {@code expectedType}.
+         */
+        private static ProfileSource tryFactory(Class<?> holder, String methodName, boolean isStatic, Class<?> expectedType) {
+            Method method = findMethod(holder, methodName, UUID.class, String.class);
+            if (method == MISSING_METHOD) {
+                return null;
+            }
+            if (expectedType != null && !expectedType.isAssignableFrom(method.getReturnType())) {
+                return null;
+            }
+            return new ProfileSource(method, isStatic, method.getReturnType());
         }
 
         Object create(Main plugin, UUID uuid, String value) {
@@ -498,8 +803,14 @@ public class MotdPingListener implements Listener {
     }
 
     private static Field sentinelField() {
+        // Use a stable JDK field rather than reflecting on one of THIS class's
+        // own fields by name: under obfuscation our field names are renamed, so
+        // a getDeclaredField("MISSING_METHOD") would only survive if ProGuard
+        // happens to adapt the string literal. java.lang.Integer.MAX_VALUE is in
+        // the JDK (never obfuscated) and always present — it's only ever used as
+        // a unique non-null sentinel reference, never read.
         try {
-            return MotdPingListener.class.getDeclaredField("MISSING_METHOD");
+            return Integer.class.getDeclaredField("MAX_VALUE");
         } catch (NoSuchFieldException impossible) {
             throw new AssertionError(impossible);
         }

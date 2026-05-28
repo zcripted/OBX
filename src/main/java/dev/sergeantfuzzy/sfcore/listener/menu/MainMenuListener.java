@@ -65,6 +65,15 @@ public final class MainMenuListener implements Listener {
                 }
                 return;
             }
+            if (event.getRawSlot() == AdminMenu.HUB_CONTROLS_SLOT) {
+                Player admin = (Player) clicker;
+                if (admin.hasPermission("sfcore.hub.admin")) {
+                    AdminSubMenu.openHubMenu(plugin, admin);
+                } else {
+                    plugin.getLanguageManager().send(admin, "core.no-permission");
+                }
+                return;
+            }
             if (event.getRawSlot() == AdminMenu.CLOSE_SLOT) {
                 ((Player) clicker).closeInventory();
             }
@@ -118,6 +127,15 @@ public final class MainMenuListener implements Listener {
                     AdminSubMenu.handleAction(plugin, (Player) clicker, holder, slot, event.getClick());
                 }
                 break;
+                case HUB:
+                    if (slot == AdminSubMenu.BACK_SLOT || slot == 31) {
+                        AdminMenu.open(plugin, (Player) clicker);
+                    } else if (slot == AdminMenu.CLOSE_SLOT) {
+                        ((Player) clicker).closeInventory();
+                    } else {
+                        AdminSubMenu.handleHubMenuClick(plugin, (Player) clicker, slot, event.getClick());
+                    }
+                    break;
                 default:
                     if (slot == AdminSubMenu.BACK_SLOT || slot == 31) {
                         AdminMenu.open(plugin, (Player) clicker);

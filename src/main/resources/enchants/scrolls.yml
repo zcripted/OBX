@@ -1,0 +1,50 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — Scroll system tuning
+# Scrolls are the primary way players acquire and apply custom enchantments.
+# Visual tiers are derived from the enchantment level (Common=1 … Mythic=6+).
+# ════════════════════════════════════════════════════════════════════════════
+
+scrolls:
+  # Base anvil / drag-and-drop success rate per rarity tier (0.0–1.0).
+  default_success_rates:
+    common: 0.95
+    uncommon: 0.85
+    rare: 0.70
+    epic: 0.55
+    legendary: 0.40
+    mythic: 0.30
+
+  # Protection Scroll: chance to save the item on a failed application.
+  protect_scroll_save_chance: 1.00
+  # Success Scroll: flat additive boost to the base success rate.
+  success_scroll_boost: 0.20
+
+  # Drag-and-drop application is the convenience option and costs extra XP.
+  dragdrop_xp_multiplier: 1.5
+
+  # XP levels charged by the anvil per rarity tier.
+  anvil_xp_cost:
+    common: 5
+    uncommon: 10
+    rare: 18
+    epic: 28
+    legendary: 40
+    mythic: 55
+
+  # Extraction Scroll returns an enchantment as a scroll at this level penalty.
+  extraction_level_penalty: 1
+
+  # Tradeable toggle per tier (false = soulbound, cannot be dropped/moved to
+  # other players — enforced where the economy/trade module hooks in).
+  tradeable:
+    common: true
+    uncommon: true
+    rare: true
+    epic: true
+    legendary: true
+    mythic: false
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

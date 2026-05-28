@@ -97,7 +97,7 @@ public final class CommandOverrideListener implements Listener {
         try {
             pluginCommand.getExecutor().onCommand(player, pluginCommand, target, args);
         } catch (Throwable throwable) {
-            plugin.getLogger().warning("[SF-Core] Failed to execute overridden command /" + target + ": " + throwable.getMessage());
+            plugin.getLogger().warning("Failed to execute overridden command /" + target + ": " + throwable.getMessage());
         }
     }
 

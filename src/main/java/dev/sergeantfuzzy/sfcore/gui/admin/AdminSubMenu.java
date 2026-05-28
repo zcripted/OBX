@@ -43,6 +43,12 @@ public final class AdminSubMenu {
 
     private static final Set<UUID> stopConfirmations = new HashSet<>();
 
+    // Padlock glyphs prepended to the Lock / Unlock Server buttons. Built from
+    // code points (ASCII source) so the file stays encoding-safe regardless of
+    // how it is saved — same reasoning as the math-bold escapes in MessageDefaults.
+    private static final String LOCK_ICON = new String(Character.toChars(0x1F512));   // closed padlock
+    private static final String UNLOCK_ICON = new String(Character.toChars(0x1F513)); // open padlock
+
     public enum SubMenuType {
         GENERIC,
         SERVER_CONTROL,
@@ -53,7 +59,8 @@ public final class AdminSubMenu {
         WEATHER,
         TIME,
         GAMERULES,
-        PLUGIN_SYSTEMS
+        PLUGIN_SYSTEMS,
+        HUB
     }
 
     private AdminSubMenu() {
@@ -96,47 +103,10 @@ public final class AdminSubMenu {
 
         fillWithFiller(inventory);
 
-        boolean whitelist = Bukkit.hasWhitelist();
-        boolean joinLock = ServerControlState.isJoinLocked();
-        boolean redstoneFrozen = ServerControlState.isRedstoneFrozen();
-        int maxPlayers = Bukkit.getMaxPlayers();
-        boolean autoSave = detectAutoSave();
-
-        place(inventory, 10, createMenuItem(new String[]{"LEVER"}, ChatColor.GOLD + "Server State",
-                Arrays.asList(
-                        ChatColor.GRAY + "Stop/Restart/Lock server.",
-                        statusLine("Whitelist", whitelist),
-                        statusLine("Join Lock", joinLock),
-                        statusLine("Redstone", !redstoneFrozen),
-                        valueLine("Max Players", maxPlayers)
-                )));
-
-        place(inventory, 12, createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"},
-                ChatColor.GOLD + "Player Access",
-                Arrays.asList(
-                        ChatColor.GRAY + "Whitelist & join control:",
-                        statusLine("Whitelist", whitelist),
-                        statusLine("Join Lock", joinLock),
-                        valueLine("Max Players", maxPlayers),
-                        ChatColor.YELLOW + "Kick non-ops / Spectator-only"
-                )));
-
-        place(inventory, 14, createMenuItem(new String[]{"CLOCK", "WATCH"},
-                ChatColor.GOLD + "Performance + Health",
-                Arrays.asList(
-                        ChatColor.GRAY + "Server health tools:",
-                        ChatColor.YELLOW + "View TPS / Clear entities",
-                        statusLine("Redstone Updates", !redstoneFrozen)
-                )));
-
-        place(inventory, 16, createMenuItem(new String[]{"GRASS_BLOCK", "GRASS"},
-                ChatColor.GOLD + "World Controls",
-                Arrays.asList(
-                        ChatColor.GRAY + "World management:",
-                        statusLine("Autosave", autoSave),
-                        ChatColor.YELLOW + "Weather / Time / Gamerules",
-                        ChatColor.YELLOW + "World Border (placeholder)"
-                )));
+        place(inventory, 10, serverStateOverviewItem());
+        place(inventory, 12, playerAccessOverviewItem());
+        place(inventory, 14, performanceOverviewItem());
+        place(inventory, 16, worldControlsOverviewItem());
 
         place(inventory, 19, createMenuItem(new String[]{"REDSTONE_COMPARATOR", "COMPARATOR"},
                 ChatColor.GOLD + "Plugin + Systems",
@@ -172,16 +142,8 @@ public final class AdminSubMenu {
                         ChatColor.GRAY + "Graceful restart with short delay.",
                         ChatColor.YELLOW + "Use when players need warning."
                 )));
-        place(inventory, 16, createMenuItem(new String[]{"IRON_DOOR"}, ChatColor.YELLOW + "Lock Server",
-                loreLines(
-                        ChatColor.GRAY + "Kicks non-ops and toggles whitelist.",
-                        statusLine("Whitelist after action", true)
-                )));
-        place(inventory, 19, createMenuItem(new String[]{"OAK_DOOR"}, ChatColor.GREEN + "Unlock Server",
-                loreLines(
-                        ChatColor.GRAY + "Disables whitelist; allows joins.",
-                        statusLine("Whitelist after action", false)
-                )));
+        place(inventory, 16, lockServerItem());
+        place(inventory, 19, unlockServerItem());
         place(inventory, CLOSE_SLOT, createCloseItem());
         place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl());
         player.openInventory(inventory);
@@ -192,25 +154,9 @@ public final class AdminSubMenu {
         Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Player Access"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
-        boolean whitelist = Bukkit.hasWhitelist();
-        boolean joinLock = ServerControlState.isJoinLocked();
-        int maxPlayers = Bukkit.getMaxPlayers();
-        place(inventory, 10, createMenuItem(new String[]{"PAPER"}, ChatColor.GOLD + "Toggle Whitelist",
-                loreLines(
-                        ChatColor.GRAY + "Enable/disable whitelist.",
-                        statusLine("Current", whitelist)
-                )));
-        place(inventory, 12, createMenuItem(new String[]{"IRON_BARS"}, ChatColor.GOLD + "Toggle Join Lock",
-                loreLines(
-                        ChatColor.GRAY + "Blocks new joins; kicks non-ops on enable.",
-                        statusLine("Current", joinLock)
-                )));
-        place(inventory, 14, createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"}, ChatColor.YELLOW + "Max Players",
-                loreLines(
-                        ChatColor.GRAY + "Adjust Paper/Spigot/Velo/Bungee slot cap.",
-                        valueLine("Current", maxPlayers),
-                        ChatColor.YELLOW + "Left-click: -1 | Right-click: +1"
-                )));
+        place(inventory, 10, whitelistToggleItem());
+        place(inventory, 12, joinLockToggleItem());
+        place(inventory, 14, maxPlayersItem());
         place(inventory, 16, createMenuItem(new String[]{"BARRIER"}, ChatColor.RED + "Kick Non-Ops",
                 loreLines(
                         ChatColor.GRAY + "Immediately kick all non-op players.",
@@ -243,11 +189,7 @@ public final class AdminSubMenu {
                         ChatColor.YELLOW + "Right-click: Mobs only",
                         ChatColor.YELLOW + "Shift-left: Items only"
                 )));
-        place(inventory, 14, createMenuItem(new String[]{"REDSTONE_TORCH"}, ChatColor.GOLD + "Toggle Redstone",
-                loreLines(
-                        statusLine("Redstone Updates", !ServerControlState.isRedstoneFrozen()),
-                        ChatColor.GRAY + "Freezes dust, repeaters, observers, pistons, hoppers, rails, lamps, etc."
-                )));
+        place(inventory, 14, redstoneToggleItem());
         place(inventory, CLOSE_SLOT, createCloseItem());
         place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl());
         player.openInventory(inventory);
@@ -391,6 +333,166 @@ public final class AdminSubMenu {
         player.openInventory(inventory);
     }
 
+    /**
+     * Hub / Lobby Controls — reached from the AdminMenu Hub slot (43) and
+     * from {@code /hub menu}. Renders the current hub-mode state, kit
+     * options, per-world list, and an enable toggle.
+     *
+     * <p>Click actions are wired in
+     * {@link dev.sergeantfuzzy.sfcore.listener.menu.MainMenuListener}.
+     */
+    public static void openHubMenu(Main plugin, Player player) {
+        Holder holder = new Holder(null, SubMenuType.HUB);
+        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Hub / Lobby Controls"));
+        holder.setInventory(inventory);
+        fillWithFiller(inventory);
+
+        boolean hubEnabled = plugin.getHubService() != null && plugin.getHubService().isEnabled();
+        List<String> worlds = plugin.getHubService() == null
+                ? java.util.Collections.<String>emptyList()
+                : plugin.getHubService().getHubWorlds();
+        int worldCount = worlds.size();
+        String worldSummary = worldCount == 0 ? "—" : String.join(", ", worlds);
+        int cdSeconds = plugin.getHubService() == null ? 3 : plugin.getHubService().launchpadCooldownSeconds();
+
+        place(inventory, 10, createMenuItem(
+                new String[]{hubEnabled ? "LIME_DYE" : "GRAY_DYE", "INK_SACK", "DYE"},
+                hubEnabled ? ChatColor.GREEN + "Hub Mode: Enabled" : ChatColor.RED + "Hub Mode: Disabled",
+                loreLines(
+                        statusLine("Hub Mode", hubEnabled),
+                        ChatColor.GRAY + "Click to toggle.",
+                        ChatColor.YELLOW + "Saved live to systems/hub.yml."
+                )));
+
+        place(inventory, 12, createMenuItem(new String[]{"GRASS_BLOCK", "GRASS"}, ChatColor.GOLD + "Hub Worlds",
+                loreLines(
+                        valueLine("Count", worldCount),
+                        ChatColor.YELLOW + "Worlds: " + ChatColor.WHITE + worldSummary,
+                        ChatColor.YELLOW + "Left-click: " + ChatColor.GRAY + "Add current world",
+                        ChatColor.YELLOW + "Right-click: " + ChatColor.GRAY + "Remove current world"
+                )));
+
+        place(inventory, 14, createMenuItem(new String[]{"COMPASS"}, ChatColor.GOLD + "Open Server Selector",
+                loreLines(
+                        ChatColor.GRAY + "Preview the live selector GUI.",
+                        ChatColor.YELLOW + "Reads selector.servers from hub.yml."
+                )));
+
+        place(inventory, 16, createMenuItem(new String[]{"BOOK"}, ChatColor.GOLD + "Reload hub.yml",
+                loreLines(
+                        ChatColor.GRAY + "Re-read systems/hub.yml without restarting.",
+                        ChatColor.YELLOW + "Use after editing in a server panel."
+                )));
+
+        place(inventory, 19, createMenuItem(new String[]{"CHEST"}, ChatColor.GOLD + "Re-apply Kit (All)",
+                loreLines(
+                        ChatColor.GRAY + "Apply the hub kit to every player",
+                        ChatColor.GRAY + "currently in a hub world."
+                )));
+
+        place(inventory, 21, createMenuItem(new String[]{"FIREWORK_ROCKET", "FIREWORK", "FEATHER"},
+                ChatColor.GOLD + "Launchpad Settings",
+                loreLines(
+                        valueLine("Cooldown", cdSeconds + "s"),
+                        ChatColor.YELLOW + "Edit in systems/hub.yml → items.launchpad",
+                        ChatColor.GRAY + "Cooldown shows live above the hotbar."
+                )));
+
+        place(inventory, 23, createMenuItem(new String[]{"FISHING_ROD"}, ChatColor.GOLD + "Jump-To Rod",
+                loreLines(
+                        statusLine("Enabled",
+                                plugin.getHubService() != null
+                                        && plugin.getHubService().isItemEnabled(
+                                                dev.sergeantfuzzy.sfcore.hub.item.HubItems.ID_JUMP_ROD)),
+                        ChatColor.GRAY + "Edit in systems/hub.yml → items.jump-rod"
+                )));
+
+        place(inventory, 25, createMenuItem(new String[]{"LIME_DYE", "INK_SACK", "DYE"},
+                ChatColor.GOLD + "Players-Visibility Toggle",
+                loreLines(
+                        statusLine("Enabled",
+                                plugin.getHubService() != null
+                                        && plugin.getHubService().isItemEnabled(
+                                                dev.sergeantfuzzy.sfcore.hub.item.HubItems.ID_VANISH_ALL)),
+                        ChatColor.GRAY + "Edit in systems/hub.yml → items.vanish-all"
+                )));
+
+        place(inventory, CLOSE_SLOT, createCloseItem());
+        place(inventory, SERVER_BACK_SLOT, createBackItem());
+        player.openInventory(inventory);
+    }
+
+    /**
+     * Handles click dispatch for the HUB sub-menu. Called from
+     * {@link dev.sergeantfuzzy.sfcore.listener.menu.MainMenuListener}
+     * when the holder's type is {@link SubMenuType#HUB}.
+     */
+    public static void handleHubMenuClick(Main plugin, Player player, int slot,
+                                          org.bukkit.event.inventory.ClickType click) {
+        if (plugin.getHubService() == null) {
+            return;
+        }
+        switch (slot) {
+            case 10: {
+                boolean next = plugin.getHubService().toggleEnabled();
+                if (next) {
+                    if (plugin.getHubKitApplier() != null) {
+                        plugin.getHubKitApplier().applyToAllInHubWorlds();
+                    }
+                } else {
+                    // Clean up flight + vanish state so disabling can't leave
+                    // players free-flying or others permanently hidden.
+                    if (plugin.getHubKitApplier() != null) {
+                        plugin.getHubKitApplier().revokeFlightInHubWorlds();
+                    }
+                    if (plugin.getHubItemUseListener() != null) {
+                        plugin.getHubItemUseListener().resetVisibilityForAll();
+                    }
+                }
+                plugin.getLanguageManager().send(player,
+                        next ? "hub.admin.enabled" : "hub.admin.disabled");
+                openHubMenu(plugin, player);
+                return;
+            }
+            case 12: {
+                String worldName = player.getWorld().getName();
+                java.util.Map<String, String> placeholders = new java.util.HashMap<>();
+                placeholders.put("world", worldName);
+                if (click == org.bukkit.event.inventory.ClickType.RIGHT
+                        || click == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) {
+                    boolean removed = plugin.getHubService().removeHubWorld(worldName);
+                    plugin.getLanguageManager().send(player,
+                            removed ? "hub.admin.world.removed" : "hub.admin.world.not-listed",
+                            placeholders);
+                } else {
+                    boolean added = plugin.getHubService().addHubWorld(worldName);
+                    plugin.getLanguageManager().send(player,
+                            added ? "hub.admin.world.added" : "hub.admin.world.already-listed",
+                            placeholders);
+                }
+                openHubMenu(plugin, player);
+                return;
+            }
+            case 14:
+                player.closeInventory();
+                dev.sergeantfuzzy.sfcore.gui.player.ServerSelectorMenu.open(plugin, player);
+                return;
+            case 16:
+                plugin.getHubService().reload();
+                plugin.getLanguageManager().send(player, "hub.admin.reloaded");
+                openHubMenu(plugin, player);
+                return;
+            case 19:
+                if (plugin.getHubKitApplier() != null) {
+                    plugin.getHubKitApplier().applyToAllInHubWorlds();
+                }
+                openHubMenu(plugin, player);
+                return;
+            default:
+                // Other slots are informational placeholders — ignore.
+        }
+    }
+
     private static void fillWithFiller(Inventory inventory) {
         ItemStack filler = createPane(" ", null);
         for (int i = 0; i < inventory.getSize(); i++) {
@@ -522,6 +624,145 @@ public final class AdminSubMenu {
 
     private static String valueLine(String label, Object value) {
         return ChatColor.GRAY + label + ": " + ChatColor.YELLOW + String.valueOf(value);
+    }
+
+    // ── Live status-item builders ────────────────────────────────────────────
+    // Rebuilt on every menu open and by AdminMenuRefreshTask so the displayed
+    // whitelist / join-lock / redstone / max-player state always matches the
+    // server's actual state — even when another admin changes it (or a reload
+    // happens) while the menu is open.
+
+    private static ItemStack serverStateOverviewItem() {
+        return createMenuItem(new String[]{"LEVER"}, ChatColor.GOLD + "Server State",
+                Arrays.asList(
+                        ChatColor.GRAY + "Stop/Restart/Lock server.",
+                        statusLine("Whitelist", Bukkit.hasWhitelist()),
+                        statusLine("Join Lock", ServerControlState.isJoinLocked()),
+                        statusLine("Redstone", !ServerControlState.isRedstoneFrozen()),
+                        valueLine("Max Players", Bukkit.getMaxPlayers())
+                ));
+    }
+
+    private static ItemStack playerAccessOverviewItem() {
+        return createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"},
+                ChatColor.GOLD + "Player Access",
+                Arrays.asList(
+                        ChatColor.GRAY + "Whitelist & join control:",
+                        statusLine("Whitelist", Bukkit.hasWhitelist()),
+                        statusLine("Join Lock", ServerControlState.isJoinLocked()),
+                        valueLine("Max Players", Bukkit.getMaxPlayers()),
+                        ChatColor.YELLOW + "Kick non-ops / Spectator-only"
+                ));
+    }
+
+    private static ItemStack performanceOverviewItem() {
+        return createMenuItem(new String[]{"CLOCK", "WATCH"},
+                ChatColor.GOLD + "Performance + Health",
+                Arrays.asList(
+                        ChatColor.GRAY + "Server health tools:",
+                        ChatColor.YELLOW + "View TPS / Clear entities",
+                        statusLine("Redstone Updates", !ServerControlState.isRedstoneFrozen())
+                ));
+    }
+
+    private static ItemStack worldControlsOverviewItem() {
+        return createMenuItem(new String[]{"GRASS_BLOCK", "GRASS"},
+                ChatColor.GOLD + "World Controls",
+                Arrays.asList(
+                        ChatColor.GRAY + "World management:",
+                        statusLine("Autosave", detectAutoSave()),
+                        ChatColor.YELLOW + "Weather / Time / Gamerules",
+                        ChatColor.YELLOW + "World Border (placeholder)"
+                ));
+    }
+
+    private static ItemStack lockServerItem() {
+        return createMenuItem(new String[]{"IRON_DOOR"}, ChatColor.YELLOW + LOCK_ICON + " Lock Server",
+                loreLines(
+                        ChatColor.GRAY + "Kicks non-ops and enables the whitelist.",
+                        statusLine("Whitelist", Bukkit.hasWhitelist()),
+                        statusLine("Join Lock", ServerControlState.isJoinLocked())
+                ));
+    }
+
+    private static ItemStack unlockServerItem() {
+        return createMenuItem(new String[]{"OAK_DOOR"}, ChatColor.GREEN + UNLOCK_ICON + " Unlock Server",
+                loreLines(
+                        ChatColor.GRAY + "Disables the whitelist and allows joins.",
+                        statusLine("Whitelist", Bukkit.hasWhitelist()),
+                        statusLine("Join Lock", ServerControlState.isJoinLocked())
+                ));
+    }
+
+    private static ItemStack whitelistToggleItem() {
+        return createMenuItem(new String[]{"PAPER"}, ChatColor.GOLD + "Toggle Whitelist",
+                loreLines(
+                        ChatColor.GRAY + "Enable/disable whitelist.",
+                        statusLine("Current", Bukkit.hasWhitelist())
+                ));
+    }
+
+    private static ItemStack joinLockToggleItem() {
+        return createMenuItem(new String[]{"IRON_BARS"}, ChatColor.GOLD + "Toggle Join Lock",
+                loreLines(
+                        ChatColor.GRAY + "Blocks new joins; kicks non-ops on enable.",
+                        statusLine("Current", ServerControlState.isJoinLocked())
+                ));
+    }
+
+    private static ItemStack maxPlayersItem() {
+        return createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"}, ChatColor.YELLOW + "Max Players",
+                loreLines(
+                        ChatColor.GRAY + "Adjust Paper/Spigot/Velo/Bungee slot cap.",
+                        valueLine("Current", Bukkit.getMaxPlayers()),
+                        ChatColor.YELLOW + "Left-click: -1 | Right-click: +1"
+                ));
+    }
+
+    private static ItemStack redstoneToggleItem() {
+        return createMenuItem(new String[]{"REDSTONE_TORCH"}, ChatColor.GOLD + "Toggle Redstone",
+                loreLines(
+                        statusLine("Redstone Updates", !ServerControlState.isRedstoneFrozen()),
+                        ChatColor.GRAY + "Freezes dust, repeaters, observers, pistons, hoppers, rails, lamps, etc."
+                ));
+    }
+
+    /**
+     * Re-renders the live status items of an open admin submenu so the displayed
+     * whitelist / join-lock / redstone / max-player state matches the server.
+     * Driven by {@link dev.sergeantfuzzy.sfcore.gui.admin.AdminMenuRefreshTask}
+     * and called immediately after a click that changes server state.
+     */
+    public static void refresh(Holder holder) {
+        if (holder == null || holder.getType() == null) {
+            return;
+        }
+        Inventory inventory = holder.getInventory();
+        if (inventory == null) {
+            return;
+        }
+        switch (holder.getType()) {
+            case SERVER_CONTROL:
+                place(inventory, 10, serverStateOverviewItem());
+                place(inventory, 12, playerAccessOverviewItem());
+                place(inventory, 14, performanceOverviewItem());
+                place(inventory, 16, worldControlsOverviewItem());
+                break;
+            case SERVER_STATE:
+                place(inventory, 16, lockServerItem());
+                place(inventory, 19, unlockServerItem());
+                break;
+            case PLAYER_ACCESS:
+                place(inventory, 10, whitelistToggleItem());
+                place(inventory, 12, joinLockToggleItem());
+                place(inventory, 14, maxPlayersItem());
+                break;
+            case PERFORMANCE_HEALTH:
+                place(inventory, 14, redstoneToggleItem());
+                break;
+            default:
+                break;
+        }
     }
 
     private static Boolean getBooleanGameRule(World world, String ruleName) {
@@ -677,6 +918,14 @@ public final class AdminSubMenu {
                 break;
             default:
                 break;
+        }
+        // Reflect any state change immediately for the clicking admin (the global
+        // AdminMenuRefreshTask covers other admins viewing the same menu).
+        refresh(holder);
+        try {
+            player.updateInventory();
+        } catch (Throwable ignored) {
+            // updateInventory is deprecated/absent on some forks — non-fatal.
         }
     }
 

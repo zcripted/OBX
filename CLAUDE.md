@@ -48,7 +48,7 @@ Work on this IntelliJ project as a **production-grade Minecraft plugin codebase*
 - All changes must be documented unless explicitly told otherwise.
 
 ### Command & Permission Documentation
-- Keep `docs/information/about.md` up to date whenever commands, permissions, or aliases change.
+- Keep `docs/information/COMMANDS+PERMISSIONS.md` up to date whenever commands, permissions, or aliases change.
 - Maintain the Player/Admin tables so they reflect the current command set.
 
 ### Change File Location & Naming

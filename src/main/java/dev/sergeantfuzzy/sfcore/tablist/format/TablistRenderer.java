@@ -57,7 +57,15 @@ public final class TablistRenderer {
         String footer = joinLines(service.getFooterLines());
         AdventureMessageUtil.applyTablist(player, header, footer, placeholders);
 
-        String nameTemplate = service.getPlayerFormat();
+        // Group staff (OP) above regular players via scoreboard-team sort, and
+        // give them the distinct staff name format.
+        boolean grouping = service.isStaffGroupingEnabled();
+        boolean staff = grouping && player.isOp();
+        if (grouping) {
+            TablistTeams.assign(player, player.isOp());
+        }
+
+        String nameTemplate = staff ? service.getStaffPlayerFormat() : service.getPlayerFormat();
         if (nameTemplate != null && !nameTemplate.isEmpty()) {
             AdventureMessageUtil.applyTablistName(player, nameTemplate, placeholders);
         }
@@ -223,8 +231,12 @@ public final class TablistRenderer {
     }
 
     private static Field sentinelField() {
+        // Stable JDK field used purely as a unique non-null sentinel. Avoids
+        // reflecting on one of THIS class's own fields by name, which is fragile
+        // under obfuscation (our field names get renamed). java.lang.Integer's
+        // MAX_VALUE is in the JDK, never obfuscated, and always present.
         try {
-            return TablistRenderer.class.getDeclaredField("MISSING");
+            return Integer.class.getDeclaredField("MAX_VALUE");
         } catch (NoSuchFieldException impossible) {
             throw new AssertionError(impossible);
         }

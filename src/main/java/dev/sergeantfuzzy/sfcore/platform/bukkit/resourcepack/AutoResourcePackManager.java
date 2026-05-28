@@ -58,12 +58,13 @@ public class AutoResourcePackManager {
         String configured = trim(plugin.getConfig().getString("resource-pack.public-url", ""));
         // If no URL is provided, skip generating the local pack (first startup with blank config).
         if (configured == null || configured.isEmpty()) {
-            logger.info("[SF-Core] Skipping bundled pack install; resource-pack.public-url is blank.");
+            dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin,
+                    "Skipping bundled pack install; resource-pack.public-url is blank.");
             return;
         }
         try (InputStream bundled = plugin.getResource("bundled-resourcepack/sf-core-gui-pack.zip")) {
             if (bundled == null) {
-                logger.warning("[SF-Core] Bundled resource pack missing from jar.");
+                logger.warning("Bundled resource pack missing from jar.");
                 return;
             }
             byte[] bundledBytes = toByteArray(bundled);
@@ -73,11 +74,12 @@ public class AutoResourcePackManager {
             byte[] existingSha = packFile.isFile() ? sha1(packFile) : null;
             if (existingSha == null || !Arrays.equals(existingSha, bundledSha)) {
                 java.nio.file.Files.write(packFile.toPath(), bundledBytes);
-                logger.info("[SF-Core] Installed resource pack to " + packFile.getAbsolutePath());
+                dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin,
+                        "Installed resource pack to " + packFile.getAbsolutePath());
             }
             packHash = bundledSha;
         } catch (IOException exception) {
-            logger.warning("[SF-Core] Failed to install bundled resource pack: " + exception.getMessage());
+            logger.warning("Failed to install bundled resource pack: " + exception.getMessage());
         }
     }
 
@@ -92,7 +94,7 @@ public class AutoResourcePackManager {
         usePackHash = false;
         hashFromConfig = false;
         if (packUrl != null) {
-            logger.info("[SF-Core] Resource pack URL set to " + packUrl);
+            dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin, "Resource pack URL set to " + packUrl);
         } else {
             warnAutodetectOnce(null);
         }
@@ -115,7 +117,7 @@ public class AutoResourcePackManager {
                 player.setResourcePack(url);
             }
         } catch (Throwable throwable) {
-            logger.warning("[SF-Core] Failed to send resource pack to " + player.getName() + ": " + throwable.getMessage());
+            logger.warning("Failed to send resource pack to " + player.getName() + ": " + throwable.getMessage());
         }
     }
 
@@ -124,7 +126,8 @@ public class AutoResourcePackManager {
             return;
         }
         PlayerResourcePackStatusEvent.Status status = event.getStatus();
-        logger.info("[SF-Core] Resource pack status for " + event.getPlayer().getName() + ": " + status.name());
+        dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin,
+                "Resource pack status for " + event.getPlayer().getName() + ": " + status.name());
         if (status == PlayerResourcePackStatusEvent.Status.FAILED_DOWNLOAD || status == PlayerResourcePackStatusEvent.Status.DECLINED) {
             int count = failures.merge(event.getPlayer().getUniqueId(), 1, Integer::sum);
             if (count >= FAILURE_THRESHOLD) {
@@ -139,8 +142,8 @@ public class AutoResourcePackManager {
 
     private void warnAutodetectOnce(String url) {
         if (warnedOnce.compareAndSet(false, true)) {
-            logger.warning("[SF-Core] Resource pack URL may not be reachable: " + (url == null || url.isEmpty() ? "unavailable" : url));
-            logger.warning("[SF-Core] Set resource-pack.public-url in config.yml to a public HTTPS/HTTP URL if your server is behind NAT/proxy.");
+            logger.warning("Resource pack URL may not be reachable: " + (url == null || url.isEmpty() ? "unavailable" : url));
+            logger.warning("Set resource-pack.public-url in config.yml to a public HTTPS/HTTP URL if your server is behind NAT/proxy.");
         }
     }
 

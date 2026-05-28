@@ -30,6 +30,11 @@ commands:
     aliases: ["?"]
     usage: "/<command>"
     permission: sfcore.help.gui
+  list:
+    description: List online players and staff in separate sections.
+    aliases: [players, online, who, playerlist]
+    usage: "/<command>"
+    permission: sfcore.list
   home:
     description: Teleport to one of your homes.
     usage: "/<command> [name]"
@@ -58,6 +63,49 @@ commands:
     description: Return to your previous location.
     usage: "/<command>"
     permission: sfcore.back
+  tp:
+    description: Teleport to a player, or move one player to another (admin).
+    aliases: [teleport]
+    usage: "/<command> <player> [target]"
+    permission: sfcore.teleport.admin
+  tphere:
+    description: Bring a player to your location (admin).
+    usage: "/<command> <player>"
+    permission: sfcore.teleport.admin
+  tpa:
+    description: Request to teleport to another player.
+    usage: "/<command> <player>"
+    permission: sfcore.teleport.request
+  tpaccept:
+    description: Accept a pending teleport request.
+    aliases: [tpyes]
+    usage: "/<command>"
+    permission: sfcore.teleport.request
+  tpdeny:
+    description: Deny a pending teleport request.
+    aliases: [tpno]
+    usage: "/<command>"
+    permission: sfcore.teleport.request
+  pos:
+    description: Show your current coordinates.
+    aliases: [position]
+    usage: "/<command>"
+    permission: sfcore.position
+  msg:
+    description: Send a private message to a player.
+    aliases: [tell, pm, whisper]
+    usage: "/<command> <player> <message>"
+    permission: sfcore.message
+  rply:
+    description: Reply to your most recent private message.
+    aliases: [reply, r]
+    usage: "/<command> <message>"
+    permission: sfcore.message
+  inbox:
+    description: Open your private-message inbox.
+    aliases: [inbound]
+    usage: "/<command>"
+    permission: sfcore.message
   kill:
     description: Kill the living entity in your crosshairs.
     aliases: [crosskill, aimkill, targetkill]
@@ -131,6 +179,29 @@ commands:
     aliases: [smithing, smithtable]
     usage: "/<command>"
     permission: sfcore.smith
+  stonecut:
+    description: Open a virtual stonecutter.
+    aliases: [chop, cut, scut]
+    usage: "/<command>"
+    permission: sfcore.stonecut
+  loom:
+    description: Open a virtual loom.
+    usage: "/<command>"
+    permission: sfcore.loom
+  grindstone:
+    description: Open a virtual grindstone.
+    aliases: [gstone, grind, gs]
+    usage: "/<command>"
+    permission: sfcore.grindstone
+  cartography:
+    description: Open a virtual cartography table.
+    aliases: [ctable, cartograph]
+    usage: "/<command>"
+    permission: sfcore.cartography
+  map:
+    description: Open a virtual map centered on your surroundings.
+    usage: "/<command>"
+    permission: sfcore.map
   ban:
     description: Permanently ban a player from the server.
     usage: "/<command> <player> [reason]"
@@ -184,6 +255,11 @@ commands:
     aliases: [warps, w, goto, go, travel]
     usage: "/warp [name|tp|set|delete|info|list|gui]"
     permission: sfcore.warp
+  hub:
+    description: Teleport to the hub / lobby world. Admins gain on/off/toggle/reload/give/selector/world subcommands.
+    aliases: [lobby]
+    usage: "/<command>"
+    permission: sfcore.hub.use
   language:
     description: Change your preferred SF-Core language.
     usage: "/<command> <English|EN|German|DE>"
@@ -192,6 +268,23 @@ commands:
     description: Ändert deine bevorzugte SF-Core-Sprache.
     usage: "/<command> <Englisch|EN|Deutsch|DE>"
     permission: sfcore.language
+  sfench:
+    description: Arcanum custom-enchantment admin command.
+    aliases: [sfenchant, sfe]
+    usage: "/<command> <admin|give|givebook|apply|remove|list|info|reload|loot|protect|success|debug> | give <player> book <category>"
+  enchants:
+    description: Browse the Arcanum custom enchantments (read-only). Use '/enchants settings' to toggle your combat effects.
+    aliases: [scrolls]
+    usage: "/<command> [settings]"
+    permission: sfcore.enchants.browse
+  recall:
+    description: Teleport to your Beacon's Memory recall point.
+    usage: "/<command>"
+    permission: sfcore.enchants.use
+  satchel:
+    description: Open your Satchel personal storage.
+    usage: "/<command>"
+    permission: sfcore.enchants.use
 permissions:
   sfcore.*:
     description: Grants access to all SF-Core permissions.
@@ -228,9 +321,15 @@ permissions:
       sfcore.anvil: true
       sfcore.enchant: true
       sfcore.smith: true
+      sfcore.stonecut: true
+      sfcore.loom: true
+      sfcore.grindstone: true
+      sfcore.cartography: true
+      sfcore.map: true
       sfcore.moderation.*: true
       sfcore.staff.*: true
       sfcore.warp.*: true
+      sfcore.hub.*: true
       sfcore.admin.menu: true
       sfcore.version: true
       sfcore.language: true
@@ -239,6 +338,9 @@ permissions:
     default: true
   sfcore.help.gui:
     description: Allows opening the paginated help GUI via /help, /?, /bukkit:?, /bukkit:help.
+    default: true
+  sfcore.list:
+    description: Allows viewing the online player list via /list (and aliases).
     default: true
   sfcore.info:
     description: Allows access to /sf info.
@@ -370,6 +472,18 @@ permissions:
   sfcore.back:
     description: Allows teleporting back to your previous location.
     default: true
+  sfcore.teleport.admin:
+    description: Allows direct teleporting via /tp and /tphere.
+    default: op
+  sfcore.teleport.request:
+    description: Allows sending and answering teleport requests (/tpa, /tpaccept, /tpdeny).
+    default: true
+  sfcore.position:
+    description: Allows viewing your coordinates via /pos.
+    default: true
+  sfcore.message:
+    description: Allows private messaging (/msg, /rply, /inbox).
+    default: true
   sfcore.kill:
     description: Allows killing the entity in your crosshairs.
     default: op
@@ -436,6 +550,21 @@ permissions:
     default: op
   sfcore.smith:
     description: Allows opening a virtual smithing table with /smith.
+    default: op
+  sfcore.stonecut:
+    description: Allows opening a virtual stonecutter with /stonecut.
+    default: op
+  sfcore.loom:
+    description: Allows opening a virtual loom with /loom.
+    default: op
+  sfcore.grindstone:
+    description: Allows opening a virtual grindstone with /grindstone.
+    default: op
+  sfcore.cartography:
+    description: Allows opening a virtual cartography table with /cartography.
+    default: op
+  sfcore.map:
+    description: Allows creating a virtual map of your surroundings with /map.
     default: op
   sfcore.moderation.*:
     description: Grants access to all moderation commands.
@@ -587,3 +716,80 @@ permissions:
   sfcore.staff.menu:
     description: Allows opening the staff overview menu via /staff.
     default: op
+  sfcore.hub.*:
+    description: Wildcard for every hub / lobby permission (use + every hotbar item + admin).
+    default: op
+    children:
+      sfcore.hub.use: true
+      sfcore.hub.admin: true
+      sfcore.hub.selector: true
+      sfcore.hub.jumprod: true
+      sfcore.hub.vanishall: true
+      sfcore.hub.launchpad: true
+  sfcore.hub.use:
+    description: Allows teleporting to the hub world via /hub or /lobby. Default players only see this base command — subcommands are hidden.
+    default: true
+  sfcore.hub.admin:
+    description: Allows administrative hub subcommands (on/off/toggle/reload/give/selector/menu/world ...) and tab completion. Op-only.
+    default: op
+  sfcore.hub.selector:
+    description: Allows receiving the hub server-selector hotbar item and opening the GUI.
+    default: true
+  sfcore.hub.jumprod:
+    description: Allows receiving and using the hub jump-to fishing rod.
+    default: true
+  sfcore.hub.vanishall:
+    description: Allows receiving and using the hub players-vanish-all toggle.
+    default: true
+  sfcore.hub.launchpad:
+    description: Allows receiving the launchpad and using double-jump launches.
+    default: true
+  sfcore.enchants.*:
+    description: Grants full access to the Arcanum enchantment module.
+    default: op
+    children:
+      sfcore.enchants.admin: true
+      sfcore.enchants.give: true
+      sfcore.enchants.apply: true
+      sfcore.enchants.list: true
+      sfcore.enchants.reload: true
+      sfcore.enchants.loot: true
+      sfcore.enchants.debug: true
+      sfcore.enchants.use: true
+      sfcore.enchants.browse: true
+      sfcore.enchants.book: true
+  sfcore.enchants.admin:
+    description: Open the Arcanum admin GUI with full access.
+    default: op
+  sfcore.enchants.give:
+    description: Give scrolls, books, protection, and success scrolls to players.
+    default: op
+  sfcore.enchants.apply:
+    description: Apply and remove enchantments directly via /sfench apply and /sfench remove.
+    default: op
+  sfcore.enchants.list:
+    description: List enchantments and view details via /sfench list and /sfench info.
+    default: op
+  sfcore.enchants.reload:
+    description: Reload the Arcanum config files via /sfench reload.
+    default: op
+  sfcore.enchants.loot:
+    description: Toggle and reload world-loot generation via /sfench loot.
+    default: op
+  sfcore.enchants.debug:
+    description: Toggle Arcanum proc-debug logging via /sfench debug.
+    default: op
+  sfcore.enchants.use:
+    description: Allows players to use Arcanum scrolls at all.
+    default: true
+  sfcore.enchants.browse:
+    description: Allows opening the read-only /enchants player browser.
+    default: true
+  sfcore.enchants.book:
+    description: Allows receiving and using the categorized Codex guide books (hover, click-to-learn, click-to-apply).
+    default: op
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

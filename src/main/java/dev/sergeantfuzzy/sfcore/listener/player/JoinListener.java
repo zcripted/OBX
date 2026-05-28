@@ -1,9 +1,11 @@
 package dev.sergeantfuzzy.sfcore.listener.player;
 
 import dev.sergeantfuzzy.sfcore.Main;
+import dev.sergeantfuzzy.sfcore.tablist.format.TablistTeams;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -13,6 +15,24 @@ public class JoinListener implements Listener {
 
     public JoinListener(Main plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Colors the name shown above the player's head: OP names light red, regular
+     * players light yellow. Runs independently of the tablist module so the
+     * nameplate color always applies. One-tick delay so the join has settled.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoinNameplate(PlayerJoinEvent event) {
+        final Player player = event.getPlayer();
+        plugin.getSchedulerAdapter().runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (player.isOnline()) {
+                    TablistTeams.assign(player, player.isOp());
+                }
+            }
+        }, 1L);
     }
 
     @EventHandler

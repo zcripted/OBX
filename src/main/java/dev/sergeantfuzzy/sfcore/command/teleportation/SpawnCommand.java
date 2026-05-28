@@ -5,29 +5,37 @@ import dev.sergeantfuzzy.sfcore.language.LanguageManager;
 import dev.sergeantfuzzy.sfcore.storage.DataService;
 import dev.sergeantfuzzy.sfcore.storage.DataService.SpawnInfo;
 import dev.sergeantfuzzy.sfcore.util.text.ComponentMessenger;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class SpawnCommand implements CommandExecutor, TabCompleter {
+public class SpawnCommand implements CommandExecutor, TabCompleter, Listener {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
     private static final Map<String, String> SUB_ALIASES = createAliasMap();
-    private static final Set<String> CONFIRM_WORDS = new HashSet<>(Arrays.asList("confirm", "yes", "y"));
-    private static final long CONFIRM_WINDOW_MS = 15_000L;
+    /** Internal click-target token (the chat "confirm" word and the click both route here). */
+    private static final String CONFIRM_TOKEN = "confirmdelete";
+    private static final long CONFIRM_WINDOW_MS = 10_000L;
 
     private final Main plugin;
     private final DataService dataService;
     private final LanguageManager languages;
-    private final Map<UUID, Long> deleteConfirmations = new HashMap<>();
+    /** Player UUID → request timestamp of a pending /spawn delete confirmation. */
+    private final Map<UUID, Long> deleteConfirmations = new ConcurrentHashMap<>();
 
     public SpawnCommand(Main plugin) {
         this.plugin = plugin;
@@ -39,6 +47,13 @@ public class SpawnCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         String baseName = command.getName().toLowerCase(Locale.ENGLISH);
         List<String> argList = new ArrayList<>(Arrays.asList(args));
+        // Hidden click-target: the "confirm" word in the delete prompt runs `/spawn confirmdelete`.
+        if (!argList.isEmpty() && argList.get(0).equalsIgnoreCase(CONFIRM_TOKEN)) {
+            if (sender instanceof Player) {
+                confirmDelete((Player) sender);
+            }
+            return true;
+        }
         if (baseName.equals("setspawn") && argList.isEmpty()) {
             argList.add("set");
         }
@@ -108,23 +123,109 @@ public class SpawnCommand implements CommandExecutor, TabCompleter {
             languages.send(sender, "teleport.spawn.missing");
             return true;
         }
-        UUID key = (sender instanceof Player) ? ((Player) sender).getUniqueId() : UUID.randomUUID();
-        long now = System.currentTimeMillis();
-        if (!args.isEmpty() && CONFIRM_WORDS.contains(args.get(0).toLowerCase(Locale.ENGLISH))) {
-            Long requested = deleteConfirmations.get(key);
-            if (requested == null || now - requested > CONFIRM_WINDOW_MS) {
-                languages.send(sender, "teleport.spawn.delete-confirm-needed");
-                deleteConfirmations.put(key, now);
-                return true;
-            }
+        if (!(sender instanceof Player)) {
+            // Console can't click or chat "confirm" — delete immediately.
             dataService.deleteSpawn();
-            deleteConfirmations.remove(key);
             languages.send(sender, "teleport.spawn.deleted");
             return true;
         }
-        deleteConfirmations.put(key, now);
-        languages.send(sender, "teleport.spawn.delete-confirm");
+        final Player player = (Player) sender;
+        final UUID id = player.getUniqueId();
+        final long stamp = System.currentTimeMillis();
+        deleteConfirmations.put(id, stamp);
+        // Prompt: click the "confirm" word, or type "confirm" in chat (captured below).
+        sendClickable(player, "teleport.spawn.delete-confirm", "teleport.spawn.delete-confirm-hover",
+                "&6&nconfirm", "/spawn " + CONFIRM_TOKEN);
+        // 10s timeout: if still pending (unconfirmed), notify with a clickable re-issue.
+        plugin.getSchedulerAdapter().runLater(new Runnable() {
+            @Override
+            public void run() {
+                Long current = deleteConfirmations.get(id);
+                if (current != null && current.longValue() == stamp) {
+                    deleteConfirmations.remove(id);
+                    Player online = Bukkit.getPlayer(id);
+                    if (online != null && online.isOnline()) {
+                        sendClickable(online, "teleport.spawn.delete-timeout", "teleport.spawn.delete-timeout-hover",
+                                "&6&nretry", "/spawn del");
+                    }
+                }
+            }
+        }, 200L);
         return true;
+    }
+
+    /** Confirms a pending /spawn delete (from the chat "confirm" or the clickable word). */
+    private void confirmDelete(Player player) {
+        Long requested = deleteConfirmations.get(player.getUniqueId());
+        if (requested == null || System.currentTimeMillis() - requested.longValue() > CONFIRM_WINDOW_MS) {
+            // Expired or never requested — the timeout notice (if any) already covered it.
+            return;
+        }
+        deleteConfirmations.remove(player.getUniqueId());
+        SpawnInfo info = dataService.getSpawnInfo();
+        if (info == null || info.getLocation() == null) {
+            languages.send(player, "teleport.spawn.missing");
+            return;
+        }
+        dataService.deleteSpawn();
+        languages.send(player, "teleport.spawn.deleted");
+    }
+
+    /** Captures a bare "confirm" chat line while a delete confirmation is pending. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    public void onConfirmChat(AsyncPlayerChatEvent event) {
+        final Player player = event.getPlayer();
+        if (!deleteConfirmations.containsKey(player.getUniqueId())) {
+            return;
+        }
+        if (!event.getMessage().trim().equalsIgnoreCase("confirm")) {
+            return; // any other message passes through as normal chat
+        }
+        event.setCancelled(true);
+        // Chat is async — run the delete on the player's region / main thread.
+        plugin.getSchedulerAdapter().runAtEntity(player, new Runnable() {
+            @Override
+            public void run() {
+                confirmDelete(player);
+            }
+        });
+    }
+
+    /**
+     * Sends a message with one word made clickable (RUN_COMMAND). The clickable word
+     * replaces the {@code {click}} placeholder; console receives the plain text.
+     */
+    private void sendClickable(CommandSender sender, String messageKey, String hoverKey, String wordText, String command) {
+        String sentinel = "[[CLICK]]";
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("click", sentinel);
+        String rendered = languages.get(sender, messageKey, placeholders);
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(rendered.replace(sentinel, org.bukkit.ChatColor.stripColor(
+                    org.bukkit.ChatColor.translateAlternateColorCodes('&', wordText))));
+            return;
+        }
+        Player player = (Player) sender;
+        String hover = languages.get(player, hoverKey);
+        String word = org.bukkit.ChatColor.translateAlternateColorCodes('&', wordText);
+        int index = rendered.indexOf(sentinel);
+        if (index < 0) {
+            ComponentMessenger.sendHoverMessage(player, rendered.replace(sentinel, word),
+                    Collections.singletonList(hover), command, true);
+            return;
+        }
+        String before = rendered.substring(0, index);
+        String after = rendered.substring(index + sentinel.length());
+        List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<>();
+        if (!before.isEmpty()) {
+            parts.add(ComponentMessenger.InteractiveMessagePart.plain(before));
+        }
+        parts.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                word, Collections.singletonList(hover), command, true));
+        if (!after.isEmpty()) {
+            parts.add(ComponentMessenger.InteractiveMessagePart.plain(after));
+        }
+        ComponentMessenger.sendJoinedHoverMessages(player, parts);
     }
 
     private boolean handleInfo(CommandSender sender) {
@@ -198,16 +299,8 @@ public class SpawnCommand implements CommandExecutor, TabCompleter {
                     suggestions.add(aliasKey);
                 }
             }
-        } else if (args.length == 2) {
-            String resolved = resolveSubcommand(args[0]);
-            if ("delete".equals(resolved)) {
-                for (String word : CONFIRM_WORDS) {
-                    if (word.startsWith(args[1].toLowerCase(Locale.ENGLISH))) {
-                        suggestions.add(word);
-                    }
-                }
-            }
         }
+        // /spawn delete takes no further arguments — confirmation is via click or chat "confirm".
         return suggestions;
     }
 

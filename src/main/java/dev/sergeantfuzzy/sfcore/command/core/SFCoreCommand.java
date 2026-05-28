@@ -4,6 +4,7 @@ import dev.sergeantfuzzy.sfcore.Main;
 import dev.sergeantfuzzy.sfcore.gui.admin.AdminMenu;
 import dev.sergeantfuzzy.sfcore.gui.player.MainMenu;
 import dev.sergeantfuzzy.sfcore.language.LanguageManager;
+import dev.sergeantfuzzy.sfcore.util.message.ConsoleLog;
 import dev.sergeantfuzzy.sfcore.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -257,13 +258,17 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
             return;
         }
         sender.sendMessage(" ");
-        sender.sendMessage(divider(sender));
+        sender.sendMessage(languages.get(sender, "commands.sf.permissions.title"));
+        sender.sendMessage(boxDivider(sender));
+        sender.sendMessage(" ");
         for (CommandEntry entry : entries) {
-            String usageText = entry.usage(languages, sender);
-            String permission = entry.permission();
-            sender.sendMessage(ChatColor.GOLD + usageText + ChatColor.GRAY + " | " + ChatColor.YELLOW + permission);
+            Map<String, String> rowPlaceholders = new LinkedHashMap<>();
+            rowPlaceholders.put("usage", entry.usage(languages, sender));
+            rowPlaceholders.put("permission", entry.permission());
+            sender.sendMessage(languages.get(sender, "commands.sf.permissions.entry", rowPlaceholders));
         }
-        sender.sendMessage(divider(sender));
+        sender.sendMessage(" ");
+        sender.sendMessage(boxDivider(sender));
     }
 
     private void handleCommandsList(CommandSender sender, String[] args) {
@@ -277,13 +282,17 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
             return;
         }
         sender.sendMessage(" ");
-        sender.sendMessage(divider(sender));
+        sender.sendMessage(languages.get(sender, "commands.sf.commands.title"));
+        sender.sendMessage(boxDivider(sender));
+        sender.sendMessage(" ");
         for (CommandEntry entry : visible) {
-            String usage = entry.usage(languages, sender);
-            String description = entry.description(languages, sender);
-            sender.sendMessage(ChatColor.GOLD + usage + ChatColor.GRAY + " - " + ChatColor.YELLOW + description);
+            Map<String, String> rowPlaceholders = new LinkedHashMap<>();
+            rowPlaceholders.put("usage", entry.usage(languages, sender));
+            rowPlaceholders.put("description", entry.description(languages, sender));
+            sender.sendMessage(languages.get(sender, "commands.sf.commands.entry", rowPlaceholders));
         }
-        sender.sendMessage(divider(sender));
+        sender.sendMessage(" ");
+        sender.sendMessage(boxDivider(sender));
     }
 
     private void handleReload(CommandSender sender, String[] args) {
@@ -335,10 +344,87 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
             return;
         }
         long start = System.nanoTime();
-        plugin.reloadPlugin();
+        Map<String, Long> times = plugin.reloadPlugin();
         long duration = System.nanoTime() - start;
-        Map<String, String> placeholders = Collections.singletonMap("duration", formatMillis(duration));
-        sendHoverMessage(sender, languages.get(sender, "commands.sf.reload.full.base", placeholders), languages.list(sender, "commands.sf.reload.full.hover", placeholders), "/sf diagnostics");
+        String totalText = formatMillis(duration);
+        String who = (sender instanceof Player) ? sender.getName() : "Console";
+
+        // Player executor: styled in-game message + per-component hover. (Console's
+        // feedback is the console summary below.)
+        if (sender instanceof Player) {
+            sendHoverMessage(sender,
+                    languages.get(sender, "commands.sf.reload.full.base", Collections.singletonMap("duration", totalText)),
+                    buildReloadHover(sender, times, totalText), "/sf diagnostics");
+        }
+
+        // Always log a clean console summary with who executed it.
+        logReloadToConsole(who, totalText, times);
+
+        // A console-initiated reload notifies online reload-permission players in-game.
+        if (!(sender instanceof Player)) {
+            Map<String, String> notify = new LinkedHashMap<>();
+            notify.put("who", who);
+            notify.put("duration", totalText);
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (player.hasPermission("sfcore.admin.reload")) {
+                    languages.send(player, "commands.sf.reload.notify", notify);
+                }
+            }
+        }
+    }
+
+    /** Builds the styled per-component reload hover (alphabetical, small-caps load times). */
+    private List<String> buildReloadHover(CommandSender sender, Map<String, Long> times, String totalText) {
+        List<String> hover = new ArrayList<>();
+        hover.add(languages.get(sender, "commands.sf.reload.full.header"));
+        hover.add(boxDivider(sender));
+        List<Map.Entry<String, Long>> entries = sortedByName(times);
+        for (Map.Entry<String, Long> entry : entries) {
+            Map<String, String> ph = new LinkedHashMap<>();
+            ph.put("file", entry.getKey());
+            ph.put("time", smallCapsMillis(entry.getValue()));
+            hover.add(languages.get(sender, "commands.sf.reload.full.entry", ph));
+        }
+        hover.add(boxDivider(sender));
+        hover.add(languages.get(sender, "commands.sf.reload.full.total-line", Collections.singletonMap("duration", totalText)));
+        hover.add(languages.get(sender, "commands.sf.reload.full.tip-line"));
+        return hover;
+    }
+
+    /** Clean console summary of a reload — green success line + a comma list of components. */
+    private void logReloadToConsole(String who, String totalText, Map<String, Long> times) {
+        ConsoleLog.success(plugin, "Reload", "Reloaded by " + who + " in " + totalText + " (" + times.size() + " components)");
+        List<String> items = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : sortedByName(times)) {
+            items.add(entry.getKey() + " (" + Math.round(entry.getValue() / 1_000_000.0) + "ms)");
+        }
+        ConsoleLog.list(plugin, "Reloaded:", items);
+    }
+
+    private List<Map.Entry<String, Long>> sortedByName(Map<String, Long> times) {
+        List<Map.Entry<String, Long>> entries = new ArrayList<>(times.entrySet());
+        Collections.sort(entries, new java.util.Comparator<Map.Entry<String, Long>>() {
+            @Override
+            public int compare(Map.Entry<String, Long> a, Map.Entry<String, Long> b) {
+                return a.getKey().compareToIgnoreCase(b.getKey());
+            }
+        });
+        return entries;
+    }
+
+    /** A per-component load time as a small-caps "ᴍꜱ" string (e.g. {@code 12.4ᴍꜱ}). */
+    private String smallCapsMillis(long nanos) {
+        double ms = nanos / 1_000_000.0;
+        String num;
+        if (ms >= 100) {
+            num = String.valueOf(Math.round(ms));
+        } else {
+            num = String.format(Locale.US, "%.1f", ms);
+            if (num.endsWith(".0")) {
+                num = num.substring(0, num.length() - 2);
+            }
+        }
+        return num + "ᴍꜱ"; // ᴍꜱ (small-caps M + S)
     }
 
     private void handleDiagnostics(CommandSender sender, String[] args) {
@@ -381,8 +467,9 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
         return millis + "ms";
     }
 
-    private String divider(CommandSender sender) {
-        return languages.get(sender, "core.divider");
+    /** Slim dark-gray box divider used by the styled "plugin info" reports (matches /pl, /sf info, /sf about). */
+    private String boxDivider(CommandSender sender) {
+        return languages.get(sender, "core.divider-line");
     }
 
     private String orFallback(String value) {
@@ -403,7 +490,9 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
         Map<String, String> placeholders = new LinkedHashMap<>();
         placeholders.put("version", version);
         placeholders.put("tag", tag);
-        languages.send(sender, "commands.sf.version", placeholders);
+        for (String line : languages.list(sender, "commands.sf.version", placeholders)) {
+            sender.sendMessage(line);
+        }
     }
 
     private void handleUpdates(CommandSender sender, String[] args) {
@@ -426,35 +515,84 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /** Max config-file rows per page; keeps the whole /sf config message at/under 15 lines. */
+    private static final int CONFIG_PER_PAGE = 10;
+
     private void handleConfig(CommandSender sender, String[] args) {
         if (args.length >= 2 && args[1].equalsIgnoreCase("validate")) {
             if (!ensurePermission(sender, "sfcore.debug.config.validate")) {
                 return;
             }
-            languages.send(sender, "commands.sf.config.validation.header");
-            languages.send(sender, "commands.sf.config.validation.config");
-            String state = new File(plugin.getDataFolder(), "data.yml").exists()
-                    ? ChatColor.GREEN + "ok"
-                    : languages.get(sender, "commands.sf.config.validation.data-missing");
-            languages.send(sender, "commands.sf.config.validation.data", Collections.singletonMap("state", state));
-            String motdState = new File(plugin.getDataFolder(), "motd.yml").exists()
-                    ? ChatColor.GREEN + "ok"
-                    : languages.get(sender, "commands.sf.config.validation.data-missing");
-            languages.send(sender, "commands.sf.config.validation.motd", Collections.singletonMap("state", motdState));
-            String moderationState = new File(plugin.getDataFolder(), "moderation.yml").exists()
-                    ? ChatColor.GREEN + "ok"
-                    : languages.get(sender, "commands.sf.config.validation.data-missing");
-            languages.send(sender, "commands.sf.config.validation.moderation", Collections.singletonMap("state", moderationState));
+            String missing = languages.get(sender, "commands.sf.config.data-missing");
+            String ok = ChatColor.GREEN + "ok";
+            Map<String, String> states = new LinkedHashMap<>();
+            states.put("config_state", ok);
+            states.put("data_state", new File(plugin.getDataFolder(), "data.yml").exists() ? ok : missing);
+            states.put("motd_state", new File(plugin.getDataFolder(), "motd.yml").exists() ? ok : missing);
+            states.put("moderation_state", new File(plugin.getDataFolder(), "moderation.yml").exists() ? ok : missing);
+            states.put("tablist_state", new File(plugin.getDataFolder(), "systems/tablist.yml").exists() ? ok : missing);
+            states.put("scoreboard_state", new File(plugin.getDataFolder(), "systems/scoreboard.yml").exists() ? ok : missing);
+            languages.send(sender, "commands.sf.config.validation", states);
             return;
         }
         if (!ensurePermission(sender, "sfcore.debug.config")) {
             return;
         }
-        languages.send(sender, "commands.sf.config.list.header");
-        languages.send(sender, "commands.sf.config.list.config");
-        languages.send(sender, "commands.sf.config.list.data");
-        languages.send(sender, "commands.sf.config.list.motd");
-        languages.send(sender, "commands.sf.config.list.moderation");
+        // Dynamically list every plugin .yml (no clickable links), paginated so the
+        // message never exceeds 15 lines.
+        List<String> files = listConfigFiles();
+        if (files.isEmpty()) {
+            languages.send(sender, "commands.sf.config.list-empty");
+            return;
+        }
+        int pages = (files.size() + CONFIG_PER_PAGE - 1) / CONFIG_PER_PAGE;
+        int page = 1;
+        if (args.length >= 2) {
+            try {
+                page = Integer.parseInt(args[1]);
+            } catch (NumberFormatException ignored) {
+                page = 1;
+            }
+        }
+        page = Math.max(1, Math.min(page, pages));
+
+        Map<String, String> meta = new LinkedHashMap<>();
+        meta.put("count", Integer.toString(files.size()));
+        meta.put("page", Integer.toString(page));
+        meta.put("pages", Integer.toString(pages));
+        languages.send(sender, "commands.sf.config.list-header", meta);
+        int start = (page - 1) * CONFIG_PER_PAGE;
+        int end = Math.min(files.size(), start + CONFIG_PER_PAGE);
+        for (int i = start; i < end; i++) {
+            languages.send(sender, "commands.sf.config.list-entry", Collections.singletonMap("file", files.get(i)));
+        }
+        languages.send(sender, "commands.sf.config.list-footer", meta);
+    }
+
+    /** Every {@code .yml} under the plugin data folder (recursively), as sorted relative paths. */
+    private List<String> listConfigFiles() {
+        File folder = plugin.getDataFolder();
+        List<String> names = new ArrayList<>();
+        collectYml(folder, folder, names);
+        Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
+        return names;
+    }
+
+    private void collectYml(File root, File dir, List<String> out) {
+        if (dir == null || !dir.isDirectory()) {
+            return;
+        }
+        File[] entries = dir.listFiles();
+        if (entries == null) {
+            return;
+        }
+        for (File entry : entries) {
+            if (entry.isDirectory()) {
+                collectYml(root, entry, out);
+            } else if (entry.getName().toLowerCase(Locale.ENGLISH).endsWith(".yml")) {
+                out.add(root.toURI().relativize(entry.toURI()).getPath());
+            }
+        }
     }
 
     private void handleDebug(CommandSender sender, String[] args) {
@@ -482,7 +620,10 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
         if (!ensurePermission(sender, "sfcore.debug")) {
             return;
         }
-        languages.send(sender, "commands.sf.debug.status", Collections.singletonMap("state", String.valueOf(plugin.getConfig().getBoolean("debug"))));
+        String debugState = languages.get(sender, plugin.getConfig().getBoolean("debug")
+                ? "commands.sf.debug.state.enabled"
+                : "commands.sf.debug.state.disabled");
+        languages.send(sender, "commands.sf.debug.report", Collections.singletonMap("state", debugState));
     }
 
     private void handleJoinLeave(CommandSender sender, String[] args) {
@@ -562,8 +703,8 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
         try {
             yaml.save(file);
             languages.send(sender, "commands.sf.debug.dump.saved", Collections.singletonMap("file", file.getName()));
-            plugin.getLogger().info("[SF-Core] Debug dump created by " + name + " at " + file.getAbsolutePath()
-                    + " (" + file.length() + " bytes, server=" + Bukkit.getVersion() + ")");
+            dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin, "Debug dump created by " + name + " at "
+                    + file.getAbsolutePath() + " (" + file.length() + " bytes, server=" + Bukkit.getVersion() + ")");
         } catch (IOException exception) {
             languages.send(sender, "commands.sf.debug.dump.failed", Collections.singletonMap("error", exception.getMessage()));
         }
@@ -590,8 +731,6 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
         int index = Math.max(0, Math.min(page - 1, maxPage - 1)) * pageSize;
         int end = Math.min(index + pageSize, visible.size());
 
-        sender.sendMessage(" ");
-        sender.sendMessage(divider(sender));
         Map<String, String> placeholders = new LinkedHashMap<>();
         placeholders.put("page", String.valueOf(index / pageSize + 1));
         placeholders.put("pages", String.valueOf(maxPage));
@@ -602,27 +741,36 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
         }
         placeholders.put("category", categorySuffix);
         String header = languages.get(sender, "commands.sf.help.header", placeholders);
+
+        sender.sendMessage(" ");
         sender.sendMessage(header);
+        sender.sendMessage(boxDivider(sender));
+        sender.sendMessage(" ");
         for (int i = index; i < end; i++) {
             sendHelpLine(sender, visible.get(i));
         }
-        sendHelpNavigation(sender, index / pageSize + 1, maxPage, category);
-        sender.sendMessage(divider(sender));
+        if (maxPage > 1) {
+            sender.sendMessage(" ");
+            sendHelpNavigation(sender, index / pageSize + 1, maxPage, category);
+        }
+        sender.sendMessage(boxDivider(sender));
     }
 
     private void sendHelpDetail(CommandSender sender, CommandEntry entry) {
-        sender.sendMessage(" ");
-        sender.sendMessage(divider(sender));
         Map<String, String> placeholders = new LinkedHashMap<>();
         placeholders.put("usage", entry.usage(languages, sender));
         placeholders.put("description", entry.description(languages, sender));
         placeholders.put("category", entry.category().label(languages, sender));
         placeholders.put("permission", entry.permission());
-        languages.send(sender, "commands.sf.help.detail.title", placeholders);
+        sender.sendMessage(" ");
+        sender.sendMessage(languages.get(sender, "commands.sf.help.detail.title", placeholders));
+        sender.sendMessage(boxDivider(sender));
+        sender.sendMessage(" ");
         languages.send(sender, "commands.sf.help.detail.description", placeholders);
         languages.send(sender, "commands.sf.help.detail.category", placeholders);
         languages.send(sender, "commands.sf.help.detail.permission", placeholders);
-        sender.sendMessage(divider(sender));
+        sender.sendMessage(" ");
+        sender.sendMessage(boxDivider(sender));
     }
 
     private void sendHelpLine(CommandSender sender, CommandEntry entry) {
@@ -631,8 +779,8 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
         Map<String, String> hoverPlaceholders = new LinkedHashMap<>();
         hoverPlaceholders.put("description", description);
         hoverPlaceholders.put("permission", entry.permission());
-        String line = ChatColor.GOLD + usage
-                + ChatColor.GRAY + languages.get(sender, "commands.sf.help.line-suffix", Collections.singletonMap("description", description));
+        String line = "  " + ChatColor.GOLD + usage
+                + languages.get(sender, "commands.sf.help.line-suffix", Collections.singletonMap("description", description));
         ComponentMessenger.sendHoverMessage(
                 sender,
                 line,
@@ -646,13 +794,16 @@ public class SFCoreCommand implements CommandExecutor, TabCompleter {
             return;
         }
         List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<>();
-        if (page > 1) {
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain("  "));
+        boolean hasPrevious = page > 1;
+        boolean hasNext = page < maxPage;
+        if (hasPrevious) {
             parts.add(buildHelpNavButton(sender, "commands.sf.help.nav.previous", "commands.sf.help.nav.previous-hover", page - 1, maxPage, category));
         }
-        if (!parts.isEmpty() && page < maxPage) {
-            parts.add(ComponentMessenger.InteractiveMessagePart.plain(ChatColor.GRAY + " "));
+        if (hasPrevious && hasNext) {
+            parts.add(ComponentMessenger.InteractiveMessagePart.plain(ChatColor.GRAY + "   "));
         }
-        if (page < maxPage) {
+        if (hasNext) {
             parts.add(buildHelpNavButton(sender, "commands.sf.help.nav.next", "commands.sf.help.nav.next-hover", page + 1, maxPage, category));
         }
         ComponentMessenger.sendJoinedHoverMessages(sender, parts);

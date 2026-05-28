@@ -54,6 +54,7 @@ public final class HelpGuiMenu {
     public static final String CATEGORY_ADMIN = "Admin";
     public static final String CATEGORY_CORE = "Core";
     public static final String CATEGORY_LANGUAGE = "Language";
+    public static final String CATEGORY_MESSAGING = "Messaging";
     public static final String CATEGORY_MODERATION = "Moderation";
     public static final String CATEGORY_TELEPORT = "Teleport";
     public static final String CATEGORY_UTILITY = "Utility";
@@ -64,6 +65,7 @@ public final class HelpGuiMenu {
             CATEGORY_ADMIN,
             CATEGORY_CORE,
             CATEGORY_LANGUAGE,
+            CATEGORY_MESSAGING,
             CATEGORY_MODERATION,
             CATEGORY_TELEPORT,
             CATEGORY_UTILITY,
@@ -134,6 +136,26 @@ public final class HelpGuiMenu {
         map.put("goto", CATEGORY_TELEPORT);
         map.put("go", CATEGORY_TELEPORT);
         map.put("travel", CATEGORY_TELEPORT);
+        map.put("tp", CATEGORY_TELEPORT);
+        map.put("teleport", CATEGORY_TELEPORT);
+        map.put("tphere", CATEGORY_TELEPORT);
+        map.put("tpa", CATEGORY_TELEPORT);
+        map.put("tpaccept", CATEGORY_TELEPORT);
+        map.put("tpyes", CATEGORY_TELEPORT);
+        map.put("tpdeny", CATEGORY_TELEPORT);
+        map.put("tpno", CATEGORY_TELEPORT);
+        map.put("pos", CATEGORY_TELEPORT);
+        map.put("position", CATEGORY_TELEPORT);
+        // Messaging
+        map.put("msg", CATEGORY_MESSAGING);
+        map.put("tell", CATEGORY_MESSAGING);
+        map.put("pm", CATEGORY_MESSAGING);
+        map.put("whisper", CATEGORY_MESSAGING);
+        map.put("rply", CATEGORY_MESSAGING);
+        map.put("reply", CATEGORY_MESSAGING);
+        map.put("r", CATEGORY_MESSAGING);
+        map.put("inbox", CATEGORY_MESSAGING);
+        map.put("inbound", CATEGORY_MESSAGING);
         // Utility
         map.put("gamemode", CATEGORY_UTILITY);
         map.put("gm", CATEGORY_UTILITY);
@@ -167,6 +189,19 @@ public final class HelpGuiMenu {
         map.put("smith", CATEGORY_UTILITY);
         map.put("smithing", CATEGORY_UTILITY);
         map.put("smithtable", CATEGORY_UTILITY);
+        map.put("stonecut", CATEGORY_UTILITY);
+        map.put("chop", CATEGORY_UTILITY);
+        map.put("cut", CATEGORY_UTILITY);
+        map.put("scut", CATEGORY_UTILITY);
+        map.put("loom", CATEGORY_UTILITY);
+        map.put("grindstone", CATEGORY_UTILITY);
+        map.put("gstone", CATEGORY_UTILITY);
+        map.put("grind", CATEGORY_UTILITY);
+        map.put("gs", CATEGORY_UTILITY);
+        map.put("cartography", CATEGORY_UTILITY);
+        map.put("ctable", CATEGORY_UTILITY);
+        map.put("cartograph", CATEGORY_UTILITY);
+        map.put("map", CATEGORY_UTILITY);
         SF_CORE_COMMAND_CATEGORIES = Collections.unmodifiableMap(map);
     }
 

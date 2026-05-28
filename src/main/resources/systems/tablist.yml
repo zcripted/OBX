@@ -53,6 +53,23 @@ footer:
 # Per-player entry shown in the list itself. Set to an empty string to keep
 # the vanilla / scoreboard team name behaviour.
 player-format: "<#AAAAAA>{player}</#AAAAAA>"
+
+# Group staff (OP players) together, separated from regular players, in the TAB
+# list. This uses scoreboard-team sort order (no extra plugins): OP players are
+# always grouped at the TOP of the list with their own name format below, and
+# everyone else uses "player-format" above.
+#
+# Note on columns: the client automatically lays the player list out into
+# columns of ~20 and distributes everyone evenly. Staff occupy their own column
+# only once the list is large enough to wrap into multiple columns; with a small
+# list they sit at the top of the single column. (A strictly fixed staff column
+# would require packet-level fake entries / ProtocolLib, which SF-Core avoids.)
+staff-grouping:
+  enabled: true
+  # Tablist name for OP/staff. Default prepends the red, bold "ѕᴛᴀꜰꜰ┃" tag
+  # (matching the chat tag) to the gray name. Accepts the same MiniMessage tags
+  # and {placeholders} as player-format.
+  player-format: "<red><bold>ѕᴛᴀꜰꜰ ┃ </bold></red><red>{player}</red>"
 #
 #
 # ╔══════════════════════════════════════════════════════════════╗

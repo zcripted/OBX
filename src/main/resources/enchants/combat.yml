@@ -1,0 +1,811 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — COMBAT enchantments (red)
+# Each level's parameters are read generically by the combat effect listener.
+# Potion amplifiers are stored as the displayed level (Slowness I = 1).
+# ════════════════════════════════════════════════════════════════════════════
+
+frostbite:
+  display_name: "&bFrostbite"
+  category: combat
+  rarity: rare
+  max_level: 5
+  applies_to: [WEAPON]
+  conflicts_with: [soulfire]
+  description:
+    - "Hits chill the target, stacking slowness"
+    - "and eventually mining fatigue."
+  levels:
+    1: { chance: 0.20, duration_ticks: 40, slowness: 1, fatigue: 0 }
+    2: { chance: 0.30, duration_ticks: 60, slowness: 1, fatigue: 0 }
+    3: { chance: 0.40, duration_ticks: 60, slowness: 2, fatigue: 0 }
+    4: { chance: 0.50, duration_ticks: 80, slowness: 2, fatigue: 1 }
+    5: { chance: 0.60, duration_ticks: 100, slowness: 3, fatigue: 1 }
+  scroll:
+    common_book_glow: true
+    custom_model_data: 1042
+
+bloodthirst:
+  display_name: "&cBloodthirst"
+  category: combat
+  rarity: uncommon
+  max_level: 4
+  applies_to: [SWORD, AXE]
+  description:
+    - "Heal a portion of the damage you deal."
+  levels:
+    1: { heal_percent: 0.05, kill_bonus_hearts: 0 }
+    2: { heal_percent: 0.10, kill_bonus_hearts: 0 }
+    3: { heal_percent: 0.15, kill_bonus_hearts: 0 }
+    4: { heal_percent: 0.20, kill_bonus_hearts: 1 }
+
+executioner:
+  display_name: "&4Executioner"
+  category: combat
+  rarity: rare
+  max_level: 5
+  applies_to: [AXE, MACE]
+  description:
+    - "Deal bonus damage to wounded targets."
+  levels:
+    1: { threshold: 0.50, bonus: 0.10, threshold2: 0.0, bonus2: 0.0 }
+    2: { threshold: 0.50, bonus: 0.15, threshold2: 0.0, bonus2: 0.0 }
+    3: { threshold: 0.40, bonus: 0.25, threshold2: 0.0, bonus2: 0.0 }
+    4: { threshold: 0.30, bonus: 0.40, threshold2: 0.0, bonus2: 0.0 }
+    5: { threshold: 0.25, bonus: 0.60, threshold2: 0.10, bonus2: 1.00 }
+
+volley:
+  display_name: "&6Volley"
+  category: combat
+  rarity: uncommon
+  max_level: 3
+  applies_to: [BOW, CROSSBOW]
+  description:
+    - "Fire additional arrows in a spread."
+  levels:
+    1: { extra_arrows: 1, spread_degrees: 15, arrow_cost: 1 }
+    2: { extra_arrows: 2, spread_degrees: 20, arrow_cost: 1 }
+    3: { extra_arrows: 4, spread_degrees: 30, arrow_cost: 2 }
+
+headhunter:
+  display_name: "&8Headhunter"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [WEAPON]
+  description:
+    - "Chance to drop the target's head on kill."
+  levels:
+    1: { player_chance: 0.02, mob_chance: 0.05 }
+    2: { player_chance: 0.05, mob_chance: 0.10 }
+    3: { player_chance: 0.10, mob_chance: 0.20 }
+
+chain_lightning:
+  display_name: "&eChain Lightning"
+  category: combat
+  rarity: epic
+  max_level: 4
+  applies_to: [SWORD, TRIDENT]
+  description:
+    - "Strikes arc to nearby enemies on hit."
+  levels:
+    1: { jumps: 1, range: 3.0, damage_percent: 0.25, particles: false }
+    2: { jumps: 2, range: 4.0, damage_percent: 0.35, particles: false }
+    3: { jumps: 3, range: 5.0, damage_percent: 0.45, particles: false }
+    4: { jumps: 4, range: 6.0, damage_percent: 0.60, particles: true }
+
+riposte:
+  display_name: "&fRiposte"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [SWORD]
+  description:
+    - "Counter-attack when struck while holding a sword."
+  levels:
+    1: { chance: 0.20, reflect_percent: 0.25, weakness_seconds: 0 }
+    2: { chance: 0.30, reflect_percent: 0.40, weakness_seconds: 0 }
+    3: { chance: 0.40, reflect_percent: 0.60, weakness_seconds: 1 }
+
+pulverize:
+  display_name: "&6Pulverize"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [MACE, AXE]
+  description:
+    - "Deal area damage around the target on hit."
+  levels:
+    1: { radius: 2.0, damage_percent: 0.20, knockback: false }
+    2: { radius: 2.5, damage_percent: 0.30, knockback: false }
+    3: { radius: 3.0, damage_percent: 0.40, knockback: false }
+    4: { radius: 3.5, damage_percent: 0.50, knockback: true }
+
+vampiric_edge:
+  display_name: "&4Vampiric Edge"
+  category: combat
+  rarity: legendary
+  max_level: 5
+  applies_to: [SWORD]
+  description:
+    - "Consecutive hits on the same target stack lifesteal."
+  levels:
+    1: { base_percent: 0.02, per_stack: 0.02, max_stacks: 5 }
+    2: { base_percent: 0.03, per_stack: 0.03, max_stacks: 5 }
+    3: { base_percent: 0.04, per_stack: 0.04, max_stacks: 6 }
+    4: { base_percent: 0.05, per_stack: 0.05, max_stacks: 7 }
+    5: { base_percent: 0.06, per_stack: 0.06, max_stacks: 8 }
+
+# ── Batch 1: damage-modifier & kill-stacking enchants ────────────────────────
+# FX are gated by combat_global in config.yml (particle_intensity,
+# sound_volume_multiplier, action_bar_feedback).
+
+lifesteal:
+  display_name: "&cLifesteal"
+  category: combat
+  rarity: common
+  max_level: 5
+  applies_to: [SWORD]
+  conflicts_with: [bloodthirst, vampiric_edge]
+  description:
+    - "Heal a percentage of the damage you deal."
+  levels:
+    1: { percent: 0.03 }
+    2: { percent: 0.05 }
+    3: { percent: 0.07 }
+    4: { percent: 0.10 }
+    5: { percent: 0.15 }
+
+crit_mastery:
+  display_name: "&eCrit Mastery"
+  category: combat
+  rarity: rare
+  max_level: 5
+  applies_to: [WEAPON]
+  description:
+    - "Increased critical hit chance and"
+    - "critical hit damage."
+  levels:
+    1: { crit_chance: 0.05, crit_bonus: 0.10 }
+    2: { crit_chance: 0.10, crit_bonus: 0.15 }
+    3: { crit_chance: 0.15, crit_bonus: 0.25 }
+    4: { crit_chance: 0.20, crit_bonus: 0.40 }
+    5: { crit_chance: 0.30, crit_bonus: 0.60 }
+
+berserkers_rage:
+  display_name: "&4Berserker's Rage"
+  category: combat
+  rarity: epic
+  max_level: 4
+  applies_to: [AXE, MACE]
+  description:
+    - "Damage scales as your own HP drops."
+  levels:
+    1: { per_missing_fifth: 0.05, max_bonus: 0.20, strength_below: 0.0 }
+    2: { per_missing_fifth: 0.08, max_bonus: 0.32, strength_below: 0.0 }
+    3: { per_missing_fifth: 0.12, max_bonus: 0.48, strength_below: 0.0 }
+    4: { per_missing_fifth: 0.15, max_bonus: 0.60, strength_below: 0.25 }
+
+wrath_of_the_wild:
+  display_name: "&2Wrath of the Wild"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [AXE]
+  description:
+    - "Fight harder when outnumbered — damage"
+    - "scales with nearby hostile mobs."
+  levels:
+    1: { per_mob: 0.05, max_bonus: 0.20, radius: 6.0, heal_on_kill: 0.0 }
+    2: { per_mob: 0.06, max_bonus: 0.30, radius: 6.0, heal_on_kill: 0.0 }
+    3: { per_mob: 0.08, max_bonus: 0.40, radius: 6.0, heal_on_kill: 0.0 }
+    4: { per_mob: 0.10, max_bonus: 0.60, radius: 6.0, heal_on_kill: 1.0 }
+
+momentum:
+  display_name: "&fMomentum"
+  category: combat
+  rarity: uncommon
+  max_level: 4
+  applies_to: [SWORD, AXE, MACE]
+  description:
+    - "Damage scales with how long you've"
+    - "been sprinting before the hit."
+  levels:
+    1: { per_second: 0.05, max_bonus: 0.20 }
+    2: { per_second: 0.06, max_bonus: 0.30 }
+    3: { per_second: 0.08, max_bonus: 0.40 }
+    4: { per_second: 0.10, max_bonus: 0.60 }
+
+soulreaver:
+  display_name: "&5Soulreaver"
+  category: combat
+  rarity: epic
+  max_level: 5
+  # SCYTHE is a future item type — aliased to SWORD until it exists.
+  applies_to: [SWORD]
+  conflicts_with: [vampiric_edge]
+  description:
+    - "Each kill grants a stacking damage"
+    - "buff that decays over time."
+  levels:
+    1: { per_stack: 0.02, max_stacks: 5, decay_seconds: 10 }
+    2: { per_stack: 0.03, max_stacks: 5, decay_seconds: 12 }
+    3: { per_stack: 0.04, max_stacks: 7, decay_seconds: 15 }
+    4: { per_stack: 0.05, max_stacks: 7, decay_seconds: 18 }
+    5: { per_stack: 0.06, max_stacks: 10, decay_seconds: 20 }
+
+# ── Batch 2: on-hit proc / debuff / elemental enchants ───────────────────────
+
+bloodletter:
+  display_name: "&4Bloodletter"
+  category: combat
+  rarity: rare
+  max_level: 5
+  applies_to: [SWORD, AXE]
+  description:
+    - "Hits cause bleeding — damage over time"
+    - "that ignores armor."
+  levels:
+    1: { damage: 1.0, period_ticks: 40, duration_ticks: 80, refresh_chance: 0.0 }
+    2: { damage: 1.0, period_ticks: 40, duration_ticks: 120, refresh_chance: 0.0 }
+    3: { damage: 2.0, period_ticks: 40, duration_ticks: 120, refresh_chance: 0.0 }
+    4: { damage: 2.0, period_ticks: 30, duration_ticks: 160, refresh_chance: 0.0 }
+    5: { damage: 3.0, period_ticks: 30, duration_ticks: 200, refresh_chance: 0.25 }
+
+concussion:
+  display_name: "&eConcussion"
+  category: combat
+  rarity: uncommon
+  max_level: 4
+  applies_to: [MACE, AXE]
+  description:
+    - "Hits may daze the target with Slowness"
+    - "and Mining Fatigue."
+  levels:
+    1: { chance: 0.20, duration_ticks: 40, slowness: 1, fatigue: 1, nausea_ticks: 0 }
+    2: { chance: 0.30, duration_ticks: 60, slowness: 1, fatigue: 1, nausea_ticks: 0 }
+    3: { chance: 0.40, duration_ticks: 60, slowness: 2, fatigue: 1, nausea_ticks: 0 }
+    4: { chance: 0.50, duration_ticks: 80, slowness: 2, fatigue: 2, nausea_ticks: 40 }
+
+frostbrand:
+  display_name: "&bFrostbrand"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [SWORD]
+  conflicts_with: [soulfire, frostbite, hellforged]
+  description:
+    - "Adds frost damage and chills the target,"
+    - "bypassing fire resistance."
+  levels:
+    1: { frost_damage: 1.0, slowness_ticks: 20, slowness: 1, freeze_ticks: 0 }
+    2: { frost_damage: 2.0, slowness_ticks: 40, slowness: 1, freeze_ticks: 60 }
+    3: { frost_damage: 3.0, slowness_ticks: 40, slowness: 2, freeze_ticks: 80 }
+    4: { frost_damage: 4.0, slowness_ticks: 60, slowness: 2, freeze_ticks: 100 }
+
+hellforged:
+  display_name: "&6Hellforged"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [SWORD, AXE]
+  conflicts_with: [frostbrand]
+  description:
+    - "Ignites foes and burns harder against"
+    - "non-Nether mobs."
+  levels:
+    1: { fire_seconds: 3, overworld_bonus: 0.10 }
+    2: { fire_seconds: 4, overworld_bonus: 0.20 }
+    3: { fire_seconds: 5, overworld_bonus: 0.30 }
+    4: { fire_seconds: 6, overworld_bonus: 0.45 }
+
+bonecrusher:
+  display_name: "&fBonecrusher"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [MACE, AXE]
+  description:
+    - "Devastates the undead and shatters armor"
+    - "durability on critical hits."
+  levels:
+    1: { undead_bonus: 0.25, durability_on_crit: 5, weakness_ticks: 0, shield_disable_chance: 0.0 }
+    2: { undead_bonus: 0.40, durability_on_crit: 10, weakness_ticks: 0, shield_disable_chance: 0.0 }
+    3: { undead_bonus: 0.60, durability_on_crit: 15, weakness_ticks: 20, shield_disable_chance: 0.0 }
+    4: { undead_bonus: 0.80, durability_on_crit: 25, weakness_ticks: 20, shield_disable_chance: 0.30 }
+
+voidstrike:
+  display_name: "&5Voidstrike"
+  category: combat
+  rarity: epic
+  max_level: 3
+  applies_to: [SWORD, TRIDENT]
+  conflicts_with: [spectral_bind]
+  description:
+    - "Chance to blink the target a short"
+    - "distance forward, disorienting them."
+  levels:
+    1: { chance: 0.05, distance: 2.0, nausea_ticks: 0, blindness_ticks: 0 }
+    2: { chance: 0.10, distance: 3.0, nausea_ticks: 40, blindness_ticks: 0 }
+    3: { chance: 0.15, distance: 4.0, nausea_ticks: 60, blindness_ticks: 20 }
+
+# ── Batch 3: armor / sweep / CC / reflect enchants ───────────────────────────
+
+phantom_edge:
+  display_name: "&bPhantom Edge"
+  category: combat
+  rarity: epic
+  max_level: 3
+  applies_to: [SWORD]
+  description:
+    - "Chance for hits to phase through armor."
+  levels:
+    1: { chance: 0.05, extra_damage: 0.0 }
+    2: { chance: 0.10, extra_damage: 0.0 }
+    3: { chance: 0.15, extra_damage: 0.50 }
+
+glasscutter:
+  display_name: "&fGlasscutter"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [SWORD, AXE]
+  description:
+    - "Armor penetration — ignores part of the"
+    - "target's armor."
+  levels:
+    1: { pierce: 0.15, shatter_chance: 0.0 }
+    2: { pierce: 0.25, shatter_chance: 0.0 }
+    3: { pierce: 0.40, shatter_chance: 0.0 }
+    4: { pierce: 0.55, shatter_chance: 0.10 }
+
+mirror_edge:
+  display_name: "&7Mirror Edge"
+  category: combat
+  rarity: epic
+  max_level: 3
+  applies_to: [SWORD]
+  description:
+    - "A landed hit may ready a mirror that"
+    - "reflects the next blow you take."
+  levels:
+    1: { chance: 0.08, reflect: 1.00 }
+    2: { chance: 0.12, reflect: 1.50 }
+    3: { chance: 0.18, reflect: 2.00 }
+
+stunlock:
+  display_name: "&eStunlock"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [MACE, AXE]
+  conflicts_with: [petrify]
+  description:
+    - "Chance to briefly stun the target,"
+    - "locking them in place."
+  levels:
+    1: { chance: 0.03, stun_seconds: 0.75, stunned_bonus: 0.0 }
+    2: { chance: 0.06, stun_seconds: 1.0, stunned_bonus: 0.0 }
+    3: { chance: 0.10, stun_seconds: 1.5, stunned_bonus: 0.25 }
+
+whirlwind:
+  display_name: "&3Whirlwind"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [SWORD, AXE]
+  conflicts_with: [cleave, pulverize]
+  description:
+    - "Sweep attacks deal real damage to"
+    - "everything they touch."
+  levels:
+    1: { sweep_percent: 0.60, ring: false }
+    2: { sweep_percent: 0.80, ring: false }
+    3: { sweep_percent: 1.00, ring: false }
+    4: { sweep_percent: 1.20, ring: true }
+
+cleave:
+  display_name: "&6Cleave"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [AXE, SWORD]
+  conflicts_with: [whirlwind, pulverize]
+  description:
+    - "Strikes carve a forward cone, hitting"
+    - "everything in front of you."
+  levels:
+    1: { cone_degrees: 60, damage_percent: 0.50, range: 3.0, bleed_level: 0 }
+    2: { cone_degrees: 75, damage_percent: 0.65, range: 4.0, bleed_level: 0 }
+    3: { cone_degrees: 90, damage_percent: 0.80, range: 5.0, bleed_level: 1 }
+
+# ── Batch 4: combo / reactive / kill-trigger enchants ────────────────────────
+
+tempest_strike:
+  display_name: "&3Tempest Strike"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [SWORD, AXE]
+  description:
+    - "Critical hits release a knockback wave"
+    - "around the target."
+  levels:
+    1: { radius: 2.0, knockback: 0.5, adjacent_damage: 0.0, slowness_ticks: 0 }
+    2: { radius: 2.5, knockback: 0.7, adjacent_damage: 1.0, slowness_ticks: 0 }
+    3: { radius: 3.0, knockback: 1.0, adjacent_damage: 2.0, slowness_ticks: 0 }
+    4: { radius: 4.0, knockback: 1.4, adjacent_damage: 3.0, slowness_ticks: 30 }
+
+quickdraw:
+  display_name: "&eQuickdraw"
+  category: combat
+  rarity: uncommon
+  max_level: 3
+  applies_to: [SWORD, AXE]
+  description:
+    - "Your first hit after drawing this weapon"
+    - "strikes harder."
+  levels:
+    1: { window_seconds: 2.0, bonus: 0.25, speed: false }
+    2: { window_seconds: 2.5, bonus: 0.40, speed: false }
+    3: { window_seconds: 3.0, bonus: 0.60, speed: true }
+
+headsplitter:
+  display_name: "&8Headsplitter"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [AXE]
+  description:
+    - "Higher head-drop chance and bonus damage"
+    - "to bare-headed foes."
+  levels:
+    1: { head_chance: 0.05, barehead_bonus: 0.10 }
+    2: { head_chance: 0.10, barehead_bonus: 0.20 }
+    3: { head_chance: 0.18, barehead_bonus: 0.35 }
+
+combo_strike:
+  display_name: "&6Combo Strike"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [SWORD]
+  conflicts_with: [killstreak, soulreaver]
+  description:
+    - "Consecutive hits on one target build to"
+    - "a powerful finisher."
+  levels:
+    1: { hits: 3, step: 0.0, finisher: 0.50, window_seconds: 3.0 }
+    2: { hits: 4, step: 0.25, finisher: 0.75, window_seconds: 3.0 }
+    3: { hits: 5, step: 0.20, finisher: 1.00, window_seconds: 3.0 }
+    4: { hits: 6, step: 0.20, finisher: 1.50, window_seconds: 3.0 }
+
+manaburn:
+  display_name: "&3Manaburn"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [SWORD]
+  description:
+    - "Drains the target and banks the energy"
+    - "into your next swing."
+  levels:
+    1: { hunger_drain: 1, next_swing_bonus: 0.05, weakness_ticks: 0 }
+    2: { hunger_drain: 2, next_swing_bonus: 0.10, weakness_ticks: 0 }
+    3: { hunger_drain: 3, next_swing_bonus: 0.20, weakness_ticks: 20 }
+
+brawlers_grit:
+  display_name: "&cBrawler's Grit"
+  category: combat
+  rarity: uncommon
+  max_level: 4
+  applies_to: [SWORD, AXE]
+  description:
+    - "Taking a hit briefly empowers your"
+    - "next attack."
+  levels:
+    1: { window_seconds: 3.0, bonus: 0.10, speed: false, resistance: false }
+    2: { window_seconds: 4.0, bonus: 0.20, speed: false, resistance: false }
+    3: { window_seconds: 4.0, bonus: 0.30, speed: true, resistance: false }
+    4: { window_seconds: 4.0, bonus: 0.45, speed: true, resistance: true }
+
+vengeance:
+  display_name: "&4Vengeance"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [SWORD, AXE]
+  description:
+    - "Deal bonus damage to whoever last hit you."
+  levels:
+    1: { bonus: 0.15, duration_seconds: 10, glow: false, first_crit: false }
+    2: { bonus: 0.25, duration_seconds: 15, glow: true, first_crit: false }
+    3: { bonus: 0.40, duration_seconds: 20, glow: true, first_crit: true }
+
+# ── Batch 5: loot / soul kill-triggers (completes Phase 1 mechanics) ─────────
+
+plunderer:
+  display_name: "&6Plunderer"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [WEAPON]
+  conflicts_with: [curse_of_greed]
+  description:
+    - "More mob loot, with a chance at extra"
+    - "drops and enchant scrolls."
+  levels:
+    1: { common_bonus: 0.20, rare_chance: 0.05, scroll_chance: 0.0 }
+    2: { common_bonus: 0.40, rare_chance: 0.10, scroll_chance: 0.0 }
+    3: { common_bonus: 0.60, rare_chance: 0.15, scroll_chance: 0.05 }
+    4: { common_bonus: 1.00, rare_chance: 0.25, scroll_chance: 0.10 }
+
+reapers_toll:
+  display_name: "&5Reaper's Toll"
+  category: combat
+  rarity: epic
+  max_level: 4
+  # SCYTHE is a future item type — aliased to SWORD until it exists.
+  applies_to: [SWORD, AXE]
+  description:
+    - "Kills release a soul that heals you"
+    - "when collected."
+  levels:
+    1: { chance: 0.25, heal_hearts: 1, duration_ticks: 40, absorption: false }
+    2: { chance: 0.40, heal_hearts: 2, duration_ticks: 40, absorption: false }
+    3: { chance: 0.60, heal_hearts: 3, duration_ticks: 60, absorption: false }
+    4: { chance: 1.00, heal_hearts: 4, duration_ticks: 60, absorption: true }
+
+# ── Batch 6: ranged (bow / crossbow) — Phase 2 ───────────────────────────────
+
+hunters_mark:
+  display_name: "&cHunter's Mark"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [BOW, CROSSBOW]
+  description:
+    - "Marked targets glow and take more"
+    - "damage from all sources."
+  levels:
+    1: { duration_seconds: 5, bonus: 0.10 }
+    2: { duration_seconds: 7, bonus: 0.15 }
+    3: { duration_seconds: 10, bonus: 0.20 }
+    4: { duration_seconds: 12, bonus: 0.30 }
+
+snipers_eye:
+  display_name: "&6Sniper's Eye"
+  category: combat
+  rarity: rare
+  max_level: 4
+  applies_to: [BOW, CROSSBOW]
+  description:
+    - "Arrows deal more damage the farther"
+    - "they travel."
+  levels:
+    1: { per_ten: 0.05, max_bonus: 0.25, crit_range: 0.0, crit_chance: 0.0 }
+    2: { per_ten: 0.07, max_bonus: 0.35, crit_range: 0.0, crit_chance: 0.0 }
+    3: { per_ten: 0.10, max_bonus: 0.50, crit_range: 0.0, crit_chance: 0.0 }
+    4: { per_ten: 0.12, max_bonus: 0.60, crit_range: 30.0, crit_chance: 0.25 }
+
+piercing_shot:
+  display_name: "&fPiercing Shot"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [BOW, CROSSBOW]
+  conflicts_with: [ricochet]
+  description:
+    - "Arrows pass through multiple targets."
+  levels:
+    1: { pierce: 1 }
+    2: { pierce: 2 }
+    3: { pierce: 3 }
+
+ricochet:
+  display_name: "&eRicochet"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [BOW, CROSSBOW]
+  conflicts_with: [piercing_shot]
+  description:
+    - "Arrows bounce to additional targets"
+    - "on hit, with falloff."
+  levels:
+    1: { bounces: 1, range: 5.0, damage_percent: 0.60 }
+    2: { bounces: 2, range: 6.0, damage_percent: 0.65 }
+    3: { bounces: 3, range: 8.0, damage_percent: 0.70 }
+
+phantom_volley:
+  display_name: "&bPhantom Volley"
+  category: combat
+  rarity: epic
+  max_level: 3
+  applies_to: [BOW]
+  conflicts_with: [volley]
+  description:
+    - "Firing summons ghostly arrows at"
+    - "nearby visible enemies."
+  levels:
+    1: { arrows: 1, range: 15.0, damage_percent: 0.50 }
+    2: { arrows: 2, range: 15.0, damage_percent: 0.60 }
+    3: { arrows: 3, range: 15.0, damage_percent: 0.70 }
+
+# ── Batch 7: trident & mace-smash — Phase 2 ──────────────────────────────────
+
+trident_storm:
+  display_name: "&3Trident Storm"
+  category: combat
+  rarity: epic
+  max_level: 3
+  applies_to: [TRIDENT]
+  description:
+    - "Thrown tridents call lightning in the"
+    - "rain, or a shockwave when clear."
+  levels:
+    1: { lightning: 1, followup: 0, shockwave_radius: 2.0, shockwave_damage: 2.0, slowness_ticks: 0 }
+    2: { lightning: 1, followup: 1, shockwave_radius: 3.0, shockwave_damage: 3.0, slowness_ticks: 0 }
+    3: { lightning: 2, followup: 1, shockwave_radius: 4.0, shockwave_damage: 4.0, slowness_ticks: 40 }
+
+tidecaller:
+  display_name: "&3Tidecaller"
+  category: combat
+  rarity: rare
+  max_level: 3
+  applies_to: [TRIDENT]
+  description:
+    - "Trident impacts surge water outward,"
+    - "pushing enemies back."
+  levels:
+    1: { radius: 1.0, push: 0.5, slowness_ticks: 0 }
+    2: { radius: 2.0, push: 1.0, slowness_ticks: 40 }
+    3: { radius: 3.0, push: 1.5, slowness_ticks: 60 }
+
+devastator:
+  display_name: "&4Devastator"
+  category: combat
+  rarity: legendary
+  max_level: 4
+  applies_to: [MACE]
+  description:
+    - "Falling smash attacks hit far harder and"
+    - "shake the ground on impact."
+  levels:
+    1: { smash_bonus: 0.50, shockwave_radius: 2.0, shockwave_damage: 2.0, knockback: 0.5 }
+    2: { smash_bonus: 0.75, shockwave_radius: 3.0, shockwave_damage: 3.0, knockback: 0.7 }
+    3: { smash_bonus: 1.00, shockwave_radius: 4.0, shockwave_damage: 4.0, knockback: 0.9 }
+    4: { smash_bonus: 1.50, shockwave_radius: 5.0, shockwave_damage: 6.0, knockback: 1.2 }
+
+killstreak:
+  display_name: "&6Killstreak"
+  category: combat
+  rarity: rare
+  max_level: 5
+  applies_to: [WEAPON]
+  conflicts_with: [combo_strike, soulreaver]
+  description:
+    - "Chaining kills builds a streak that"
+    - "boosts your damage — RAMPAGE at x5."
+  levels:
+    1: { window_seconds: 8, max_streak: 3, per_step: 0.05 }
+    2: { window_seconds: 8, max_streak: 4, per_step: 0.05 }
+    3: { window_seconds: 8, max_streak: 5, per_step: 0.06 }
+    4: { window_seconds: 8, max_streak: 7, per_step: 0.07 }
+    5: { window_seconds: 8, max_streak: 10, per_step: 0.08 }
+
+executioners_cry:
+  display_name: "&4Executioner's Cry"
+  category: combat
+  rarity: legendary
+  max_level: 3
+  applies_to: [AXE, MACE]
+  description:
+    - "Each kill lets out a terrifying cry that"
+    - "weakens and slows nearby foes."
+  levels:
+    1: { radius: 4.0, duration_ticks: 60, slowness: 1, weakness: 0 }
+    2: { radius: 6.0, duration_ticks: 100, slowness: 1, weakness: 1 }
+    3: { radius: 8.0, duration_ticks: 140, slowness: 2, weakness: 1 }
+
+battle_roar:
+  display_name: "&6Battle Roar"
+  category: combat
+  rarity: epic
+  max_level: 3
+  applies_to: [SWORD, AXE, MACE]
+  description:
+    - "Sneak + right-click to roar: buff yourself"
+    - "and debuff nearby enemies. (Has a cooldown.)"
+  levels:
+    1: { cooldown_seconds: 60, self_strength: 1, self_resistance: 0, buff_ticks: 100, radius: 6.0, weakness: 1, slowness: 0, debuff_ticks: 60 }
+    2: { cooldown_seconds: 45, self_strength: 2, self_resistance: 0, buff_ticks: 120, radius: 8.0, weakness: 1, slowness: 1, debuff_ticks: 80 }
+    3: { cooldown_seconds: 30, self_strength: 2, self_resistance: 1, buff_ticks: 160, radius: 10.0, weakness: 2, slowness: 1, debuff_ticks: 120 }
+
+spectral_bind:
+  display_name: "&bSpectral Bind"
+  category: combat
+  rarity: epic
+  max_level: 3
+  applies_to: [SWORD, BOW]
+  description:
+    - "Hits chain the target — slowing them and"
+    - "yanking them back when they try to flee."
+  levels:
+    1: { duration_ticks: 60, slowness: 2, pull: false }
+    2: { duration_ticks: 80, slowness: 3, pull: true, pull_interval: 20, pull_strength: 0.40, pull_min_distance: 3.0 }
+    3: { duration_ticks: 100, slowness: 4, pull: true, pull_interval: 10, pull_strength: 0.55, pull_min_distance: 3.0, block_pearls: true }
+
+predator:
+  display_name: "&cPredator"
+  category: combat
+  rarity: epic
+  max_level: 3
+  applies_to: [BOW, SWORD]
+  description:
+    - "Paints a tracking line to your last target."
+    - "Higher levels read their HP and speed."
+  levels:
+    1: { duration_ticks: 100, show_hp: false, show_speed: false }
+    2: { duration_ticks: 160, show_hp: true, show_speed: false }
+    3: { duration_ticks: 240, show_hp: true, show_speed: true }
+
+soul_tether:
+  display_name: "&5Soul Tether"
+  category: combat
+  rarity: legendary
+  max_level: 3
+  applies_to: [SWORD, BOW]
+  description:
+    - "Tethers your target: it takes more damage"
+    - "from all, but siphons some of its damage to you."
+  levels:
+    1: { duration_ticks: 160, backlash_percent: 0.10, vulnerability: 0.25, glow: false }
+    2: { duration_ticks: 240, backlash_percent: 0.15, vulnerability: 0.40, glow: false }
+    3: { duration_ticks: 300, backlash_percent: 0.20, vulnerability: 0.60, glow: true }
+
+quickshot:
+  display_name: "&eQuickshot"
+  category: combat
+  rarity: uncommon
+  max_level: 4
+  applies_to: [BOW, CROSSBOW]
+  description:
+    - "Rapid fire — right-click looses a fully"
+    - "charged arrow on a short cooldown."
+  levels:
+    1: { cooldown_ticks: 30, spread: 0.0 }
+    2: { cooldown_ticks: 20, spread: 0.0 }
+    3: { cooldown_ticks: 14, spread: 0.0 }
+    4: { cooldown_ticks: 8, spread: 0.04 }
+
+endless_hunger:
+  display_name: "&4Endless Hunger"
+  category: combat
+  rarity: mythic
+  max_level: 3
+  applies_to: [SWORD, AXE]
+  description:
+    - "Feeds on every kill — each milestone grants"
+    - "a permanent +1% damage stack on the weapon."
+  levels:
+    1: { kills_per_stack: 10, cap: 0.15 }
+    2: { kills_per_stack: 8, cap: 0.25 }
+    3: { kills_per_stack: 5, cap: 0.40 }
+
+apex_predator:
+  display_name: "&4&lApex Predator"
+  category: combat
+  rarity: mythic
+  max_level: 1
+  applies_to: [WEAPON]
+  description:
+    - "The ultimate capstone. Raw power, lethal crits,"
+    - "and a chance to harvest scrolls from the slain."
+    - "&8Only one Apex Predator can be active per player."
+  levels:
+    1: { damage_bonus: 0.15, crit_chance: 0.10, crit_bonus: 0.10, scroll_drop_chance: 0.05, killstreak_amp: 1.5 }
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

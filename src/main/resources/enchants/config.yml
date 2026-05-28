@@ -1,0 +1,92 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core — Arcanum Enchantment Module (master config)
+# ────────────────────────────────────────────────────────────────────────────
+# This module adds custom "Arcanum" enchantments delivered via scrolls, world
+# loot, and an admin GUI. Per-enchant definitions live in enchants/*.yml
+# (one file per category). Scroll tuning is in scrolls.yml; world-loot toggles
+# are in loot.yml.
+#
+# Enchantment data is stored on items via structured lore (no NBT/PDC needed),
+# so it works on every supported server version (1.8.8 → 1.21.x).
+# ════════════════════════════════════════════════════════════════════════════
+
+# Master toggle. When false, the whole module is dormant: listeners early-exit,
+# commands report "module disabled", and no effects fire.
+enabled: true
+
+# Logs every enchantment proc for admins who ran /sfench debug on. Off globally
+# by default; the per-admin toggle is independent of this flag.
+debug: false
+
+# Item enchantment tooltips. SF-Core restyles enchanted items into themed
+# Enchantments / Curses / Vanilla sections, each with a tiered dot bar
+# (●●●●○) and roman level. Custom Arcanum enchants are always styled.
+lore:
+  # When true, VANILLA enchantments are also styled into their own "Vanilla"
+  # section (and the default blue enchantment lines are hidden to avoid
+  # duplication) on every enchanted item — enchanting table, anvil, and Arcanum
+  # gear alike. Set false to leave vanilla tooltips untouched and style only
+  # custom Arcanum enchants.
+  style_vanilla_enchants: true
+
+apply:
+  # Maximum number of enchantments allowed on a single item.
+  max_enchants_per_item: 6
+  # If false, Cursed enchants do NOT count toward the cap above — this rewards
+  # players willing to take on drawbacks (recommended default from the design).
+  cursed_count_toward_cap: false
+  # Scroll-application failures: if true the item is destroyed on a failed apply
+  # (unless a Protection Scroll is used); if false the item survives and only the
+  # scroll is consumed.
+  destroy_item_on_failure: true
+
+pvp:
+  # Whether Cursed / Mystic enchant effects fire when the victim is a player.
+  # Set either to false to make those families PvE-only.
+  cursed_in_pvp: true
+  mystic_in_pvp: true
+
+# Combat-category presentation & safety toggles. (Module-wide settings live here
+# in config.yml, NOT in combat.yml — combat.yml's top-level keys are parsed as
+# enchantment definitions.)
+combat_global:
+  # Holographic damage numbers above hit mobs (added in a later phase).
+  damage_numbers: true
+  # Kill / killstreak banners above the killer (added in a later phase).
+  kill_banners: true
+  # Particle density: full / reduced / off.
+  particle_intensity: full
+  # Multiplier applied to every combat-enchant sound (0.0 silences them).
+  sound_volume_multiplier: 1.0
+  # Action-bar proc feedback (e.g. "Lifesteal +4 ❤", Soulreaver stacks).
+  action_bar_feedback: true
+  # Safety cap on simultaneous holograms per player (later phase).
+  max_holograms_per_player: 12
+  # Bloodletter: drop a private gravestone marker at a victim's bleed-out death
+  # location (visible only to that victim) and how long it lasts before vanishing.
+  bloodletter_gravestone: true
+  bloodletter_gravestone_seconds: 35
+
+# Enchantments that cannot coexist on the same item. Every member of a group
+# conflicts with every other member. Per-enchant "conflicts_with" lists (in the
+# category files) are merged with these.
+conflict_groups:
+  chill_effects: [frostbite, soulfire]
+  defense_passive: [aegis, thornmail]
+  area_break: [vein_miner, excavator, treecapitator]
+  curse_armor: [curse_of_hunger, curse_of_echoes, curse_of_the_sleepless]
+  recall: [beacons_memory, voidwalker]
+  # Combat-category groups (members are added across the Combat enchant batches;
+  # unknown ids are simply ignored until their enchant exists).
+  fire_frost: [frostbrand, hellforged]
+  cc_displacement: [voidstrike, spectral_bind]
+  cc_hard: [stunlock, petrify]
+  lifesteal_family: [lifesteal, bloodthirst, vampiric_edge]
+  combo_systems: [combo_strike, killstreak, soulreaver]
+  ranged_pierce: [piercing_shot, ricochet]
+  cleave_aoe: [cleave, whirlwind, pulverize]
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

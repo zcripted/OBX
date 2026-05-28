@@ -66,8 +66,9 @@ public final class AdminMenu {
         if (infoMeta != null) {
             infoMeta.setDisplayName(ChatColor.GOLD + "Admin Panel");
             infoMeta.setLore(Arrays.asList(
-                    ChatColor.GRAY + "Central management hub for future",
-                    ChatColor.GRAY + "SF-Core administrative features."
+                    ChatColor.GRAY + "Your control center for SF-Core.",
+                    ChatColor.GRAY + "Manage your server's tools and",
+                    ChatColor.GRAY + "settings from the options here."
             ));
             hideAttributes(infoMeta);
             infoItem.setItemMeta(infoMeta);
@@ -111,8 +112,49 @@ public final class AdminMenu {
         }
         inventory.setItem(37, warpManager);
 
+        // Hub / Lobby Controls — slot 43 sits symmetric with the Warp
+        // Manager at slot 37, keeping the row visually balanced.
+        boolean canManageHub = player.hasPermission("sfcore.hub.admin");
+        Material hubMaterial = Material.matchMaterial("BEACON");
+        if (hubMaterial == null) {
+            hubMaterial = Material.matchMaterial("COMPASS");
+        }
+        if (hubMaterial == null) {
+            hubMaterial = Material.STONE;
+        }
+        ItemStack hubControls = new ItemStack(hubMaterial);
+        ItemMeta hubMeta = hubControls.getItemMeta();
+        if (hubMeta != null) {
+            boolean hubEnabled = plugin.getHubService() != null && plugin.getHubService().isEnabled();
+            int worldCount = plugin.getHubService() == null ? 0 : plugin.getHubService().getHubWorlds().size();
+            if (canManageHub) {
+                hubMeta.setDisplayName(WarpMenuStyling.gradientTitle("Hub / Lobby Controls"));
+                hubMeta.setLore(Arrays.asList(
+                        ChatColor.GRAY + "Configure the hub / lobby system:",
+                        ChatColor.GRAY + "items, kit, server selector, and per-world scope.",
+                        "",
+                        (hubEnabled ? ChatColor.GREEN + "● Enabled" : ChatColor.RED + "○ Disabled"),
+                        ChatColor.YELLOW + "Worlds: " + ChatColor.WHITE + worldCount,
+                        "",
+                        ChatColor.YELLOW + "Click:" + ChatColor.GRAY + " Open Hub Panel"
+                ));
+            } else {
+                hubMeta.setDisplayName(ChatColor.DARK_GRAY + "Hub / Lobby Controls");
+                hubMeta.setLore(Arrays.asList(
+                        ChatColor.RED + "Locked",
+                        ChatColor.DARK_GRAY + "Requires: sfcore.hub.admin"
+                ));
+            }
+            hideAttributes(hubMeta);
+            hubControls.setItemMeta(hubMeta);
+        }
+        inventory.setItem(43, hubControls);
+
         player.openInventory(inventory);
     }
+
+    /** Public so menu listeners can identify the Hub Controls slot. */
+    public static final int HUB_CONTROLS_SLOT = 43;
 
     private static Material resolveInfoMaterial() {
         Material modern = Material.matchMaterial("WRITABLE_BOOK");

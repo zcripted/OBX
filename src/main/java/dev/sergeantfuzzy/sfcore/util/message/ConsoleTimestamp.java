@@ -42,7 +42,7 @@ public final class ConsoleTimestamp {
         } catch (IllegalArgumentException invalid) {
             if (plugin != null && plugin.getLogger() != null) {
                 plugin.getLogger().log(Level.WARNING,
-                        "[SF-Core] Invalid console timestamp pattern \"" + pattern + "\": "
+                        "Invalid console timestamp pattern \"" + pattern + "\": "
                                 + invalid.getMessage() + ". Falling back to default.");
             }
             return LocalDateTime.now().format(DateTimeFormatter.ofPattern(DEFAULT_PATTERN));

@@ -1,0 +1,123 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — UTILITY enchantments (aqua)
+# ════════════════════════════════════════════════════════════════════════════
+
+hermes:
+  display_name: "&bHermes"
+  category: utility
+  rarity: uncommon
+  max_level: 4
+  applies_to: [BOOTS]
+  description:
+    - "Increased movement speed while worn."
+  levels:
+    1: { speed_percent: 0.05, reduce_hunger: false }
+    2: { speed_percent: 0.10, reduce_hunger: false }
+    3: { speed_percent: 0.15, reduce_hunger: false }
+    4: { speed_percent: 0.20, reduce_hunger: true }
+
+featherfall:
+  display_name: "&fFeatherfall"
+  category: utility
+  rarity: uncommon
+  max_level: 3
+  applies_to: [BOOTS]
+  description:
+    - "Reduce fall damage beyond vanilla."
+  levels:
+    1: { reduction: 0.30, no_sound: false }
+    2: { reduction: 0.60, no_sound: false }
+    3: { reduction: 0.95, no_sound: true }
+
+aquatic:
+  display_name: "&3Aquatic"
+  category: utility
+  rarity: rare
+  max_level: 3
+  applies_to: [HELMET]
+  description:
+    - "Underwater vision, breath, and comfort."
+  levels:
+    1: { visibility: true, breath: true, night_vision: false, unlimited_breath: false }
+    2: { visibility: true, breath: true, night_vision: false, unlimited_breath: false }
+    3: { visibility: true, breath: true, night_vision: true, unlimited_breath: true }
+
+nightvision:
+  display_name: "&bNightvision"
+  category: utility
+  rarity: rare
+  max_level: 1
+  applies_to: [HELMET]
+  description:
+    - "Permanent night vision while worn."
+  levels:
+    1: { always_on: true }
+
+bottomless_quiver:
+  display_name: "&bBottomless Quiver"
+  category: utility
+  rarity: rare
+  max_level: 3
+  applies_to: [BOW, CROSSBOW]
+  description:
+    - "Chance not to consume an arrow when firing."
+  levels:
+    1: { chance: 0.20 }
+    2: { chance: 0.40 }
+    3: { chance: 0.60 }
+
+pack_mule:
+  display_name: "&ePack Mule"
+  category: utility
+  rarity: epic
+  max_level: 3
+  applies_to: [CHESTPLATE, LEGGINGS]
+  description:
+    - "Grants Strength-free carry: bonus pickup radius"
+    - "and an item-magnet while worn."
+  levels:
+    1: { pickup_radius: 2.0, magnet: false }
+    2: { pickup_radius: 4.0, magnet: true }
+    3: { pickup_radius: 6.0, magnet: true }
+
+beacons_memory:
+  display_name: "&bBeacon's Memory"
+  category: utility
+  rarity: epic
+  max_level: 2
+  applies_to: [BOOTS]
+  conflicts_with: [voidwalker]
+  description:
+    - "Bind a recall point; teleport back with /recall."
+  levels:
+    1: { cooldown_seconds: 600, slots: 1 }
+    2: { cooldown_seconds: 300, slots: 2 }
+
+glide_boost:
+  display_name: "&bGlide Boost"
+  category: utility
+  rarity: rare
+  max_level: 3
+  applies_to: [ELYTRA]
+  description:
+    - "Improved elytra speed and control."
+  levels:
+    1: { speed: 0.10, pitch: 0.05, firework_reduction: 0.0 }
+    2: { speed: 0.20, pitch: 0.10, firework_reduction: 0.25 }
+    3: { speed: 0.30, pitch: 0.20, firework_reduction: 0.50 }
+
+satchel:
+  display_name: "&5Satchel"
+  category: utility
+  rarity: epic
+  max_level: 1
+  applies_to: [HELMET, CHESTPLATE]
+  description:
+    - "A 9-slot personal storage, opened with /satchel."
+  levels:
+    1: { slots: 9 }
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

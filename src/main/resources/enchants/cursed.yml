@@ -1,0 +1,112 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — CURSED enchantments (dark red)
+# Strong upsides paired with real drawbacks. By default these do NOT count
+# toward the per-item enchant cap (see config.yml → apply.cursed_count_toward_cap).
+# ════════════════════════════════════════════════════════════════════════════
+
+curse_of_hunger:
+  display_name: "&4Curse of Hunger"
+  category: cursed
+  rarity: rare
+  max_level: 3
+  applies_to: [ARMOR]
+  conflicts_with: [curse_of_echoes, curse_of_the_sleepless]
+  description:
+    - "Drains hunger faster, but boosts your damage."
+  levels:
+    1: { hunger_multiplier: 2.0, damage_bonus: 0.10, crit_bonus: 0.0 }
+    2: { hunger_multiplier: 3.0, damage_bonus: 0.20, crit_bonus: 0.0 }
+    3: { hunger_multiplier: 4.0, damage_bonus: 0.35, crit_bonus: 0.05 }
+
+curse_of_brittleness:
+  display_name: "&4Curse of Brittleness"
+  category: cursed
+  rarity: rare
+  max_level: 3
+  applies_to: [WEAPON, TOOL]
+  description:
+    - "Wears out faster, but strikes much harder."
+  levels:
+    1: { durability_multiplier: 2.0, effective_bonus: 1, always_crit_below: 0.0 }
+    2: { durability_multiplier: 3.0, effective_bonus: 2, always_crit_below: 0.0 }
+    3: { durability_multiplier: 4.0, effective_bonus: 3, always_crit_below: 0.25 }
+
+curse_of_greed:
+  display_name: "&4Curse of Greed"
+  category: cursed
+  rarity: rare
+  max_level: 2
+  applies_to: [WEAPON]
+  description:
+    - "More loot from kills, but you heal less."
+  levels:
+    1: { drop_bonus: 0.30, healing_reduction: 0.25 }
+    2: { drop_bonus: 0.60, healing_reduction: 0.50 }
+
+curse_of_the_sleepless:
+  display_name: "&4Curse of the Sleepless"
+  category: cursed
+  rarity: rare
+  max_level: 2
+  applies_to: [HELMET]
+  conflicts_with: [curse_of_hunger, curse_of_echoes]
+  description:
+    - "You cannot sleep, but gain Speed and Night Vision."
+  levels:
+    1: { speed_amp: 1, night_vision: true, phantom_reduction: false }
+    2: { speed_amp: 2, night_vision: true, phantom_reduction: true }
+
+curse_of_ravenous:
+  display_name: "&4Curse of Ravenous"
+  category: cursed
+  rarity: epic
+  max_level: 3
+  applies_to: [WEAPON]
+  description:
+    - "Slain mobs erupt — harming nearby foes and you."
+  levels:
+    1: { radius: 2.0, damage_hearts: 2.0, xp_double: false }
+    2: { radius: 3.0, damage_hearts: 3.0, xp_double: false }
+    3: { radius: 4.0, damage_hearts: 4.0, xp_double: true }
+
+curse_of_echoes:
+  display_name: "&4Curse of Echoes"
+  category: cursed
+  rarity: mythic
+  max_level: 2
+  applies_to: [ARMOR]
+  conflicts_with: [curse_of_hunger, curse_of_the_sleepless]
+  description:
+    - "You bleed when you strike — but all hits crit."
+  levels:
+    1: { reflect_percent: 0.10, crit_rate: 0.50, all_crit: false }
+    2: { reflect_percent: 0.15, crit_rate: 1.00, all_crit: true }
+
+curse_of_the_bound:
+  display_name: "&4Curse of the Bound"
+  category: cursed
+  rarity: rare
+  max_level: 1
+  applies_to: [BOOTS]
+  description:
+    - "Cannot be removed and you cannot sprint —"
+    - "but you resist knockback and gain toughness."
+  levels:
+    1: { knockback_reduction: 0.50, armor_toughness: 4, no_sprint: true, no_remove: true }
+
+curse_of_the_glutton:
+  display_name: "&4Curse of the Glutton"
+  category: cursed
+  rarity: epic
+  max_level: 2
+  applies_to: [FOOD]
+  description:
+    - "Eating grants strong buffs and a strong debuff."
+  levels:
+    1: { strength_amp: 2, strength_seconds: 60, hunger_amp: 2, hunger_seconds: 30 }
+    2: { strength_amp: 3, strength_seconds: 90, hunger_amp: 3, hunger_seconds: 45 }
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

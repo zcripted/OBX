@@ -27,9 +27,32 @@ public final class ChatFormatter {
      * supplied in {@code basePlaceholders} is treated as plain user text.
      */
     public static String compose(ChatService service, Map<String, String> basePlaceholders) {
+        return compose(service, basePlaceholders, null, null);
+    }
+
+    /**
+     * As {@link #compose(ChatService, Map)} but, when {@code clickName} is non-null,
+     * wraps the sender's name in a suggest-command click ({@code /msg <name> }) plus a
+     * hover tooltip so a viewer can click it to open a private message. {@code clickHover}
+     * is MiniMessage hover text (must not contain a single quote).
+     */
+    public static String compose(ChatService service, Map<String, String> basePlaceholders, String clickName, String clickHover) {
         Map<String, String> base = basePlaceholders == null ? java.util.Collections.<String, String>emptyMap() : basePlaceholders;
 
-        String username = applyPlaceholders(service.getUsernameTemplate(), base);
+        // Staff (OP) get the staff name template (red by default) plus the staff
+        // tag prefix; everyone else gets the normal username template. The prefix
+        // value is set per-player by the chat listener (empty for non-staff), so
+        // its presence is the staff signal and this is a no-op for regular players.
+        String prefix = base.get("prefix");
+        boolean staff = prefix != null && !prefix.isEmpty();
+        String usernameTemplate = staff ? service.getStaffUsernameTemplate() : service.getUsernameTemplate();
+        String username = applyPlaceholders(usernameTemplate, base);
+        if (staff) {
+            username = prefix + username;
+        }
+        if (clickName != null && !clickName.isEmpty()) {
+            username = wrapClickable(username, clickName, clickHover);
+        }
 
         // Mutate-in-place: the {character} key only matters for the separator template,
         // so we install it, render, then back it out instead of allocating a fresh
@@ -85,6 +108,13 @@ public final class ChatFormatter {
      * visually-similar typographic angle quotes so the player still sees
      * something close to what they typed.
      */
+    /** Wraps {@code username} in a MiniMessage suggest-command click + hover for /msg. */
+    private static String wrapClickable(String username, String name, String hover) {
+        String hoverText = hover == null ? "" : hover;
+        return "<click:suggest_command:'/msg " + name + " '><hover:show_text:'" + hoverText + "'>"
+                + username + "</hover></click>";
+    }
+
     public static String sanitiseMessage(String raw, boolean allowFormatting) {
         if (raw == null) {
             return "";

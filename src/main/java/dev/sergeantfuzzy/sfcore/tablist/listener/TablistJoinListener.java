@@ -2,11 +2,13 @@ package dev.sergeantfuzzy.sfcore.tablist.listener;
 
 import dev.sergeantfuzzy.sfcore.Main;
 import dev.sergeantfuzzy.sfcore.tablist.format.TablistRenderer;
+import dev.sergeantfuzzy.sfcore.tablist.format.TablistTeams;
 import dev.sergeantfuzzy.sfcore.tablist.service.TablistService;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  * Pushes the configured tablist to a player as soon as they finish joining.
@@ -35,5 +37,12 @@ public final class TablistJoinListener implements Listener {
                 TablistRenderer.apply(plugin, service, event.getPlayer());
             }
         }, 1L);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(PlayerQuitEvent event) {
+        // Drop the leaver from the SF-Core tablist teams so their name doesn't
+        // linger in a team's entry list after they disconnect.
+        TablistTeams.remove(event.getPlayer());
     }
 }

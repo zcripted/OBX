@@ -50,7 +50,6 @@ public class ModerationStatusCommand implements CommandExecutor, TabCompleter {
         }
 
         ResolvedProfile target = profile.getProfile();
-        languages.send(sender, "core.divider");
         languages.send(sender, "player.moderation.status.header", Placeholders.with("target", target.getName()));
         languages.send(sender, "player.moderation.status.summary", placeholders(
                 "uuid", target.getUniqueId() == null ? languages.get(sender, "player.moderation.status.value.unknown") : target.getUniqueId().toString(),
@@ -133,7 +132,7 @@ public class ModerationStatusCommand implements CommandExecutor, TabCompleter {
                 ));
             }
         }
-        languages.send(sender, "core.divider");
+        languages.send(sender, "core.divider-line");
         return true;
     }
 

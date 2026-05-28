@@ -1,0 +1,112 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — MYSTIC enchantments (purple)
+# ════════════════════════════════════════════════════════════════════════════
+
+summoners_pact:
+  display_name: "&5Summoner's Pact"
+  category: mystic
+  rarity: epic
+  max_level: 3
+  applies_to: [WEAPON]
+  description:
+    - "Chance to summon a brief allied iron golem on kill."
+  levels:
+    1: { chance: 0.02, duration_seconds: 15, inherit_percent: 0.0 }
+    2: { chance: 0.04, duration_seconds: 20, inherit_percent: 0.0 }
+    3: { chance: 0.06, duration_seconds: 30, inherit_percent: 0.25 }
+
+soul_harvest:
+  display_name: "&5Soul Harvest"
+  category: mystic
+  rarity: epic
+  max_level: 4
+  applies_to: [WEAPON]
+  description:
+    - "Kills grant bonus experience."
+  levels:
+    1: { xp_percent: 0.25, shard_chance: 0.0 }
+    2: { xp_percent: 0.50, shard_chance: 0.0 }
+    3: { xp_percent: 0.75, shard_chance: 0.0 }
+    4: { xp_percent: 1.00, shard_chance: 0.05 }
+
+phoenix_feather:
+  display_name: "&6Phoenix Feather"
+  category: mystic
+  rarity: legendary
+  max_level: 1
+  applies_to: [CHESTPLATE]
+  description:
+    - "Once per in-game day, revive on death at 50% HP."
+  levels:
+    1: { revive_percent: 0.50, cooldown_hours: 24 }
+
+wind_step:
+  display_name: "&dWind Step"
+  category: mystic
+  rarity: epic
+  max_level: 3
+  applies_to: [BOOTS]
+  description:
+    - "Grants a mid-air double jump."
+  levels:
+    1: { extra_jumps: 1, cooldown_seconds: 30 }
+    2: { extra_jumps: 1, cooldown_seconds: 15 }
+    3: { extra_jumps: 2, cooldown_seconds: 10 }
+
+petrify:
+  display_name: "&8Petrify"
+  category: mystic
+  rarity: mythic
+  max_level: 3
+  applies_to: [WEAPON]
+  description:
+    - "Chance to fully stun a mob for a short window."
+  levels:
+    1: { chance: 0.03, stun_seconds: 1.5, damage_amp: 0.0 }
+    2: { chance: 0.05, stun_seconds: 2.0, damage_amp: 0.0 }
+    3: { chance: 0.08, stun_seconds: 3.0, damage_amp: 0.30 }
+
+soulfire:
+  display_name: "&3Soulfire"
+  category: mystic
+  rarity: epic
+  max_level: 4
+  applies_to: [SWORD, BOW, TRIDENT]
+  conflicts_with: [frostbite]
+  description:
+    - "Hits ignite with blue soul-fire."
+  levels:
+    1: { duration_seconds: 3, ignore_percent: 0.25, explosion: false }
+    2: { duration_seconds: 4, ignore_percent: 0.40, explosion: false }
+    3: { duration_seconds: 5, ignore_percent: 0.60, explosion: false }
+    4: { duration_seconds: 6, ignore_percent: 0.80, explosion: true }
+
+time_slip:
+  display_name: "&6Time Slip"
+  category: mystic
+  rarity: legendary
+  max_level: 2
+  applies_to: [BOOTS]
+  description:
+    - "Sneak to slow nearby enemies in a bubble."
+  levels:
+    1: { slowness_amp: 4, duration_seconds: 2, radius: 5.0, cooldown_seconds: 90 }
+    2: { slowness_amp: 5, duration_seconds: 3, radius: 7.0, cooldown_seconds: 60 }
+
+voidwalker:
+  display_name: "&6Voidwalker"
+  category: mystic
+  rarity: legendary
+  max_level: 2
+  applies_to: [BOOTS]
+  conflicts_with: [beacons_memory]
+  description:
+    - "Sneak + jump to blink a short distance forward."
+  levels:
+    1: { distance: 5.0, cooldown_seconds: 30, resistance: false }
+    2: { distance: 8.0, cooldown_seconds: 20, resistance: true }
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

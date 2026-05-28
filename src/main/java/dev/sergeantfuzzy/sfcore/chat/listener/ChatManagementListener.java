@@ -52,7 +52,12 @@ public final class ChatManagementListener implements Listener {
         }
 
         Map<String, String> placeholders = buildPlaceholders(player, event.getMessage());
+        // Two renders: a plain one for the sender + console, and one whose name is a
+        // click-to-message (suggests /msg <sender> ) with a hover, for everyone else.
         String composed = ChatFormatter.compose(service, placeholders);
+        String hover = plugin.getLanguageManager().get(player, "chat.message-hover",
+                Placeholders.with("player", player.getName()));
+        String composedClickable = ChatFormatter.compose(service, placeholders, player.getName(), hover);
 
         // Snapshot the recipients into a small array so we can cancel the event without
         // losing the iteration (avoids the per-message HashSet allocation that we used to
@@ -64,7 +69,8 @@ public final class ChatManagementListener implements Listener {
         for (int i = 0; i < recipients.length; i++) {
             Player recipient = recipients[i];
             if (recipient != null) {
-                AdventureMessageUtil.send(recipient, composed, empty);
+                // The sender can't message themselves, so they see the plain line.
+                AdventureMessageUtil.send(recipient, recipient.equals(player) ? composed : composedClickable, empty);
             }
         }
 
@@ -82,6 +88,10 @@ public final class ChatManagementListener implements Listener {
         placeholders.put("world", player.getWorld() == null ? "" : player.getWorld().getName());
         placeholders.put("uuid", player.getUniqueId().toString());
         placeholders.put("message", ChatFormatter.sanitiseMessage(rawMessage, service.allowFormattingInMessages()));
+        // Staff tag: OP players get the configured prefix (default red/bold
+        // "ѕᴛᴀꜰꜰ┃") before their name; everyone else gets an empty string.
+        placeholders.put("prefix",
+                (player.isOp() && service.isStaffPrefixEnabled()) ? service.getStaffPrefix() : "");
         return placeholders;
     }
 }

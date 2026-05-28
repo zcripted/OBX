@@ -73,6 +73,25 @@ public final class TablistService {
         return value == null ? "" : value;
     }
 
+    /** Whether OP/staff are grouped to the top of the tablist (own block). */
+    public boolean isStaffGroupingEnabled() {
+        return config == null || config.getBoolean("staff-grouping.enabled", true);
+    }
+
+    /**
+     * Tablist entry name used for OP/staff when grouping is on. Default prepends
+     * the red/bold staff tag (ѕᴛᴀꜰꜰ┃) to the normal gray name. The characters are
+     * U+0455 U+1D1B U+1D00 U+A730 U+A730 U+2503; this file is compiled as UTF-8.
+     */
+    public String getStaffPlayerFormat() {
+        String fallback = "<red><bold>ѕᴛᴀꜰꜰ ┃ </bold></red><red>{player}</red>";
+        if (config == null) {
+            return fallback;
+        }
+        String value = config.getString("staff-grouping.player-format", fallback);
+        return value == null ? fallback : value;
+    }
+
     private List<String> readLines(String path) {
         if (config == null) {
             return Collections.emptyList();

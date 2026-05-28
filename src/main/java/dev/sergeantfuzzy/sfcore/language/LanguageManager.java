@@ -9,6 +9,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,17 +32,25 @@ public class LanguageManager {
     public void reload() {
         ensureLanguageFolder();
         loadPlayerLanguages();
+        List<String> createdFiles = new ArrayList<>();
         for (LanguageRegistry registry : LanguageRegistry.values()) {
             LanguageFile file = new LanguageFile(plugin, registry);
             languageFiles.put(registry, file);
             Map<String, Object> defaults = MessageDefaults.defaults(registry);
             Map<String, List<String>> comments = MessageDefaults.sectionComments(registry);
-            file.ensureExists(defaults, comments);
+            if (file.ensureExists(defaults, comments)) {
+                createdFiles.add(file.getFileName());
+            }
             int added = file.syncDefaults(defaults, comments);
             if (added > 0) {
-                plugin.getLogger().info("[SF-Core] Added " + added + " missing keys to " + registry.fileName());
+                dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(plugin,
+                        "Added " + added + " missing keys to " + registry.fileName());
             }
         }
+        // Fold every freshly-generated default into one tidy console line
+        // instead of one "Created default language file" line per language.
+        dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.list(plugin,
+                "Generated default language files:", createdFiles);
     }
 
     public void send(CommandSender sender, String key) {
@@ -117,7 +126,15 @@ public class LanguageManager {
     }
 
     public String getPrefix(LanguageRegistry registry) {
-        Object value = fetchValue(registry, "core.prefix", false);
+        return prefixFor(registry, "core.prefix");
+    }
+
+    /**
+     * Resolves and colorizes a prefix message key. The Arcanum enchantment module
+     * uses its own {@code enchant.prefix} wordmark instead of {@code core.prefix}.
+     */
+    private String prefixFor(LanguageRegistry registry, String prefixKey) {
+        Object value = fetchValue(registry, prefixKey, false);
         if (value instanceof String) {
             return colorize((String) value);
         }
@@ -131,7 +148,22 @@ public class LanguageManager {
             return Collections.singletonList(colorize("{prefix}" + key));
         }
         Map<String, String> withPrefix = new LinkedHashMap<>(replacements == null ? Collections.emptyMap() : replacements);
-        withPrefix.put("prefix", getPrefix(registry));
+        // Arcanum enchantment messages carry their own ✦ ARCANUM wordmark; spawn
+        // messages carry the light-yellow 𝗦𝗣𝗔𝗪𝗡 wordmark.
+        String prefixKey = "core.prefix";
+        if (key != null && key.startsWith("enchant.")) {
+            prefixKey = "enchant.prefix";
+        } else if (key != null && key.startsWith("teleport.spawn.")) {
+            prefixKey = "teleport.spawn.prefix";
+        } else if (key != null && (key.startsWith("commands.sf.reload.") || key.startsWith("commands.sf.debug."))) {
+            // /sf reload (+ config / file) and /sf debug carry the SYSTEM wordmark.
+            prefixKey = "system.prefix";
+        } else if (key != null && (key.startsWith("inbox.") || key.equals("message.stored"))) {
+            // Inbox feedback ("saved to inbox", "N messages in your inbox", read/delete/
+            // bookmark/clear) carries the ✉ INBOX wordmark.
+            prefixKey = "inbox.prefix";
+        }
+        withPrefix.put("prefix", prefixFor(registry, prefixKey));
 
         if (raw instanceof List) {
             List<?> list = (List<?>) raw;
@@ -192,8 +224,30 @@ public class LanguageManager {
         return colorize(result);
     }
 
+    /** Matches {@code &#RRGGBB} hex color tokens for 1.16+ §x translation. */
+    private static final java.util.regex.Pattern HEX_COLOR = java.util.regex.Pattern.compile("&#([0-9A-Fa-f]{6})");
+
     private String colorize(String input) {
-        return ChatColor.translateAlternateColorCodes('&', input == null ? "" : input);
+        return ChatColor.translateAlternateColorCodes('&', translateHex(input == null ? "" : input));
+    }
+
+    /** Converts {@code &#RRGGBB} into the §x§R§R§G§G§B§B legacy hex sequence (renders on 1.16+). */
+    private static String translateHex(String input) {
+        if (input.indexOf("&#") < 0) {
+            return input;
+        }
+        java.util.regex.Matcher matcher = HEX_COLOR.matcher(input);
+        StringBuffer out = new StringBuffer();
+        while (matcher.find()) {
+            String hex = matcher.group(1);
+            StringBuilder seq = new StringBuilder("§x");
+            for (int i = 0; i < hex.length(); i++) {
+                seq.append('§').append(hex.charAt(i));
+            }
+            matcher.appendReplacement(out, java.util.regex.Matcher.quoteReplacement(seq.toString()));
+        }
+        matcher.appendTail(out);
+        return out.toString();
     }
 
     private void ensureLanguageFolder() {

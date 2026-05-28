@@ -62,7 +62,29 @@ public final class MotdMessageUtil {
     }
 
     private static String colorize(String input) {
-        return ChatColor.translateAlternateColorCodes('&', input == null ? "" : input);
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+        // Gradients, hex colors, and MiniMessage tags can't be expressed by the
+        // legacy &-code translator — those go through the shared gradient engine,
+        // which expands <gradient:a:b>…</gradient> and &#RRGGBB / <#RRGGBB> into a
+        // per-glyph §x hex run (a true smooth gradient on 1.16+). Pure &-code
+        // lines (including the &x§R… legacy-hex form) keep using the legacy
+        // translator so they render identically on every client, including
+        // pre-1.16, with zero behavior change.
+        if (needsGradientEngine(input)) {
+            return AdventureMessageUtil.renderLegacy(input);
+        }
+        return ChatColor.translateAlternateColorCodes('&', input);
+    }
+
+    /**
+     * True when {@code input} carries markup the legacy &-code translator can't
+     * render: a MiniMessage tag ({@code <gradient>}, {@code <#rrggbb>},
+     * {@code <gold>}, {@code <bold>}, …) or the {@code &#RRGGBB} hex shorthand.
+     */
+    private static boolean needsGradientEngine(String input) {
+        return input.indexOf('<') >= 0 || input.contains("&#");
     }
 
     private static String centerLegacyText(String text, int centerPx) {

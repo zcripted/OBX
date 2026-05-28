@@ -11,6 +11,14 @@ public final class MessageDefaults {
     private static final LinkedHashMap<String, Translation> DEFAULTS = new LinkedHashMap<>();
     private static final LinkedHashMap<String, SectionComment> SECTION_COMMENTS = new LinkedHashMap<>();
 
+    // Shared boxed-report header pieces, matching the /list and /sf info style
+    // (see styled-info-report-format). The math-bold "SF-CORE", ▍, ›, and the
+    // ─ rule are written as escapes so they are encoding-independent. Declared
+    // before the static block because usageBox() is called from it.
+    private static final String BOX_TITLE =
+            "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &f";
+    private static final String BOX_RULE = boxRule();
+
     static {
         // Comments for top-level categories (alphabetical)
         section("admin",
@@ -24,13 +32,16 @@ public final class MessageDefaults {
                 "Allgemeine Systemnachrichten und Prefix.");
         section("gamemode",
                 "Gamemode change feedback and errors.",
-                "RÃ¼ckmeldungen zum Wechsel des Spielmodus.");
+                "Rückmeldungen zum Wechsel des Spielmodus.");
+        section("hub",
+                "Hub / lobby system messages.",
+                "Nachrichten des Hub- / Lobby-Systems.");
         section("language",
                 "Language selection and preferences.",
                 "Sprachauswahl und Einstellungen.");
         section("menus",
                 "Chat feedback triggered by menus (non-GUI text).",
-                "Chat-RÃ¼ckmeldungen aus MenÃ¼s (keine GUI-Texte).");
+                "Chat-Rückmeldungen aus Menüs (keine GUI-Texte).");
         section("player",
                 "Player management commands and status messages.",
                 "Spieler-Management-Befehle und Statusmeldungen.");
@@ -43,37 +54,71 @@ public final class MessageDefaults {
 
         // Core
         add("core.prefix", "&6\uD835\uDDE6\uD835\uDDD9-\uD835\uDDD6\uD835\uDDE2\uD835\uDDE5\uD835\uDDD8 &8➠ &e", "&6\uD835\uDDE6\uD835\uDDD9-\uD835\uDDD6\uD835\uDDE2\uD835\uDDE5\uD835\uDDD8 &8➠ &e");
+        // Custom prefix for the Arcanum enchantment module — every enchant.* chat
+        // message resolves {prefix} to this instead of core.prefix (see
+        // LanguageManager.resolveMessages). Mystic light-purple wordmark so the
+        // module reads as its own premium feature. ✦ U+2726, math-bold ARCANUM, ➠ U+27A0.
+        add("enchant.prefix",
+                "&5✦ &d𝗔𝗥𝗖𝗔𝗡𝗨𝗠 &8➠ &7",
+                "&5✦ &d𝗔𝗥𝗖𝗔𝗡𝗨𝗠 &8➠ &7");
+        // Spawn wordmark — every teleport.spawn.* message resolves {prefix} to this
+        // (see LanguageManager.resolveMessages). Same character style as core.prefix
+        // (math-bold wordmark + ➠) but light-yellow. Math-bold SPAWN: S P A W N.
+        add("teleport.spawn.prefix",
+                "&e𝗦𝗣𝗔𝗪𝗡 &8➠ &e",
+                "&e𝗦𝗣𝗔𝗪𝗡 &8➠ &e");
+        // System wordmark for /sf reload (+ config / file) and /sf debug. Cog ⚙ (U+2699)
+        // + math-bold SYSTEM in hex &#FF4526 (renders on 1.16+), same style as core.prefix.
+        add("system.prefix",
+                "&#FF4526⚙ 𝗦𝗬𝗦𝗧𝗘𝗠 &8➠ &7",
+                "&#FF4526⚙ 𝗦𝗬𝗦𝗧𝗘𝗠 &8➠ &7");
+        // Inbox wordmark — "saved to inbox" / "N messages" / inbox actions resolve
+        // {prefix} to this (see LanguageManager.resolveMessages). Envelope ✉ U+2709,
+        // math-bold INBOX, ➠ U+27A0, in custom gold #FFD93D (renders on 1.16+).
+        add("inbox.prefix",
+                "&#FFD93D✉ 𝗜𝗡𝗕𝗢𝗫 &8➠ &7",
+                "&#FFD93D✉ 𝗜𝗡𝗕𝗢𝗫 &8➠ &7");
         add("core.divider", "&6&l------------------------------", "&6&l------------------------------");
-        add("core.no-permission", "{prefix}&eYou don't have permission to do that.", "{prefix}&eDafÃ¼r hast du keine Berechtigung.");
-        add("core.no-permission-console", "&eYou don't have permission to do that.", "&eDu hast dafÃ¼r keine Berechtigung.");
-        add("core.player-only", "{prefix}&eOnly players can run this command.", "{prefix}&eNur Spieler kÃ¶nnen diesen Befehl ausfÃ¼hren.");
-        add("core.player-only-console", "&eOnly players can run this command.", "&eNur Spieler kÃ¶nnen diesen Befehl ausfÃ¼hren.");
+        // Slim dark-gray box divider used by the styled "plugin info" reports (/pl, /sf info, /sf about, /sf help, /sf version, /sf commands, /sf permissions). 30x U+2500.
+        add("core.divider-line", "&8──────────────────────────────", "&8──────────────────────────────");
+        add("core.no-permission", "{prefix}&eYou don't have permission to do that.", "{prefix}&eDafür hast du keine Berechtigung.");
+        add("core.no-permission-console", "&eYou don't have permission to do that.", "&eDu hast dafür keine Berechtigung.");
+        add("core.player-only", "{prefix}&eOnly players can run this command.", "{prefix}&eNur Spieler können diesen Befehl ausführen.");
+        add("core.player-only-console", "&eOnly players can run this command.", "&eNur Spieler können diesen Befehl ausführen.");
 
         // Language selection
         add("language.already", "{prefix}&eYou are already using &6{language}&e.", "{prefix}&eDu verwendest bereits &6{language}&e.");
         add("language.changed", "{prefix}&eYour language is now set to &6{language}&e.", "{prefix}&eDeine Sprache wurde auf &6{language}&e gestellt.");
-        add("language.changed-console", "&eLanguage set to &6{language}&e for this command.", "&eSprache fÃ¼r diesen Befehl auf &6{language}&e gesetzt.");
-        add("language.console-only", "{prefix}&eConsole messages default to English.", "{prefix}&eDie Konsole nutzt standardmÃ¤ÃŸig Englisch.");
+        add("language.changed-console", "&eLanguage set to &6{language}&e for this command.", "&eSprache für diesen Befehl auf &6{language}&e gesetzt.");
+        add("language.console-only", "{prefix}&eConsole messages default to English.", "{prefix}&eDie Konsole nutzt standardmäßig Englisch.");
         add("language.current", "{prefix}&eCurrent language: &6{language}&e.", "{prefix}&eAktuelle Sprache: &6{language}&e.");
         add("language.invalid", "{prefix}&cUnknown language. Options: &eEnglish &7/ &eDeutsch", "{prefix}&cUnbekannte Sprache. Optionen: &eEnglisch &7/ &eDeutsch");
-        add("language.usage", "{prefix}&eUsage: &f/language &7<&eEnglish&7|&eEN&7|&eGerman&7|&eDE&7>", "{prefix}&eBenutzung: &f/sprache &7<&eEnglisch&7|&eEN&7|&eDeutsch&7|&eDE&7>");
+        add("language.usage",
+                usageBox("Language", "Language", "/language <English|EN|German|DE>", "Change your preferred SF-Core language."),
+                usageBox("Sprache", "Sprache", "/sprache <Englisch|EN|Deutsch|DE>", "Ändert deine bevorzugte SF-Core-Sprache."));
 
         // Gamemode
         add("gamemode.already", "{prefix}&eYou are already in &6{mode}&e.", "{prefix}&eDu bist bereits im Modus &6{mode}&e.");
         add("gamemode.changed-self", "{prefix}&eSet your gamemode to &6{mode}&e.", "{prefix}&eDein Spielmodus wurde auf &6{mode}&e gesetzt.");
-        add("gamemode.changed-other", "{prefix}&eSet &6{target}&e to &6{mode}&e.", "{prefix}&eSpielmodus von &6{target}&e auf &6{mode}&e gesetzt.");
-        add("gamemode.changed-other-console", "&eSet {target} to {mode}.", "&e{target} auf {mode} gesetzt.");
+        add("gamemode.changed-other", "{prefix}&eSet &6{target}&e's gamemode to &6{mode}&e.", "{prefix}&eSpielmodus von &6{target}&e auf &6{mode}&e gesetzt.");
+        add("gamemode.changed-other-console", "&eSet {target}'s gamemode to {mode}.", "&eSpielmodus von {target} auf {mode} gesetzt.");
         add("gamemode.changed-target", "{prefix}&eYour gamemode was set to &6{mode}&e by &6{sender}&e.", "{prefix}&e{sender} hat deinen Spielmodus auf &6{mode}&e gesetzt.");
         add("gamemode.current", "{prefix}&eCurrent gamemode: &6{mode}&e.", "{prefix}&eAktueller Spielmodus: &6{mode}&e.");
         add("gamemode.unknown-mode-or-player", "{prefix}&cUnknown mode or player. Valid: &esurvival&7, &ecreative&7, &eadventure&7, &espectator", "{prefix}&cUnbekannter Modus oder Spieler. G\u00fcltig: &esurvival&7, &ecreative&7, &eadventure&7, &espectator");
         add("gamemode.usage.console", "&eUsage: /gamemode <mode> <player>", "&eBenutzung: /gamemode <Modus> <Spieler>");
-        add("gamemode.usage.self", "{prefix}&eUsage: &f/gamemode &7<&esurvival|creative|adventure|spectator&7>", "{prefix}&eBenutzung: &f/gamemode &7<&esurvival|creative|adventure|spectator&7>");
-        add("gamemode.usage.target", "{prefix}&eAdd a mode for &6{target}&e. Example: &f/gamemode creative {target}", "{prefix}&eGib einen Modus f\u00fcr &6{target}&e an. Beispiel: &f/gamemode creative {target}");
+        add("gamemode.usage.self",
+                usageBox("Gamemode", "Gamemode", "/gamemode <survival|creative|adventure|spectator>", "Change your own gamemode."),
+                usageBox("Spielmodus", "Spielmodus", "/gamemode <survival|creative|adventure|spectator>", "Ändert deinen eigenen Spielmodus."));
+        add("gamemode.usage.target",
+                usageBox("Gamemode", "Gamemode", "/gamemode <mode> {target}", "Pick a mode for {target} (e.g. creative)."),
+                usageBox("Spielmodus", "Spielmodus", "/gamemode <Modus> {target}", "Waehle einen Modus fuer {target} (z. B. creative)."));
 
         // Teleport + homes + spawn
         add("teleport.back.missing", "{prefix}&eNo previous location recorded.", "{prefix}&eEs wurde kein vorheriger Ort gespeichert.");
-        add("teleport.back.teleporting", "{prefix}&eTeleporting you back.", "{prefix}&eTeleportiere dich zurÃ¼ck.");
-        add("teleport.top.usage", "{prefix}&eUsage: &f/top &7[<player>]", "{prefix}&eBenutzung: &f/top &7[<Spieler>]");
+        add("teleport.back.teleporting", "{prefix}&eTeleporting you back.", "{prefix}&eTeleportiere dich zurück.");
+        add("teleport.top.usage",
+                usageBox("Teleportation", "Top", "/top [player]", "Teleport to the highest safe block above you."),
+                usageBox("Teleportation", "Top", "/top [Spieler]", "Teleportiert zum höchsten sicheren Block über dir."));
         add("teleport.top.usage-console", "&eUsage: /top <player>", "&eBenutzung: /top <Spieler>");
         add("teleport.top.no-safe", "{prefix}&cNo safe block found above &6{target}&c.", "{prefix}&cKein sicherer Block ueber &6{target}&c gefunden.");
         add("teleport.top.teleporting", "{prefix}&eTeleporting to the highest safe block.", "{prefix}&eTeleportiere zum hoechsten sicheren Block.");
@@ -82,29 +127,43 @@ public final class MessageDefaults {
         add("teleport.top.target-not-found", "{prefix}&cPlayer &6{player}&c is not online.", "{prefix}&cSpieler &6{player}&c ist nicht online.");
         add("teleport.home.limit", "{prefix}&eYou cannot create more than &6{limit} &ehomes.", "{prefix}&eDu kannst nicht mehr als &6{limit} &eHomes erstellen.");
         add("teleport.home.not-found", "{prefix}&eHome &6{home} &edoes not exist.", "{prefix}&eDas Home &6{home} &eexistiert nicht.");
-        add("teleport.home.delete-usage", "{prefix}&eUsage: &f/{command} <name>", "{prefix}&eBenutzung: &f/{command} <Name>");
+        add("teleport.home.delete-usage",
+                usageBox("Teleportation", "Delete Home", "/{command} <name>", "Delete one of your homes."),
+                usageBox("Teleportation", "Home löschen", "/{command} <Name>", "Löscht eines deiner Homes."));
         add("teleport.home.removed", "{prefix}&eHome &6{home} &ehas been removed.", "{prefix}&eDas Home &6{home} &ewurde entfernt.");
         add("teleport.home.set", "{prefix}&eHome &6{home} &ehas been set.", "{prefix}&eDas Home &6{home} &ewurde gesetzt.");
         add("teleport.home.teleporting", "{prefix}&eTeleporting to home &6{home}&e.", "{prefix}&eTeleportiere zum Home &6{home}&e.");
         add("teleport.homes.list", "{prefix}&eHomes: &6{homes}", "{prefix}&eHomes: &6{homes}");
         add("teleport.homes.none", "none", "keine");
-        add("teleport.spawn.delete-confirm", "{prefix}&eType &6confirm &eto delete spawn.", "{prefix}&eTippe &6confirm &eum den Spawn zu lÃ¶schen.");
-        add("teleport.spawn.delete-confirm-needed", "{prefix}&cPlease confirm spawn deletion.", "{prefix}&cBitte bestÃ¤tige das LÃ¶schen des Spawns.");
+        add("teleport.spawn.delete-confirm", "{prefix}&eClick {click}&e or type &6confirm&e in chat to delete the spawn. &7(10s)", "{prefix}&eKlicke {click}&e oder tippe &6confirm&e in den Chat, um den Spawn zu löschen. &7(10s)");
+        add("teleport.spawn.delete-confirm-hover", "&eClick to delete the spawn", "&eKlicke, um den Spawn zu löschen");
+        add("teleport.spawn.delete-timeout", "{prefix}&cSpawn deletion timed out. &7Click {click}&7 to delete again.", "{prefix}&cSpawn-Löschung abgelaufen. &7Klicke {click}&7, um erneut zu löschen.");
+        add("teleport.spawn.delete-timeout-hover", "&eClick to re-run /spawn del", "&eKlicke, um /spawn del erneut auszuführen");
+        add("teleport.spawn.delete-confirm-needed", "{prefix}&cPlease confirm spawn deletion.", "{prefix}&cBitte bestätige das Löschen des Spawns.");
         add("teleport.spawn.deleted", "{prefix}&eSpawn has been unset.", "{prefix}&eSpawn wurde entfernt.");
+        // Styled boxed report matching /pl and /sf info (see styled-info-report-format).
         add("teleport.spawn.info", Arrays.asList(
-                "{prefix}&6Spawn Info:",
-                "{prefix}&eWorld: &f{world}",
-                "{prefix}&eXYZ: &f{x}, {y}, {z}",
-                "{prefix}&eYaw/Pitch: &f{yaw}/{pitch}",
-                "{prefix}&eSet by: &f{setBy}",
-                "{prefix}&eSet at: &f{setAt}"
+                "",
+                BOX_TITLE + "Spawn Point",
+                BOX_RULE,
+                "",
+                "  &7World      &8›  &f{world}",
+                "  &7Position   &8›  &f{x}, {y}, {z}",
+                "  &7Facing     &8›  &f{yaw} / {pitch}",
+                "  &7Set by     &8›  &f{setBy}",
+                "  &7Set at     &8›  &f{setAt}",
+                ""
         ), Arrays.asList(
-                "{prefix}&6Spawn-Info:",
-                "{prefix}&eWelt: &f{world}",
-                "{prefix}&eXYZ: &f{x}, {y}, {z}",
-                "{prefix}&eYaw/Pitch: &f{yaw}/{pitch}",
-                "{prefix}&eGesetzt von: &f{setBy}",
-                "{prefix}&eGesetzt am: &f{setAt}"
+                "",
+                BOX_TITLE + "Spawn-Punkt",
+                BOX_RULE,
+                "",
+                "  &7Welt        &8›  &f{world}",
+                "  &7Position    &8›  &f{x}, {y}, {z}",
+                "  &7Blick       &8›  &f{yaw} / {pitch}",
+                "  &7Gesetzt von &8›  &f{setBy}",
+                "  &7Gesetzt am  &8›  &f{setAt}",
+                ""
         ));
         add("teleport.spawn.info-missing", "{prefix}&eSpawn is not set.", "{prefix}&eDer Spawn ist nicht gesetzt.");
         add("teleport.spawn.info-unknown", "unknown", "unbekannt");
@@ -113,16 +172,137 @@ public final class MessageDefaults {
         add("teleport.spawn.missing-op-hover", "&eClick to suggest /spawn set", "&eKlicke, um /spawn set vorzuschlagen");
         add("teleport.spawn.set", "{prefix}&eServer spawn updated.", "{prefix}&eServer-Spawn aktualisiert.");
         add("teleport.spawn.teleporting", "{prefix}&eTeleporting to spawn.", "{prefix}&eTeleportiere zum Spawn.");
+        // ── Direct teleport (/tp, /tphere) ──────────────────────────────────────
+        add("teleport.tp.usage", "{prefix}&eUsage: &6/tp <player> [target]", "{prefix}&eNutzung: &6/tp <Spieler> [Ziel]");
+        add("teleport.tp.usage-here", "{prefix}&eUsage: &6/tphere <player>", "{prefix}&eNutzung: &6/tphere <Spieler>");
+        add("teleport.tp.console-needs-two", "{prefix}&cConsole has no location — use &6/tp <player> <target>&c.", "{prefix}&cDie Konsole hat keine Position — nutze &6/tp <Spieler> <Ziel>&c.");
+        add("teleport.tp.not-online", "{prefix}&cPlayer &6{player}&c is not online.", "{prefix}&cSpieler &6{player}&c ist nicht online.");
+        add("teleport.tp.went", Arrays.asList(
+                "{prefix}&aTeleported to &6{target}&a.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ), Arrays.asList(
+                "{prefix}&aZu &6{target}&a teleportiert.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ));
+        add("teleport.tp.moved", Arrays.asList(
+                "{prefix}&aYou were teleported to &6{target}&a.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ), Arrays.asList(
+                "{prefix}&aDu wurdest zu &6{target}&a teleportiert.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ));
+        add("teleport.tp.moved-sender", Arrays.asList(
+                "{prefix}&aTeleported &6{player}&a to &6{target}&a.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ), Arrays.asList(
+                "{prefix}&a&6{player}&a zu &6{target}&a teleportiert.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ));
+        add("teleport.tp.brought", Arrays.asList(
+                "{prefix}&aYou were summoned to &6{target}&a.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ), Arrays.asList(
+                "{prefix}&aDu wurdest zu &6{target}&a gerufen.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ));
+        add("teleport.tp.brought-self", Arrays.asList(
+                "{prefix}&aBrought &6{player}&a to you.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ), Arrays.asList(
+                "{prefix}&a&6{player}&a zu dir gebracht.",
+                "  &8» &7{world} &8· &fX &7{x}  &fY &7{y}  &fZ &7{z}"
+        ));
+        // ── Teleport requests (/tpa) ────────────────────────────────────────────
+        add("teleport.request.usage", "{prefix}&eUsage: &6/tpa <player>", "{prefix}&eNutzung: &6/tpa <Spieler>");
+        add("teleport.request.self", "{prefix}&cYou cannot request to teleport to yourself.", "{prefix}&cDu kannst dich nicht zu dir selbst teleportieren.");
+        add("teleport.request.sent", "{prefix}&aTeleport request sent to &6{player}&a. &7(expires in 60s)", "{prefix}&aTeleport-Anfrage an &6{player}&a gesendet. &7(läuft in 60s ab)");
+        add("teleport.request.received", "{prefix}&6{player}&e wants to teleport to you.", "{prefix}&6{player}&e möchte sich zu dir teleportieren.");
+        add("teleport.request.accept-hover", "&aClick to accept", "&aKlicke zum Akzeptieren");
+        add("teleport.request.deny-hover", "&cClick to deny", "&cKlicke zum Ablehnen");
+        // Second line of the /tpa prompt: "Choose to [Accept] or [Deny] this request."
+        add("teleport.request.accept-button", "&a&l[Accept]", "&a&l[Annehmen]");
+        add("teleport.request.deny-button", "&c&l[Deny]", "&c&l[Ablehnen]");
+        add("teleport.request.choose-lead", "&8» &7Choose to", "&8» &7Wähle");
+        add("teleport.request.choose-or", "&7or", "&7oder");
+        add("teleport.request.choose-tail", "&7this request.", "&7diese Anfrage.");
+        add("teleport.request.none", "{prefix}&eYou have no pending teleport requests.", "{prefix}&eDu hast keine offenen Teleport-Anfragen.");
+        add("teleport.request.requester-offline", "{prefix}&cThat player is no longer online.", "{prefix}&cDieser Spieler ist nicht mehr online.");
+        add("teleport.request.expired", "{prefix}&eYour teleport request to &6{player}&e expired.", "{prefix}&eDeine Teleport-Anfrage an &6{player}&e ist abgelaufen.");
+        add("teleport.request.accepted", "{prefix}&aRequest accepted — teleporting to &6{player}&a.", "{prefix}&aAnfrage akzeptiert — teleportiere zu &6{player}&a.");
+        add("teleport.request.accepted-target", "{prefix}&aAccepted &6{player}&a's teleport request.", "{prefix}&aTeleport-Anfrage von &6{player}&a akzeptiert.");
+        add("teleport.request.denied", "{prefix}&c{player} denied your teleport request.", "{prefix}&c{player} hat deine Teleport-Anfrage abgelehnt.");
+        add("teleport.request.denied-target", "{prefix}&eDenied &6{player}&e's teleport request.", "{prefix}&eTeleport-Anfrage von &6{player}&e abgelehnt.");
+        // ── Position (/pos) ─────────────────────────────────────────────────────
+        add("position.console", "{prefix}&eThe console has no in-world position.", "{prefix}&eDie Konsole hat keine Position in der Welt.");
+        add("position.header", "&b▍ &b𝗣𝗢𝗦𝗜𝗧𝗜𝗢𝗡  &8›  &fYour Coordinates", "&b▍ &b𝗣𝗢𝗦𝗜𝗧𝗜𝗢𝗡  &8›  &fDeine Koordinaten");
+        add("position.coords-line", "  &7X &8› &f{x}    &7Y &8› &f{y}    &7Z &8› &f{z}", "  &7X &8› &f{x}    &7Y &8› &f{y}    &7Z &8› &f{z}");
+        add("position.world-line", "  &7World &8› &f{world}  &8·  &7Facing &8› &f{facing}", "  &7Welt &8› &f{world}  &8·  &7Blickrichtung &8› &f{facing}");
+        add("position.copy-label", "&b&l⧉ Click to copy coordinates", "&b&l⧉ Klicke zum Kopieren der Koordinaten");
+        add("position.copy-hover", "&7Copies &f{coords}&7 to your clipboard", "&7Kopiert &f{coords}&7 in deine Zwischenablage");
+        add("position.actionbar", "&7X&8:&b{x} &7Y&8:&b{y} &7Z&8:&b{z}", "&7X&8:&b{x} &7Y&8:&b{y} &7Z&8:&b{z}");
+        // ── Private messages (/msg, /rply, /inbox) ──────────────────────────────
+        add("message.usage", "{prefix}&eUsage: &6/msg <player> <message>", "{prefix}&eNutzung: &6/msg <Spieler> <Nachricht>");
+        add("message.console-blocked", "{prefix}&cYou cannot send messages to the console.", "{prefix}&cDu kannst keine Nachrichten an die Konsole senden.");
+        add("message.self", "{prefix}&cYou cannot message yourself.", "{prefix}&cDu kannst dir nicht selbst schreiben.");
+        add("message.not-found", "{prefix}&cPlayer &6{player}&c was not found.", "{prefix}&cSpieler &6{player}&c wurde nicht gefunden.");
+        add("message.stored", "{prefix}&6{player}&7 is offline — saved to their inbox.", "{prefix}&6{player}&7 ist offline — im Postfach gespeichert.");
+        add("message.format.sent", "&8[&dme &7→ &d{player}&8] &f{message}", "&8[&dich &7→ &d{player}&8] &f{message}");
+        add("message.format.received", "&8[&d{player} &7→ &dme&8] &f{message}", "&8[&d{player} &7→ &dich&8] &f{message}");
+        add("message.reply-lead", "&8» ", "&8» ");
+        add("message.reply-button", "&a&l[Send reply message]", "&a&l[Antwort senden]");
+        add("message.reply-hover", "&7Click to reply to &f{player}", "&7Klicke, um &f{player}&7 zu antworten");
+        add("reply.no-target", "{prefix}&cYou have no one to reply to.", "{prefix}&cDu hast niemanden zum Antworten.");
+        add("reply.cant-console", "{prefix}&cYou cannot reply to the console.", "{prefix}&cDu kannst der Konsole nicht antworten.");
+        add("reply.draft-started", "{prefix}&7Replying to &6{player}&7 — type your message in chat. &8(60s)", "{prefix}&7Antwort an &6{player}&7 — tippe deine Nachricht in den Chat. &8(60s)");
+        add("reply.cancel-button", "&8[&cCancel&8]", "&8[&cAbbrechen&8]");
+        add("reply.cancel-hover", "&7Click to cancel your reply", "&7Klicke, um die Antwort abzubrechen");
+        add("reply.draft-expired", "{prefix}&eYour reply draft expired.", "{prefix}&eDein Antwortentwurf ist abgelaufen.");
+        add("reply.draft-cancelled", "{prefix}&eReply cancelled.", "{prefix}&eAntwort abgebrochen.");
+        add("inbox.console", "{prefix}&eThe console has no inbox.", "{prefix}&eDie Konsole hat kein Postfach.");
+        add("inbox.title", "&8Inbox &7({count})", "&8Postfach &7({count})");
+        add("inbox.empty", "&7Your inbox is empty.", "&7Dein Postfach ist leer.");
+        add("inbox.join-notify", "{prefix}&7You have &f{count}&7 message(s) in your inbox.", "{prefix}&7Du hast &f{count}&7 Nachricht(en) im Postfach.");
+        add("inbox.open-button", "&8[&aOpen&8]", "&8[&aÖffnen&8]");
+        add("inbox.open-hover", "&7Click to open your inbox", "&7Klicke, um dein Postfach zu öffnen");
+        // Inbox action feedback (carries the INBOX prefix via routing).
+        add("inbox.deleted", "{prefix}&7Message deleted.", "{prefix}&7Nachricht gelöscht.");
+        add("inbox.bookmarked", "{prefix}&6★ &7Message bookmarked — it won't be cleared.", "{prefix}&6★ &7Nachricht markiert — sie wird nicht gelöscht.");
+        add("inbox.unbookmarked", "{prefix}&7Bookmark removed.", "{prefix}&7Markierung entfernt.");
+        add("inbox.cleared", "{prefix}&7Cleared &f{count}&7 message(s). &8(bookmarked kept)", "{prefix}&7&f{count}&7 Nachricht(en) gelöscht. &8(markierte behalten)");
+        // Inbox GUI item labels.
+        add("inbox.entry.unread", "&e● Unread", "&e● Ungelesen");
+        add("inbox.entry.read", "&8● Read", "&8● Gelesen");
+        add("inbox.entry.bookmarked", "&6★ Bookmarked", "&6★ Markiert");
+        add("inbox.entry.click-read", "&eLeft-click &7to read", "&eLinksklick &7zum Lesen");
+        add("inbox.entry.click-delete", "&cRight-click &7to delete", "&cRechtsklick &7zum Löschen");
+        add("inbox.entry.click-bookmark", "&6Shift-click &7to bookmark", "&6Shift-Klick &7zum Markieren");
+        add("inbox.entry.click-unbookmark", "&6Shift-click &7to remove bookmark", "&6Shift-Klick &7zum Entmarkieren");
+        add("inbox.clear-name", "&c&lClear Inbox", "&c&lPostfach leeren");
+        add("inbox.clear-lore1", "&7Removes all non-bookmarked messages.", "&7Entfernt alle nicht markierten Nachrichten.");
+        add("inbox.clear-lore2", "&8Bookmarked (★) messages are kept.", "&8Markierte (★) Nachrichten bleiben.");
+        add("inbox.read", Arrays.asList(
+                "",
+                "&d✉ &7From &f{player}",
+                "&8{date}  ·  {time}",
+                "&8──────────────────────",
+                "&f{message}",
+                ""), Arrays.asList(
+                "",
+                "&d✉ &7Von &f{player}",
+                "&8{date}  ·  {time}",
+                "&8──────────────────────",
+                "&f{message}",
+                ""));
         add("teleport.warmup.cancelled", "{prefix}&eTeleport cancelled.", "{prefix}&eTeleport abgebrochen.");
         add("teleport.warmup.start", "{prefix}&eTeleport commencing in &6{seconds} &eseconds. Do not move!", "{prefix}&eTeleport startet in &6{seconds} &eSekunden. Nicht bewegen!");
         add("teleport.warp.categories.list", "{prefix}&eWarp categories: &f{categories}", "{prefix}&eWarp-Kategorien: &f{categories}");
         add("teleport.warp.categories.none", "{prefix}&eNo warp categories available.", "{prefix}&eKeine Warp-Kategorien vorhanden.");
-        add("teleport.warp.delete.confirm", "{prefix}&eType &6confirm &eto delete warp &6{warp}&e.", "{prefix}&eTippe &6confirm &eum den Warp &6{warp}&e zu lÃ¶schen.");
-        add("teleport.warp.delete.confirm-needed", "{prefix}&cPlease confirm deletion of &6{warp}&c.", "{prefix}&cBitte bestÃ¤tige das LÃ¶schen von &6{warp}&c.");
-        add("teleport.warp.deleted", "{prefix}&eWarp &6{warp} &ehas been deleted.", "{prefix}&eWarp &6{warp} &ewurde gelÃ¶scht.");
-        add("teleport.warp.icon.cleared", "{prefix}&eCleared icon for warp &6{warp}&e.", "{prefix}&eIcon fÃ¼r Warp &6{warp}&e zurÃ¼ckgesetzt.");
+        add("teleport.warp.delete.confirm", "{prefix}&eType &6confirm &eto delete warp &6{warp}&e.", "{prefix}&eTippe &6confirm &eum den Warp &6{warp}&e zu löschen.");
+        add("teleport.warp.delete.confirm-needed", "{prefix}&cPlease confirm deletion of &6{warp}&c.", "{prefix}&cBitte bestätige das Löschen von &6{warp}&c.");
+        add("teleport.warp.deleted", "{prefix}&eWarp &6{warp} &ehas been deleted.", "{prefix}&eWarp &6{warp} &ewurde gelöscht.");
+        add("teleport.warp.icon.cleared", "{prefix}&eCleared icon for warp &6{warp}&e.", "{prefix}&eIcon für Warp &6{warp}&e zurückgesetzt.");
         add("teleport.warp.icon.invalid", "{prefix}&cUnknown icon &6{icon}&c.", "{prefix}&cUnbekanntes Icon &6{icon}&c.");
-        add("teleport.warp.icon.updated", "{prefix}&eSet icon for warp &6{warp}&e to &6{icon}&e.", "{prefix}&eIcon fÃ¼r Warp &6{warp}&e auf &6{icon}&e gesetzt.");
+        add("teleport.warp.icon.updated", "{prefix}&eSet icon for warp &6{warp}&e to &6{icon}&e.", "{prefix}&eIcon für Warp &6{warp}&e auf &6{icon}&e gesetzt.");
         add("teleport.warp.info", Arrays.asList(
                 "{prefix}&6Warp Info: &e{warp}",
                 "{prefix}&eWorld: &f{world}",
@@ -147,9 +327,9 @@ public final class MessageDefaults {
                 "{prefix}&eGesetzt am: &f{setAt}"
         ));
         add("teleport.warp.info-unknown", "unknown", "unbekannt");
-        add("teleport.warp.invalid-location", "{prefix}&cWarp &6{warp}&c has no valid location.", "{prefix}&cWarp &6{warp}&c hat keinen gÃ¼ltigen Standort.");
-        add("teleport.warp.invalid-name", "{prefix}&cWarp names may only use letters, numbers, underscores, and dashes (max 32).", "{prefix}&cWarp-Namen dÃ¼rfen nur Buchstaben, Zahlen, Unterstrich und Bindestrich nutzen (max 32).");
-        add("teleport.warp.list.empty", "{prefix}&eNo warps available.", "{prefix}&eKeine Warps verfÃ¼gbar.");
+        add("teleport.warp.invalid-location", "{prefix}&cWarp &6{warp}&c has no valid location.", "{prefix}&cWarp &6{warp}&c hat keinen gültigen Standort.");
+        add("teleport.warp.invalid-name", "{prefix}&cWarp names may only use letters, numbers, underscores, and dashes (max 32).", "{prefix}&cWarp-Namen dürfen nur Buchstaben, Zahlen, Unterstrich und Bindestrich nutzen (max 32).");
+        add("teleport.warp.list.empty", "{prefix}&eNo warps available.", "{prefix}&eKeine Warps verfügbar.");
         add("teleport.warp.list.empty-category", "{prefix}&eNo warps in category &6{category}&e.", "{prefix}&eKeine Warps in der Kategorie &6{category}&e.");
         add("teleport.warp.list.page", "{prefix}&eWarps &7(Page {page}/{pages}): &f{warps}", "{prefix}&eWarps &7(Seite {page}/{pages}): &f{warps}");
         add("teleport.warp.list.page-category", "{prefix}&eWarps in &6{category}&7 (Page {page}/{pages}): &f{warps}", "{prefix}&eWarps in &6{category}&7 (Seite {page}/{pages}): &f{warps}");
@@ -164,22 +344,40 @@ public final class MessageDefaults {
         add("teleport.warp.rename.success", "{prefix}&eWarp renamed from &6{old} &eto &6{new}&e.", "{prefix}&eWarp von &6{old} &ezu &6{new}&e umbenannt.");
         add("teleport.warp.sent-other", "{prefix}&eSent &6{target}&e to warp &6{warp}&e.", "{prefix}&e&6{target}&e zum Warp &6{warp}&e gesendet.");
         add("teleport.warp.sent-target", "{prefix}&eYou were sent to warp &6{warp}&e by &6{sender}&e.", "{prefix}&eDu wurdest von &6{sender}&e zum Warp &6{warp}&e teleportiert.");
-        add("teleport.warp.set.confirm", "{prefix}&eWarp &6{warp}&e already exists. Run again with confirm to overwrite.", "{prefix}&eWarp &6{warp}&e existiert bereits. Mit confirm Ã¼berschreiben.");
+        add("teleport.warp.set.confirm", "{prefix}&eWarp &6{warp}&e already exists. Run again with confirm to overwrite.", "{prefix}&eWarp &6{warp}&e existiert bereits. Mit confirm überschreiben.");
         add("teleport.warp.set.created", "{prefix}&eWarp &6{warp}&e created.", "{prefix}&eWarp &6{warp}&e erstellt.");
         add("teleport.warp.set.updated", "{prefix}&eWarp &6{warp}&e updated.", "{prefix}&eWarp &6{warp}&e aktualisiert.");
         add("teleport.warp.target-no-access", "{prefix}&c{target} cannot access warp &6{warp}&c.", "{prefix}&c{target} kann den Warp &6{warp}&c nicht nutzen.");
         add("teleport.warp.teleporting", "{prefix}&eTeleporting to warp &6{warp}&e.", "{prefix}&eTeleportiere zum Warp &6{warp}&e.");
         add("teleport.warp.unknown", "{prefix}&cUnknown warp or subcommand. Try &e/warp list&c.", "{prefix}&cUnbekannter Warp oder Unterbefehl. Versuche &e/warp list&c.");
-        add("teleport.warp.usage.category", "{prefix}&eUsage: &f/warp category <name>", "{prefix}&eBenutzung: &f/warp category <Name>");
+        add("teleport.warp.usage.category",
+                usageBox("Warps", "Category", "/warp category <name>", "List the warps in a category."),
+                usageBox("Warps", "Kategorie", "/warp category <Name>", "Listet die Warps einer Kategorie auf."));
         add("teleport.warp.usage.console", "&eUsage: /warp <name|subcommand>", "&eBenutzung: /warp <Name|Unterbefehl>");
-        add("teleport.warp.usage.delete", "{prefix}&eUsage: &f/warp delete <name>", "{prefix}&eBenutzung: &f/warp delete <Name>");
-        add("teleport.warp.usage.icon", "{prefix}&eUsage: &f/warp icon <name> [material]", "{prefix}&eBenutzung: &f/warp icon <Name> [Material]");
-        add("teleport.warp.usage.info", "{prefix}&eUsage: &f/warp info <name>", "{prefix}&eBenutzung: &f/warp info <Name>");
-        add("teleport.warp.usage.move", "{prefix}&eUsage: &f/warp move <name>", "{prefix}&eBenutzung: &f/warp move <Name>");
-        add("teleport.warp.usage.public", "{prefix}&eUsage: &f/warp public <name> &7[true|false]", "{prefix}&eBenutzung: &f/warp public <Name> &7[true|false]");
-        add("teleport.warp.usage.rename", "{prefix}&eUsage: &f/warp rename <old> <new>", "{prefix}&eBenutzung: &f/warp rename <Alt> <Neu>");
-        add("teleport.warp.usage.set", "{prefix}&eUsage: &f/warp set <name> &7[confirm]", "{prefix}&eBenutzung: &f/warp set <Name> &7[confirm]");
-        add("teleport.warp.usage.tp", "{prefix}&eUsage: &f/warp tp <name> &7[player]", "{prefix}&eBenutzung: &f/warp tp <Name> &7[Spieler]");
+        add("teleport.warp.usage.delete",
+                usageBox("Warps", "Delete", "/warp delete <name>", "Delete a warp."),
+                usageBox("Warps", "Löschen", "/warp delete <Name>", "Löscht einen Warp."));
+        add("teleport.warp.usage.icon",
+                usageBox("Warps", "Icon", "/warp icon <name> [material]", "Set or clear a warp's icon."),
+                usageBox("Warps", "Icon", "/warp icon <Name> [Material]", "Setzt oder entfernt das Icon eines Warps."));
+        add("teleport.warp.usage.info",
+                usageBox("Warps", "Info", "/warp info <name>", "Show a warp's details."),
+                usageBox("Warps", "Info", "/warp info <Name>", "Zeigt die Details eines Warps."));
+        add("teleport.warp.usage.move",
+                usageBox("Warps", "Move", "/warp move <name>", "Move a warp to your current location."),
+                usageBox("Warps", "Verschieben", "/warp move <Name>", "Verschiebt einen Warp zu deiner Position."));
+        add("teleport.warp.usage.public",
+                usageBox("Warps", "Public", "/warp public <name> [true|false]", "Toggle a warp's public visibility."),
+                usageBox("Warps", "Öffentlich", "/warp public <Name> [true|false]", "Schaltet die Sichtbarkeit eines Warps um."));
+        add("teleport.warp.usage.rename",
+                usageBox("Warps", "Rename", "/warp rename <old> <new>", "Rename a warp."),
+                usageBox("Warps", "Umbenennen", "/warp rename <Alt> <Neu>", "Benennt einen Warp um."));
+        add("teleport.warp.usage.set",
+                usageBox("Warps", "Set", "/warp set <name> [confirm]", "Create or update a warp at your location."),
+                usageBox("Warps", "Setzen", "/warp set <Name> [confirm]", "Erstellt oder aktualisiert einen Warp an deiner Position."));
+        add("teleport.warp.usage.tp",
+                usageBox("Warps", "Teleport", "/warp tp <name> [player]", "Teleport to a warp."),
+                usageBox("Warps", "Teleport", "/warp tp <Name> [Spieler]", "Teleportiert zu einem Warp."));
         add("teleport.warp.usage.tp-console", "&eUsage: /warp tp <name> <player>", "&eBenutzung: /warp tp <Name> <Spieler>");
         add("teleport.warp.visibility.hidden", "Hidden", "Versteckt");
         add("teleport.warp.visibility.public", "Public", "Oeffentlich");
@@ -204,11 +402,13 @@ public final class MessageDefaults {
         // Utility
         add("utility.feed.success", "{prefix}&eYou are no longer hungry.", "{prefix}&eDu bist nicht mehr hungrig.");
         add("utility.feed.invalid-gamemode", "{prefix}&eYou can't use /feed in Creative or Spectator. Switch to Survival or Adventure.", "{prefix}&eDu kannst /feed im Kreativ- oder Zuschauermodus nicht nutzen. Wechsle in Survival oder Adventure.");
-        add("utility.heal.success", "{prefix}&eYou feel rejuvenated.", "{prefix}&eDu fÃ¼hlst dich erfrischt.");
+        add("utility.heal.success", "{prefix}&eYou feel rejuvenated.", "{prefix}&eDu fühlst dich erfrischt.");
         add("utility.heal.invalid-gamemode", "{prefix}&eYou can't use /heal in Creative or Spectator. Switch to Survival or Adventure.", "{prefix}&eDu kannst /heal im Kreativ- oder Zuschauermodus nicht nutzen. Wechsle in Survival oder Adventure.");
         add("utility.fly.invalid-gamemode", "{prefix}&eYou can't toggle fly while in Creative or Spectator. Try Survival or Adventure.", "{prefix}&eDu kannst Flug im Kreativ- oder Zuschauermodus nicht umschalten. Versuche Survival oder Adventure.");
 
-        add("utility.craft.usage", "{prefix}&eUsage: &f/research &7[item]", "{prefix}&eBenutzung: &f/research &7[Item]");
+        add("utility.craft.usage",
+                usageBox("Utility", "Research", "/research [item]", "Show detailed information about an item."),
+                usageBox("Werkzeuge", "Research", "/research [Item]", "Zeigt detaillierte Informationen zu einem Item."));
         add("utility.craft.usage-console", "&eUsage: /research <item>", "&eBenutzung: /research <Item>");
         add("utility.craft.hand-empty", "{prefix}&eHold an item to use /research without arguments.", "{prefix}&eHalte ein Item in der Hand, um /research ohne Argumente zu nutzen.");
         add("utility.craft.opened", "{prefix}&eOpened a virtual crafting table.", "{prefix}&eVirtueller Werktisch geoeffnet.");
@@ -219,6 +419,16 @@ public final class MessageDefaults {
         add("utility.enchant.unsupported", "{prefix}&cThe virtual enchanting table is unavailable on this server version.", "{prefix}&cDer virtuelle Verzauberungstisch ist auf dieser Server-Version nicht verfuegbar.");
         add("utility.smith.opened", "{prefix}&eOpened a virtual smithing table.", "{prefix}&eVirtueller Schmiedetisch geoeffnet.");
         add("utility.smith.unsupported", "{prefix}&cThe virtual smithing table requires 1.16 or newer.", "{prefix}&cDer virtuelle Schmiedetisch benoetigt 1.16 oder neuer.");
+        add("utility.stonecut.opened", "{prefix}&eOpened a virtual stonecutter.", "{prefix}&eVirtueller Steinsaege geoeffnet.");
+        add("utility.stonecut.unsupported", "{prefix}&cThe virtual stonecutter requires Spigot 1.14 or newer.", "{prefix}&cDie virtuelle Steinsaege benoetigt Spigot 1.14 oder neuer.");
+        add("utility.loom.opened", "{prefix}&eOpened a virtual loom.", "{prefix}&eVirtueller Webstuhl geoeffnet.");
+        add("utility.loom.unsupported", "{prefix}&cThe virtual loom requires Spigot 1.14 or newer.", "{prefix}&cDer virtuelle Webstuhl benoetigt Spigot 1.14 oder neuer.");
+        add("utility.grindstone.opened", "{prefix}&eOpened a virtual grindstone.", "{prefix}&eVirtueller Schleifstein geoeffnet.");
+        add("utility.grindstone.unsupported", "{prefix}&cThe virtual grindstone requires Spigot 1.14 or newer.", "{prefix}&cDer virtuelle Schleifstein benoetigt Spigot 1.14 oder neuer.");
+        add("utility.cartography.opened", "{prefix}&eOpened a virtual cartography table.", "{prefix}&eVirtueller Kartentisch geoeffnet.");
+        add("utility.cartography.unsupported", "{prefix}&cThe virtual cartography table requires Spigot 1.14 or newer.", "{prefix}&cDer virtuelle Kartentisch benoetigt Spigot 1.14 oder neuer.");
+        add("utility.map.opened", "{prefix}&eCreated a map centered on your location.", "{prefix}&eKarte zentriert auf deine Position erstellt.");
+        add("utility.map.unsupported", "{prefix}&cMaps are unavailable on this server version.", "{prefix}&cKarten sind auf dieser Server-Version nicht verfuegbar.");
         add("utility.craft.not-found", "{prefix}&cUnknown item &6{item}&c.", "{prefix}&cUnbekanntes Item &6{item}&c.");
         add("utility.craft.header", "&6&lITEM PROFILE:", "&6&lITEM-PROFIL:");
         add("utility.craft.item-name", "&e{item}", "&e{item}");
@@ -278,7 +488,9 @@ public final class MessageDefaults {
         add("menus.admin.placeholder", "{prefix}&eAdmin panel placeholder clicked.", "{prefix}&eAdmin-Panel-Platzhalter angeklickt.");
 
         // Player management
-        add("player.vital.usage", "{prefix}&eUsage: &f/vital &7[<player>]", "{prefix}&eBenutzung: &f/vital &7[<Spieler>]");
+        add("player.vital.usage",
+                usageBox("Players", "Vital", "/vital [player]", "Restore your or a target's health and hunger."),
+                usageBox("Spieler", "Vital", "/vital [Spieler]", "Stellt Leben und Hunger wieder her."));
         add("player.vital.usage-console", "&eUsage: /vital <player>", "&eBenutzung: /vital <Spieler>");
         add("player.vital.success", "{prefix}&eYou feel fully restored.", "{prefix}&eDu fuehlst dich vollstaendig wiederhergestellt.");
         add("player.vital.success-other", "{prefix}&eRestored &6{target}&e's health and hunger.", "{prefix}&eGesundheit und Hunger von &6{target}&e wiederhergestellt.");
@@ -286,7 +498,39 @@ public final class MessageDefaults {
         add("player.vital.invalid-gamemode", "{prefix}&eYou can't use /vital in Creative or Spectator. Switch to Survival or Adventure.", "{prefix}&eDu kannst /vital im Kreativ- oder Zuschauermodus nicht nutzen. Wechsle zu Survival oder Adventure.");
         add("player.vital.invalid-gamemode-other", "{prefix}&eYou can't use /vital on &6{target}&e while they are in Creative or Spectator.", "{prefix}&eDu kannst /vital nicht auf &6{target}&e anwenden, solange der Spieler im Kreativ- oder Zuschauermodus ist.");
         add("player.vital.target-not-found", "{prefix}&cPlayer &6{player}&c is not online.", "{prefix}&cSpieler &6{player}&c ist nicht online.");
-        add("player.god.usage", "{prefix}&eUsage: &f/god &7[<player>]", "{prefix}&eBenutzung: &f/god &7[<Spieler>]");
+        // Online player list (/list) — styled to match /pl (PluginListCommand)
+        add("player.list.header", Arrays.asList(
+                "",
+                "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fOnline Players  &8·  &f{online}&7/&f{max}",
+                "&8──────────────────────────────",
+                ""
+        ), Arrays.asList(
+                "",
+                "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fSpieler online  &8·  &f{online}&7/&f{max}",
+                "&8──────────────────────────────",
+                ""
+        ));
+        add("player.list.staff", "  &c&lStaff  &8·  &f{count}", "  &c&lTeam  &8·  &f{count}");
+        add("player.list.players", "  &e&lPlayers  &8·  &f{count}", "  &e&lSpieler  &8·  &f{count}");
+        add("player.list.line", "    {names}", "    {names}");
+        add("player.list.none", "&8&onone", "&8&okeine");
+        add("player.list.message-hover", "&7Click to message &f{player}", "&7Klicke, um &f{player}&7 zu schreiben");
+        // Hover shown on a clickable chat name (MiniMessage; no single quotes).
+        add("chat.message-hover", "<gray>Click to message <white>{player}</white>", "<gray>Klicke, um <white>{player}</white> zu schreiben");
+        add("player.list.footer", Arrays.asList(
+                "",
+                "&8──────────────────────────────",
+                "  &7Legend  &8·  &c▪ Staff   &e▪ Players    &8(&f{online}&8/&f{max}&8 online)",
+                ""
+        ), Arrays.asList(
+                "",
+                "&8──────────────────────────────",
+                "  &7Legende  &8·  &c▪ Team   &e▪ Spieler    &8(&f{online}&8/&f{max}&8 online)",
+                ""
+        ));
+        add("player.god.usage",
+                usageBox("Players", "God", "/god [player]", "Toggle complete invincibility."),
+                usageBox("Spieler", "God", "/god [Spieler]", "Schaltet vollständige Unverwundbarkeit um."));
         add("player.god.usage-console", "&eUsage: /god <player>", "&eBenutzung: /god <Spieler>");
         add("player.god.enabled", "{prefix}&eGod mode enabled.", "{prefix}&eGod-Mode aktiviert.");
         add("player.god.disabled", "{prefix}&eGod mode disabled.", "{prefix}&eGod-Mode deaktiviert.");
@@ -351,7 +595,9 @@ public final class MessageDefaults {
         add("player.invsee.menu.title",
                 "&6&l{player}&6's Inventory",
                 "&6&lInventar von {player}");
-        add("player.invsee.usage", "{prefix}&eUsage: &f/invsee &7<player>", "{prefix}&eBenutzung: &f/invsee &7<Spieler>");
+        add("player.invsee.usage",
+                usageBox("Players", "InvSee", "/invsee <player>", "View another player's inventory."),
+                usageBox("Spieler", "InvSee", "/invsee <Spieler>", "Zeigt das Inventar eines anderen Spielers."));
         add("player.invsee.usage-console", "&eOnly players can run /invsee.", "&eNur Spieler koennen /invsee verwenden.");
         add("player.invsee.target-not-found", "{prefix}&8[&dSTAFF&8] &cPlayer &6{player}&c is not online.", "{prefix}&8[&dSTAFF&8] &cSpieler &6{player}&c ist nicht online.");
         add("player.invsee.cannot-view-self", "{prefix}&8[&dSTAFF&8] &eOnly the full-tier permission can /invsee yourself.", "{prefix}&8[&dSTAFF&8] &eNur die volle Berechtigungsstufe kann /invsee auf sich selbst anwenden.");
@@ -362,14 +608,30 @@ public final class MessageDefaults {
         add("player.invsee.console-log", "&8[&b{time}&8] &6[STAFF] &eINVSEE &7({tier}&7) &7| &f{viewer} &8» &fopened inventory of &6{target}", "&8[&b{time}&8] &6[STAFF] &eINVSEE &7({tier}&7) &7| &f{viewer} &8» &fInventar geoeffnet von &6{target}");
         add("player.invsee.console-tier-basic", "&7BASIC", "&7BASIS");
         add("player.invsee.console-tier-full", "&dFULL", "&dVOLL");
-        add("player.moderation.usage.ban", "{prefix}&eUsage: &f/ban &7<player> [reason]", "{prefix}&eBenutzung: &f/ban &7<Spieler> [Grund]");
-        add("player.moderation.usage.unban", "{prefix}&eUsage: &f/unban &7<player> [reason]", "{prefix}&eBenutzung: &f/unban &7<Spieler> [Grund]");
-        add("player.moderation.usage.kick", "{prefix}&eUsage: &f/kick &7<player> [reason]", "{prefix}&eBenutzung: &f/kick &7<Spieler> [Grund]");
-        add("player.moderation.usage.mute", "{prefix}&eUsage: &f/mute &7<player> [reason]", "{prefix}&eBenutzung: &f/mute &7<Spieler> [Grund]");
-        add("player.moderation.usage.unmute", "{prefix}&eUsage: &f/unmute &7<player> [reason]", "{prefix}&eBenutzung: &f/unmute &7<Spieler> [Grund]");
-        add("player.moderation.usage.tempban", "{prefix}&eUsage: &f/tempban &7<player> [reason]", "{prefix}&eBenutzung: &f/tempban &7<Spieler> [Grund]");
-        add("player.moderation.usage.warn", "{prefix}&eUsage: &f/warn &7<player> [reason]", "{prefix}&eBenutzung: &f/warn &7<Spieler> [Grund]");
-        add("player.moderation.usage.status", "{prefix}&eUsage: &f/status &7<player>", "{prefix}&eBenutzung: &f/status &7<Spieler>");
+        add("player.moderation.usage.ban",
+                usageBox("Moderation", "Ban", "/ban <player> [reason]", "Permanently ban a player from the server."),
+                usageBox("Moderation", "Bann", "/ban <Spieler> [Grund]", "Bannt einen Spieler dauerhaft vom Server."));
+        add("player.moderation.usage.unban",
+                usageBox("Moderation", "Unban", "/unban <player> [reason]", "Remove an active ban from a player."),
+                usageBox("Moderation", "Entbannen", "/unban <Spieler> [Grund]", "Hebt einen aktiven Bann eines Spielers auf."));
+        add("player.moderation.usage.kick",
+                usageBox("Moderation", "Kick", "/kick <player> [reason]", "Kick an online player from the server."),
+                usageBox("Moderation", "Kick", "/kick <Spieler> [Grund]", "Wirft einen Online-Spieler vom Server."));
+        add("player.moderation.usage.mute",
+                usageBox("Moderation", "Mute", "/mute <player> [reason]", "Prevent a player from chatting."),
+                usageBox("Moderation", "Stummschalten", "/mute <Spieler> [Grund]", "Verhindert, dass ein Spieler chatten kann."));
+        add("player.moderation.usage.unmute",
+                usageBox("Moderation", "Unmute", "/unmute <player> [reason]", "Remove an active mute from a player."),
+                usageBox("Moderation", "Entstummen", "/unmute <Spieler> [Grund]", "Hebt die Stummschaltung eines Spielers auf."));
+        add("player.moderation.usage.tempban",
+                usageBox("Moderation", "Temp-Ban", "/tempban <player> [reason]", "Temporarily ban a player using the default duration."),
+                usageBox("Moderation", "Temp-Bann", "/tempban <Spieler> [Grund]", "Bannt einen Spieler vorübergehend (Standarddauer)."));
+        add("player.moderation.usage.warn",
+                usageBox("Moderation", "Warn", "/warn <player> [reason]", "Issue a staff warning to a player."),
+                usageBox("Moderation", "Verwarnen", "/warn <Spieler> [Grund]", "Verwarnt einen Spieler."));
+        add("player.moderation.usage.status",
+                usageBox("Moderation", "Status", "/status <player>", "View a player's moderation profile and history."),
+                usageBox("Moderation", "Status", "/status <Spieler>", "Zeigt das Moderationsprofil eines Spielers."));
         add("player.moderation.target-not-found", "{prefix}&cPlayer profile &6{player}&c was not found.", "{prefix}&cSpielerprofil &6{player}&c wurde nicht gefunden.");
         add("player.moderation.self-target", "{prefix}&cYou cannot target yourself with that moderation action.", "{prefix}&cDu kannst dich mit dieser Moderationsaktion nicht selbst anvisieren.");
         add("player.moderation.ban.success", "{prefix}&cBanned &6{target}&c. Reason: &f{reason}", "{prefix}&c&6{target}&c wurde gebannt. Grund: &f{reason}");
@@ -403,57 +665,63 @@ public final class MessageDefaults {
         // the active ban / mute / last warning / last action live on their
         // own indented "└" continuation line so long reasons wrap cleanly
         // and the headline stays scannable.
-        add("player.moderation.status.header",
-                "{prefix}&6Moderation Profile &8› &e{target}",
-                "{prefix}&6Moderationsprofil &8› &e{target}");
+        add("player.moderation.status.header", Arrays.asList(
+                "",
+                BOX_TITLE + "Player Status  &8·  &f{target}",
+                BOX_RULE
+        ), Arrays.asList(
+                "",
+                BOX_TITLE + "Spielerstatus  &8·  &f{target}",
+                BOX_RULE
+        ));
         add("player.moderation.status.summary",
-                " &8│ &7UUID: &f{uuid}  &8·  &7Profile: &f{profileType}  &8·  &7Session: &f{online}  &8·  &7Updated: &f{updated}",
-                " &8│ &7UUID: &f{uuid}  &8·  &7Profil: &f{profileType}  &8·  &7Status: &f{online}  &8·  &7Aktualisiert: &f{updated}");
+                "  &7UUID &8› &f{uuid}  &8·  &7Profile &8› &f{profileType}  &8·  &7Session &8› &f{online}  &8·  &7Updated &8› &f{updated}",
+                "  &7UUID &8› &f{uuid}  &8·  &7Profil &8› &f{profileType}  &8·  &7Status &8› &f{online}  &8·  &7Aktualisiert &8› &f{updated}");
         add("player.moderation.status.ban-active",
-                " &8│ &c● &7Ban  &8│  &cACTIVE  &8·  &f{type}  &8·  &7by &f{actor}  &8·  &7expires &f{expires}",
-                " &8│ &c● &7Bann  &8│  &cAKTIV  &8·  &f{type}  &8·  &7von &f{actor}  &8·  &7endet &f{expires}");
+                "  &c● &7Ban  &8›  &cACTIVE  &8·  &f{type}  &8·  &7by &f{actor}  &8·  &7expires &f{expires}",
+                "  &c● &7Bann  &8›  &cAKTIV  &8·  &f{type}  &8·  &7von &f{actor}  &8·  &7endet &f{expires}");
         add("player.moderation.status.ban-clear",
-                " &8│ &a● &7Ban  &8│  &aClear",
-                " &8│ &a● &7Bann  &8│  &aFrei");
+                "  &a● &7Ban  &8›  &aClear",
+                "  &a● &7Bann  &8›  &aFrei");
         add("player.moderation.status.ban-reason",
-                " &8│     &8└ &7Reason: &f{reason}",
-                " &8│     &8└ &7Grund: &f{reason}");
+                "      &8└ &7Reason &8› &f{reason}",
+                "      &8└ &7Grund &8› &f{reason}");
         add("player.moderation.status.mute-active",
-                " &8│ &e● &7Mute  &8│  &eACTIVE  &8·  &7by &f{actor}  &8·  &7issued &f{issuedAt}",
-                " &8│ &e● &7Mute  &8│  &eAKTIV  &8·  &7von &f{actor}  &8·  &7seit &f{issuedAt}");
+                "  &e● &7Mute  &8›  &eACTIVE  &8·  &7by &f{actor}  &8·  &7issued &f{issuedAt}",
+                "  &e● &7Mute  &8›  &eAKTIV  &8·  &7von &f{actor}  &8·  &7seit &f{issuedAt}");
         add("player.moderation.status.mute-clear",
-                " &8│ &a● &7Mute  &8│  &aClear",
-                " &8│ &a● &7Mute  &8│  &aFrei");
+                "  &a● &7Mute  &8›  &aClear",
+                "  &a● &7Mute  &8›  &aFrei");
         add("player.moderation.status.mute-reason",
-                " &8│     &8└ &7Reason: &f{reason}",
-                " &8│     &8└ &7Grund: &f{reason}");
+                "      &8└ &7Reason &8› &f{reason}",
+                "      &8└ &7Grund &8› &f{reason}");
         add("player.moderation.status.counts-primary",
-                " &8│ &6▸ &7Totals  &8│  &fBans {bans}  &8·  &fTempbans {tempbans}  &8·  &fKicks {kicks}  &8·  &fWarnings {warnings}",
-                " &8│ &6▸ &7Summen  &8│  &fBanns {bans}  &8·  &fTempbanns {tempbans}  &8·  &fKicks {kicks}  &8·  &fWarnungen {warnings}");
+                "  &6▸ &7Totals  &8›  &fBans {bans}  &8·  &fTempbans {tempbans}  &8·  &fKicks {kicks}  &8·  &fWarnings {warnings}",
+                "  &6▸ &7Summen  &8›  &fBanns {bans}  &8·  &fTempbanns {tempbans}  &8·  &fKicks {kicks}  &8·  &fWarnungen {warnings}");
         add("player.moderation.status.counts-secondary",
-                " &8│           &fMutes {mutes}  &8·  &fUnmutes {unmutes}  &8·  &fUnbans {unbans}",
-                " &8│           &fMutes {mutes}  &8·  &fEntstummt {unmutes}  &8·  &fEntbannt {unbans}");
+                "        &fMutes {mutes}  &8·  &fUnmutes {unmutes}  &8·  &fUnbans {unbans}",
+                "        &fMutes {mutes}  &8·  &fEntstummt {unmutes}  &8·  &fEntbannt {unbans}");
         add("player.moderation.status.last-warning",
-                " &8│ &e▸ &7Last Warning  &8│  &f{issuedAt}  &8·  &7by &f{actor}  &8·  &7Reason: &f{reason}",
-                " &8│ &e▸ &7Letzte Warnung  &8│  &f{issuedAt}  &8·  &7von &f{actor}  &8·  &7Grund: &f{reason}");
+                "  &e▸ &7Last Warning  &8›  &f{issuedAt}  &8·  &7by &f{actor}  &8·  &7Reason &8› &f{reason}",
+                "  &e▸ &7Letzte Warnung  &8›  &f{issuedAt}  &8·  &7von &f{actor}  &8·  &7Grund &8› &f{reason}");
         add("player.moderation.status.last-warning-none",
-                " &8│ &7▸ Last Warning  &8│  &8None on record",
-                " &8│ &7▸ Letzte Warnung  &8│  &8Keine gespeichert");
+                "  &7▸ Last Warning  &8›  &8None on record",
+                "  &7▸ Letzte Warnung  &8›  &8Keine gespeichert");
         add("player.moderation.status.last-action",
-                " &8│ &6▸ &7Last Action  &8│  &f{action}  &8·  &f{issuedAt}  &8·  &7by &f{actor}  &8·  &7Reason: &f{reason}",
-                " &8│ &6▸ &7Letzte Aktion  &8│  &f{action}  &8·  &f{issuedAt}  &8·  &7von &f{actor}  &8·  &7Grund: &f{reason}");
+                "  &6▸ &7Last Action  &8›  &f{action}  &8·  &f{issuedAt}  &8·  &7by &f{actor}  &8·  &7Reason &8› &f{reason}",
+                "  &6▸ &7Letzte Aktion  &8›  &f{action}  &8·  &f{issuedAt}  &8·  &7von &f{actor}  &8·  &7Grund &8› &f{reason}");
         add("player.moderation.status.last-action-none",
-                " &8│ &7▸ Last Action  &8│  &8No actions recorded",
-                " &8│ &7▸ Letzte Aktion  &8│  &8Keine Aktionen gespeichert");
+                "  &7▸ Last Action  &8›  &8No actions recorded",
+                "  &7▸ Letzte Aktion  &8›  &8Keine Aktionen gespeichert");
         add("player.moderation.status.recent-header",
-                " &8│ &6▸ &7Recent Actions  &8│  &e({count})",
-                " &8│ &6▸ &7Letzte Aktionen  &8│  &e({count})");
+                "  &6▸ &7Recent Actions  &8›  &e({count})",
+                "  &6▸ &7Letzte Aktionen  &8›  &e({count})");
         add("player.moderation.status.recent-entry",
-                " &8│   &8• &f{action}  &8·  &7{issuedAt}  &8·  &7by &f{actor}  &8·  &f{reason}",
-                " &8│   &8• &f{action}  &8·  &7{issuedAt}  &8·  &7von &f{actor}  &8·  &f{reason}");
+                "    &8• &f{action}  &8·  &7{issuedAt}  &8·  &7by &f{actor}  &8·  &f{reason}",
+                "    &8• &f{action}  &8·  &7{issuedAt}  &8·  &7von &f{actor}  &8·  &f{reason}");
         add("player.moderation.status.recent-none",
-                " &8│   &8• &7No recent moderation history.",
-                " &8│   &8• &7Keine aktuelle Moderationshistorie gespeichert.");
+                "    &8• &7No recent moderation history.",
+                "    &8• &7Keine aktuelle Moderationshistorie gespeichert.");
         add("player.moderation.status.value.unknown", "Unknown", "Unbekannt");
         add("player.moderation.status.value.online", "Online", "Online");
         add("player.moderation.status.value.offline", "Offline", "Offline");
@@ -473,12 +741,12 @@ public final class MessageDefaults {
 
         // Admin + control actions
         add("admin.confirm.stop", "{prefix}&cStopping server...", "{prefix}&cServer wird gestoppt...");
-        add("admin.confirm.stop-prompt", "{prefix}&eClick again to confirm server stop.", "{prefix}&eKlicke erneut, um den Server-Stop zu bestÃ¤tigen.");
+        add("admin.confirm.stop-prompt", "{prefix}&eClick again to confirm server stop.", "{prefix}&eKlicke erneut, um den Server-Stop zu bestätigen.");
         add("admin.joinlock.enabled", "{prefix}&eJoin lock {state}.", "{prefix}&eJoin-Sperre {state}.");
         add("admin.joinlock.state.enabled", "enabled", "aktiviert");
         add("admin.joinlock.state.disabled", "disabled", "deaktiviert");
-        add("admin.joinlock.kick-reason", "Server temporarily locked. Try again later.", "Server vorÃ¼bergehend gesperrt. Versuche es spÃ¤ter erneut.");
-        add("admin.joinlock.locked-kick", "Server is temporarily locked. Please try again later.", "Der Server ist vorÃ¼bergehend gesperrt. Bitte spÃ¤ter erneut versuchen.");
+        add("admin.joinlock.kick-reason", "Server temporarily locked. Try again later.", "Server vorübergehend gesperrt. Versuche es später erneut.");
+        add("admin.joinlock.locked-kick", "Server is temporarily locked. Please try again later.", "Der Server ist vorübergehend gesperrt. Bitte später erneut versuchen.");
         add("admin.whitelist.toggled", "{prefix}&eWhitelist {state}.", "{prefix}&eWhitelist {state}.");
         add("admin.whitelist.state.enabled", "enabled", "aktiviert");
         add("admin.whitelist.state.disabled", "disabled", "deaktiviert");
@@ -491,27 +759,31 @@ public final class MessageDefaults {
         add("admin.kick-nonops.done", "{prefix}&cKicked all non-ops.", "{prefix}&cAlle Nicht-OPs wurden gekickt.");
         add("admin.spectator.applied", "{prefix}&bSet non-ops to Spectator mode.", "{prefix}&bNicht-OPs in den Zuschauermodus gesetzt.");
         add("admin.performance.tps", "{prefix}&eTPS: &6{tps}", "{prefix}&eTPS: &6{tps}");
-        add("admin.performance.tps-missing", "{prefix}&cTPS not available on this server.", "{prefix}&cTPS sind auf diesem Server nicht verfÃ¼gbar.");
-        add("admin.performance.cleared", "{prefix}&eCleared &6{removed} &eentities (&6{mode}&e).", "{prefix}&e&6{removed} &eEntitÃ¤ten gelÃ¶scht (&6{mode}&e).");
-        add("admin.performance.mode.all", "all entities", "alle EntitÃ¤ten");
+        add("admin.performance.tps-missing", "{prefix}&cTPS not available on this server.", "{prefix}&cTPS sind auf diesem Server nicht verfügbar.");
+        add("admin.performance.cleared", "{prefix}&eCleared &6{removed} &eentities (&6{mode}&e).", "{prefix}&e&6{removed} &eEntitäten gelöscht (&6{mode}&e).");
+        add("admin.performance.mode.all", "all entities", "alle Entitäten");
         add("admin.performance.mode.mobs", "mobs only", "nur Mobs");
         add("admin.performance.mode.items", "items only", "nur Items");
         add("admin.world.saved", "{prefix}&eSaved all worlds.", "{prefix}&eAlle Welten gespeichert.");
-        add("admin.world.autosave.status", "{prefix}&eAuto-save {state} for all worlds.", "{prefix}&eAuto-Speichern fÃ¼r alle Welten {state}.");
+        add("admin.world.autosave.status", "{prefix}&eAuto-save {state} for all worlds.", "{prefix}&eAuto-Speichern für alle Welten {state}.");
         add("admin.world.autosave.state.enabled", "enabled", "aktiviert");
         add("admin.world.autosave.state.disabled", "disabled", "deaktiviert");
-        add("admin.world.border-placeholder", "{prefix}&eWorld border controls are a placeholder.", "{prefix}&eWeltrÃ¤ndern-Steuerung ist noch ein Platzhalter.");
+        add("admin.world.border-placeholder", "{prefix}&eWorld border controls are a placeholder.", "{prefix}&eWelträndern-Steuerung ist noch ein Platzhalter.");
         add("admin.plugin.reloaded", "{prefix}&eReloaded SF-Core configs.", "{prefix}&eSF-Core-Konfigurationen neu geladen.");
         add("admin.plugin.reloaded-console", "&6\uD835\uDDE6\uD835\uDDD9-\uD835\uDDD6\uD835\uDDE2\uD835\uDDE5\uD835\uDDD8  &8➠ &6SF-Core &econfigs were reloaded by &6{player}&e.", "&6\uD835\uDDE6\uD835\uDDD9-\uD835\uDDD6\uD835\uDDE2\uD835\uDDE5\uD835\uDDD8  &8➠ &6SF-Core &eKonfigurationen wurden von &6{player}&e neu geladen.");
         add("admin.plugin.modules-placeholder", "{prefix}&eModule toggles are a placeholder.", "{prefix}&eModul-Umschalter sind noch ein Platzhalter.");
         add("admin.modules.joinleave.enabled", "{prefix}&eJoin/leave broadcasts &aenabled&e.", "{prefix}&eJoin/Leave-Nachrichten &aaktiviert&e.");
         add("admin.modules.joinleave.disabled", "{prefix}&eJoin/leave broadcasts &cdisabled&e.", "{prefix}&eJoin/Leave-Nachrichten &cdeaktiviert&e.");
         add("admin.modules.joinleave.status", "{prefix}&eJoin/leave broadcasts: &f{state}", "{prefix}&eJoin/Leave-Nachrichten: &f{state}");
-        add("admin.modules.joinleave.usage", "{prefix}&eUsage: &f/sf joinleave &7<&eon|off|status&7>", "{prefix}&eBenutzung: &f/sf joinleave &7<&ean|aus|status&7>");
+        add("admin.modules.joinleave.usage",
+                usageBox("Admin", "Join/Leave", "/sf joinleave <on|off|status>", "Toggle the join/leave broadcast module."),
+                usageBox("Admin", "Join/Leave", "/sf joinleave <an|aus|status>", "Schaltet die Join-/Leave-Nachrichten um."));
         add("admin.modules.joinmotd.enabled", "{prefix}&eIn-game join MOTD &aenabled&e.", "{prefix}&eIn-Game Join-MOTD &aaktiviert&e.");
         add("admin.modules.joinmotd.disabled", "{prefix}&eIn-game join MOTD &cdisabled&e.", "{prefix}&eIn-Game Join-MOTD &cdeaktiviert&e.");
         add("admin.modules.joinmotd.status", "{prefix}&eIn-game join MOTD: &f{state}", "{prefix}&eIn-Game Join-MOTD: &f{state}");
-        add("admin.modules.joinmotd.usage", "{prefix}&eUsage: &f/sf joinmotd &7<&eon|off|status&7>", "{prefix}&eBenutzung: &f/sf joinmotd &7<&ean|aus|status&7>");
+        add("admin.modules.joinmotd.usage",
+                usageBox("Admin", "Join MOTD", "/sf joinmotd <on|off|status>", "Toggle the in-game welcome MOTD module."),
+                usageBox("Admin", "Join MOTD", "/sf joinmotd <an|aus|status>", "Schaltet die Willkommens-MOTD um."));
         add("admin.modules.state.enabled", "enabled", "aktiviert");
         add("admin.modules.state.disabled", "disabled", "deaktiviert");
 
@@ -818,6 +1090,7 @@ public final class MessageDefaults {
         add("commands.help.gui.category.admin", "Admin", "Admin");
         add("commands.help.gui.category.core", "Core", "Kern");
         add("commands.help.gui.category.language", "Language", "Sprache");
+        add("commands.help.gui.category.messaging", "Messaging", "Nachrichten");
         add("commands.help.gui.category.moderation", "Moderation", "Moderation");
         add("commands.help.gui.category.teleport", "Teleport", "Teleport");
         add("commands.help.gui.category.utility", "Utility", "Werkzeuge");
@@ -893,13 +1166,13 @@ public final class MessageDefaults {
 
         // SF-Core command outputs
         add("commands.sf.unknown", "{prefix}&cUnknown subcommand. Use /sf help.", "{prefix}&cUnbekannter Unterbefehl. Nutze /sf help.");
-        add("commands.sf.help.header", "{prefix}&6SF-Core Help &7(Page {page}/{pages}{category})", "{prefix}&6SF-Core Hilfe &7(Seite {page}/{pages}{category})");
-        add("commands.sf.help.header-category", " - {category}", " - {category}");
-        add("commands.sf.help.detail.title", "{prefix}&6{usage}", "{prefix}&6{usage}");
-        add("commands.sf.help.detail.description", "{prefix}&eDescription: &f{description}", "{prefix}&eBeschreibung: &f{description}");
-        add("commands.sf.help.detail.category", "{prefix}&eCategory: &f{category}", "{prefix}&eKategorie: &f{category}");
-        add("commands.sf.help.detail.permission", "{prefix}&ePermission: &f{permission}", "{prefix}&eBerechtigung: &f{permission}");
-        add("commands.sf.help.line-suffix", " - {description}", " - {description}");
+        add("commands.sf.help.header", "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fHelp  &8·  &7Page &f{page}&7/&f{pages}{category}", "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fHilfe  &8·  &7Seite &f{page}&7/&f{pages}{category}");
+        add("commands.sf.help.header-category", "  &8·  &e{category}", "  &8·  &e{category}");
+        add("commands.sf.help.detail.title", "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &f{usage}", "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &f{usage}");
+        add("commands.sf.help.detail.description", "  &7Description  &8›  &f{description}", "  &7Beschreibung  &8›  &f{description}");
+        add("commands.sf.help.detail.category", "  &7Category     &8›  &f{category}", "  &7Kategorie     &8›  &f{category}");
+        add("commands.sf.help.detail.permission", "  &7Permission   &8›  &f{permission}", "  &7Berechtigung  &8›  &f{permission}");
+        add("commands.sf.help.line-suffix", "  &8›  &7{description}", "  &8›  &7{description}");
         add("commands.sf.help.hover", "&e{description}\n&6Permission: &f{permission}", "&e{description}\n&6Berechtigung: &f{permission}");
         add("commands.sf.help.nav.previous", "&6[\u25c4 Previous Page]", "&6[\u25c4 Vorherige Seite]");
         add("commands.sf.help.nav.previous-hover", Arrays.asList(
@@ -920,8 +1193,12 @@ public final class MessageDefaults {
         add("commands.sf.permissions.usage", "{prefix}&eUsage: &f/sf permissions &7<&ecmd|category&7>", "{prefix}&eBenutzung: &f/sf permissions &7<&eBefehl|Kategorie&7>");
         add("commands.sf.permissions.suggestion", "{prefix}&7Try: &f/sf permissions reload", "{prefix}&7Versuche: &f/sf permissions reload");
         add("commands.sf.permissions.no-match", "{prefix}&cNo matching command or category.", "{prefix}&cKein passender Befehl oder Kategorie gefunden.");
-        add("commands.sf.commands.none", "{prefix}&cNo commands available for you in that category.", "{prefix}&cKeine Befehle in dieser Kategorie verfÃ¼gbar.");
+        add("commands.sf.permissions.title", "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fPermissions", "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fBerechtigungen");
+        add("commands.sf.permissions.entry", "  &6{usage}  &8›  &f{permission}", "  &6{usage}  &8›  &f{permission}");
+        add("commands.sf.commands.none", "{prefix}&cNo commands available for you in that category.", "{prefix}&cKeine Befehle in dieser Kategorie verfügbar.");
         add("commands.sf.commands.header", "{prefix}&6Loaded commands:", "{prefix}&6Geladene Befehle:");
+        add("commands.sf.commands.title", "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fCommands", "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fBefehle");
+        add("commands.sf.commands.entry", "  &6{usage}  &8›  &7{description}", "  &6{usage}  &8›  &7{description}");
         add("commands.sf.info.lines", Arrays.asList(
                 "",
                 "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fPlugin Information",
@@ -970,7 +1247,23 @@ public final class MessageDefaults {
                 "  &7Wiki        &8›  &fhttps://github.com/SergeantFuzzy/SF-Core/wiki",
                 ""
         ));
-        add("commands.sf.version", "{prefix}&6SF-Core &e{version} &7[{tag}]", "{prefix}&6SF-Core &e{version} &7[{tag}]");
+        add("commands.sf.version", Arrays.asList(
+                "",
+                "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fVersion",
+                "&8──────────────────────────────",
+                "",
+                "  &7Version  &8›  &f{version}",
+                "  &7Build    &8›  &f{tag}",
+                ""
+        ), Arrays.asList(
+                "",
+                "&6▍ &6𝗦𝗙-𝗖𝗢𝗥𝗘  &8›  &fVersion",
+                "&8──────────────────────────────",
+                "",
+                "  &7Version  &8›  &f{version}",
+                "  &7Build    &8›  &f{tag}",
+                ""
+        ));
         add("commands.sf.reload.config.base", "{prefix}&eConfig reloaded successfully. &7({duration})", "{prefix}&eConfig erfolgreich neu geladen. &7({duration})");
         add("commands.sf.reload.config.hover", Arrays.asList(
                 "&eReloaded:",
@@ -989,28 +1282,13 @@ public final class MessageDefaults {
                 "&7- data.yml (Homes/Spawn Cache)",
                 "&7Zeit: &f{duration}"
         ));
-        add("commands.sf.reload.full.base", "{prefix}&eSF-Core fully reloaded. &7({duration})", "{prefix}&eSF-Core komplett neu geladen. &7({duration})");
-        add("commands.sf.reload.full.hover", Arrays.asList(
-                "&eReload scope:",
-                "&7- config.yml + languages",
-                "&7- motd.yml",
-                "&7- moderation service",
-                "&7- data service",
-                "&7- MOTD service",
-                "&7- teleport manager state",
-                "&7Time: &f{duration}",
-                "&7Tip: run /sf diagnostics for a health check."
-        ), Arrays.asList(
-                "&eNeuladung umfasst:",
-                "&7- config.yml + Sprachdateien",
-                "&7- motd.yml",
-                "&7- Moderationsdienst",
-                "&7- Datendienst",
-                "&7- MOTD-Dienst",
-                "&7- Teleport-Manager",
-                "&7Zeit: &f{duration}",
-                "&7Tipp: Nutze /sf diagnostics fÃ¼r einen Statuscheck."
-        ));
+        add("commands.sf.reload.full.base", "{prefix}&aReload complete &8(&f{duration}&8)", "{prefix}&aNeuladung abgeschlossen &8(&f{duration}&8)");
+        // Hover is built dynamically (per-component load times) from these fragments.
+        add("commands.sf.reload.full.header", "&#FF4526▍ 𝗦𝗬𝗦𝗧𝗘𝗠  &8›  &fReload Complete", "&#FF4526▍ 𝗦𝗬𝗦𝗧𝗘𝗠  &8›  &fNeuladung abgeschlossen");
+        add("commands.sf.reload.full.entry", "  &8• &7{file}  &8(&f{time}&8)", "  &8• &7{file}  &8(&f{time}&8)");
+        add("commands.sf.reload.full.total-line", "  &7Total  &8›  &f{duration}", "  &7Gesamt  &8›  &f{duration}");
+        add("commands.sf.reload.full.tip-line", "  &e&lℹ &eTip &8» &7run &f/sf diagnostics&7 for a health check.", "  &e&lℹ &eTipp &8» &7nutze &f/sf diagnostics&7 fuer einen Statuscheck.");
+        add("commands.sf.reload.notify", "{prefix}&7Plugin reloaded by &f{who}&7 &8(&f{duration}&8)", "{prefix}&7Plugin neu geladen von &f{who}&7 &8(&f{duration}&8)");
         add("commands.sf.reload.file.missing", "{prefix}&cFile not found: &f{file}", "{prefix}&cDatei nicht gefunden: &f{file}");
         add("commands.sf.reload.file.success", "{prefix}&eReloaded file &6{file}&e.", "{prefix}&eDatei &6{file} &eneu geladen.");
         add("commands.sf.reload.file.hover", Arrays.asList(
@@ -1020,7 +1298,7 @@ public final class MessageDefaults {
         ), Arrays.asList(
                 "&eDatei neu geladen:",
                 "&7Pfad: &f{path}",
-                "&7GrÃ¶ÃŸe: &f{size} Bytes"
+                "&7Größe: &f{size} Bytes"
         ));
         add("commands.sf.reload.file.failure", "{prefix}&cFailed to reload &f{file}&c: &f{error}", "{prefix}&cFehler beim Neuladen von &f{file}&c: &f{error}");
         add("commands.sf.diagnostics.header", Arrays.asList(
@@ -1044,25 +1322,66 @@ public final class MessageDefaults {
         add("commands.sf.diagnostics.keys", "  &7Config keys  &8›  &f{keys}", "  &7Config-Keys  &8›  &f{keys}");
         add("commands.sf.updates.header", "{prefix}&6Update checks &7(placeholder)", "{prefix}&6Update-Checks &7(Platzhalter)");
         add("commands.sf.updates.listing", "{prefix}&eBuiltByBit listing is not yet live; GitHub/Spigot checks are coming soon.", "{prefix}&eBuiltByBit-Eintrag ist noch nicht live; GitHub/Spigot-Checks folgen bald.");
-        add("commands.sf.updates.forced", "{prefix}&7Forced check triggered (simulated).", "{prefix}&7Erzwungener Check ausgelÃ¶st (simuliert).");
-        add("commands.sf.updates.hint", "{prefix}&7Use /sf updates check to force a check or /sf updates notify to toggle notices.", "{prefix}&7Nutze /sf updates check fÃ¼r einen erzwungenen Check oder /sf updates notify zum Umschalten von Hinweisen.");
+        add("commands.sf.updates.forced", "{prefix}&7Forced check triggered (simulated).", "{prefix}&7Erzwungener Check ausgelöst (simuliert).");
+        add("commands.sf.updates.hint", "{prefix}&7Use /sf updates check to force a check or /sf updates notify to toggle notices.", "{prefix}&7Nutze /sf updates check für einen erzwungenen Check oder /sf updates notify zum Umschalten von Hinweisen.");
         add("commands.sf.updates.notify.enabled", "{prefix}&eUpdate notifications enabled.", "{prefix}&eUpdate-Hinweise aktiviert.");
         add("commands.sf.updates.notify.disabled", "{prefix}&eUpdate notifications disabled.", "{prefix}&eUpdate-Hinweise deaktiviert.");
-        add("commands.sf.config.validation.header", "{prefix}&6Config validation &7(basic)", "{prefix}&6Config-Validierung &7(basis)");
-        add("commands.sf.config.validation.config", "{prefix}&econfig.yml: &aok", "{prefix}&econfig.yml: &aok");
-        add("commands.sf.config.validation.data", "{prefix}&edata.yml: {state}", "{prefix}&edata.yml: {state}");
-        add("commands.sf.config.validation.data-missing", "&cmissing", "&cfehlt");
-        add("commands.sf.config.validation.motd", "{prefix}&emotd.yml: {state}", "{prefix}&emotd.yml: {state}");
-        add("commands.sf.config.validation.moderation", "{prefix}&emoderation.yml: {state}", "{prefix}&emoderation.yml: {state}");
-        add("commands.sf.config.list.header", "{prefix}&6Loaded configs:", "{prefix}&6Geladene Configs:");
-        add("commands.sf.config.list.config", "{prefix}&econfig.yml &7(settings, teleport, homes)", "{prefix}&econfig.yml &7(Einstellungen, Teleport, Homes)");
-        add("commands.sf.config.list.data", "{prefix}&edata.yml &7(player data, spawn, homes)", "{prefix}&edata.yml &7(Spielerdaten, Spawn, Homes)");
-        add("commands.sf.config.list.motd", "{prefix}&emotd.yml &7(server list MOTD, player counter, hover)", "{prefix}&emotd.yml &7(Serverliste-MOTD, Spielerzaehler, Hover)");
-        add("commands.sf.config.list.moderation", "{prefix}&emoderation.yml &7(mutes, warnings, moderation metadata)", "{prefix}&emoderation.yml &7(Stummschaltungen, Verwarnungen, Moderationsdaten)");
+        // NOTE: keep this a sibling of (not a child of) commands.sf.config.validation —
+        // a key that is both a value and a parent becomes a YAML section on disk, reads
+        // back as null, and gets perpetually "re-added" by the language self-heal.
+        add("commands.sf.config.data-missing", "&cmissing", "&cfehlt");
+        add("commands.sf.config.validation", Arrays.asList(
+                "",
+                BOX_TITLE + "Config  &8·  &fValidation",
+                BOX_RULE,
+                "",
+                "  &econfig.yml  &8›  {config_state}",
+                "  &edata.yml  &8›  {data_state}",
+                "  &emotd.yml  &8›  {motd_state}",
+                "  &emoderation.yml  &8›  {moderation_state}",
+                "  &etablist.yml  &8›  {tablist_state}",
+                "  &escoreboard.yml  &8›  {scoreboard_state}",
+                ""), Arrays.asList(
+                "",
+                BOX_TITLE + "Config  &8·  &fValidierung",
+                BOX_RULE,
+                "",
+                "  &econfig.yml  &8›  {config_state}",
+                "  &edata.yml  &8›  {data_state}",
+                "  &emotd.yml  &8›  {motd_state}",
+                "  &emoderation.yml  &8›  {moderation_state}",
+                "  &etablist.yml  &8›  {tablist_state}",
+                "  &escoreboard.yml  &8›  {scoreboard_state}",
+                ""));
+        // Dynamic, paginated, link-free config-file listing (see SFCoreCommand.handleConfig).
+        add("commands.sf.config.list-header", Arrays.asList(
+                "",
+                BOX_TITLE + "Config  &8·  &fConfiguration Files  &8·  &f{count}",
+                BOX_RULE
+        ), Arrays.asList(
+                "",
+                BOX_TITLE + "Config  &8·  &fKonfigurationsdateien  &8·  &f{count}",
+                BOX_RULE
+        ));
+        add("commands.sf.config.list-entry", "  &8• &e{file}", "  &8• &e{file}");
+        add("commands.sf.config.list-footer", "  &7Page &f{page}&7/&f{pages}  &8·  &7/sf config <page>", "  &7Seite &f{page}&7/&f{pages}  &8·  &7/sf config <Seite>");
+        add("commands.sf.config.list-empty", "{prefix}&7No configuration files found.", "{prefix}&7Keine Konfigurationsdateien gefunden.");
         add("commands.sf.debug.toggled", "{prefix}&eDebug logging {state}.", "{prefix}&eDebug-Logging {state}.");
         add("commands.sf.debug.state.enabled", "enabled", "aktiviert");
         add("commands.sf.debug.state.disabled", "disabled", "deaktiviert");
-        add("commands.sf.debug.status", "{prefix}&eDebug status: &f{state}", "{prefix}&eDebug-Status: &f{state}");
+        add("commands.sf.debug.report", Arrays.asList(
+                "",
+                BOX_TITLE + "Debug  &8·  &fStatus",
+                BOX_RULE,
+                "",
+                "  &7Debug Logging  &8›  &f{state}",
+                ""), Arrays.asList(
+                "",
+                BOX_TITLE + "Debug  &8·  &fStatus",
+                BOX_RULE,
+                "",
+                "  &7Debug-Logging  &8›  &f{state}",
+                ""));
         add("commands.sf.debug.dump.saved", "{prefix}&eDebug dump saved to &6{file}", "{prefix}&eDebug-Dump gespeichert als &6{file}");
         add("commands.sf.debug.dump.failed", "{prefix}&cFailed to write dump: &f{error}", "{prefix}&cFehler beim Schreiben des Dumps: &f{error}");
 
@@ -1079,25 +1398,25 @@ public final class MessageDefaults {
         add("commands.sf.entry.about.usage", "/sf about", "/sf about");
         add("commands.sf.entry.about.description", "Shows extended plugin information, credits, and links.", "Zeigt erweiterte Plugin-Informationen, Danksagungen und Links.");
         add("commands.sf.entry.permissions.usage", "/sf permissions [command|category]", "/sf permissions [Befehl|Kategorie]");
-        add("commands.sf.entry.permissions.description", "Lists permission nodes for a command or category.", "Listet Berechtigungen fÃ¼r einen Befehl oder eine Kategorie auf.");
+        add("commands.sf.entry.permissions.description", "Lists permission nodes for a command or category.", "Listet Berechtigungen für einen Befehl oder eine Kategorie auf.");
         add("commands.sf.entry.commands.usage", "/sf commands [category]", "/sf commands [Kategorie]");
-        add("commands.sf.entry.commands.description", "Lists available commands filtered by category and permissions.", "Listet verfÃ¼gbare Befehle nach Kategorie und Rechten gefiltert auf.");
+        add("commands.sf.entry.commands.description", "Lists available commands filtered by category and permissions.", "Listet verfügbare Befehle nach Kategorie und Rechten gefiltert auf.");
 
         add("commands.sf.entry.reload.usage", "/sf reload", "/sf reload");
-        add("commands.sf.entry.reload.description", "Reloads SF-Core configs and reinitializes all feature modules safely.", "LÃ¤dt SF-Core Configs neu und initialisiert Module neu.");
+        add("commands.sf.entry.reload.description", "Reloads SF-Core configs and reinitializes all feature modules safely.", "Lädt SF-Core Configs neu und initialisiert Module neu.");
         add("commands.sf.entry.reload-config.usage", "/sf reload config", "/sf reload config");
-        add("commands.sf.entry.reload-config.description", "Reloads configuration files only (core.yml + feature configs).", "LÃ¤dt nur Konfigurationsdateien neu (core.yml + Feature-Configs).");
+        add("commands.sf.entry.reload-config.description", "Reloads configuration files only (core.yml + feature configs).", "Lädt nur Konfigurationsdateien neu (core.yml + Feature-Configs).");
         add("commands.sf.entry.reload-file.usage", "/sf reload <file>", "/sf reload <Datei>");
-        add("commands.sf.entry.reload-file.description", "Reloads a specific file from the plugin data folder.", "LÃ¤dt eine bestimmte Datei aus dem Plugin-Datenordner neu.");
+        add("commands.sf.entry.reload-file.description", "Reloads a specific file from the plugin data folder.", "Lädt eine bestimmte Datei aus dem Plugin-Datenordner neu.");
         add("commands.sf.entry.diagnostics.usage", "/sf diagnostics", "/sf diagnostics");
-        add("commands.sf.entry.diagnostics.description", "Runs a quick health check (config status, loaded modules, platform info).", "FÃ¼hrt einen schnellen Gesundheitscheck durch (Config-Status, Module, Plattforminfo).");
+        add("commands.sf.entry.diagnostics.description", "Runs a quick health check (config status, loaded modules, platform info).", "Führt einen schnellen Gesundheitscheck durch (Config-Status, Module, Plattforminfo).");
         add("commands.sf.entry.diagnostics-full.usage", "/sf diagnostics full", "/sf diagnostics full");
         add("commands.sf.entry.diagnostics-full.description", "Outputs extended diagnostics including services, hooks, and errors.", "Gibt erweiterte Diagnosedaten zu Diensten, Hooks und Fehlern aus.");
 
         add("commands.sf.entry.version.usage", "/sf version", "/sf version");
         add("commands.sf.entry.version.description", "Shows current SF-Core version and build tag.", "Zeigt die aktuelle SF-Core Version und den Build-Tag.");
         add("commands.sf.entry.updates.usage", "/sf updates", "/sf updates");
-        add("commands.sf.entry.updates.description", "Checks for available updates and displays a summary.", "PrÃ¼ft auf verfÃ¼gbare Updates und zeigt eine Zusammenfassung.");
+        add("commands.sf.entry.updates.description", "Checks for available updates and displays a summary.", "Prüft auf verfügbare Updates und zeigt eine Zusammenfassung.");
         add("commands.sf.entry.updates-check.usage", "/sf updates check", "/sf updates check");
         add("commands.sf.entry.updates-check.description", "Forces an update check (placeholder).", "Erzwingt einen Update-Check (Platzhalter).");
         add("commands.sf.entry.updates-notify.usage", "/sf updates notify", "/sf updates notify");
@@ -1106,15 +1425,226 @@ public final class MessageDefaults {
         add("commands.sf.entry.config.usage", "/sf config", "/sf config");
         add("commands.sf.entry.config.description", "Displays loaded config files and their status.", "Zeigt geladene Configs und deren Status.");
         add("commands.sf.entry.config-validate.usage", "/sf config validate", "/sf config validate");
-        add("commands.sf.entry.config-validate.description", "Validates config files and reports errors or deprecated keys.", "Validiert Config-Dateien und meldet Fehler oder veraltete SchlÃ¼ssel.");
+        add("commands.sf.entry.config-validate.description", "Validates config files and reports errors or deprecated keys.", "Validiert Config-Dateien und meldet Fehler oder veraltete Schlüssel.");
         add("commands.sf.entry.debug.usage", "/sf debug", "/sf debug");
         add("commands.sf.entry.debug.description", "Shows debug status and active debug flags.", "Zeigt Debug-Status und aktive Debug-Flags.");
         add("commands.sf.entry.debug-enable.usage", "/sf debug enable", "/sf debug enable");
-        add("commands.sf.entry.debug-enable.description", "Enables debug logging temporarily.", "Aktiviert temporÃ¤r Debug-Logging.");
+        add("commands.sf.entry.debug-enable.description", "Enables debug logging temporarily.", "Aktiviert temporär Debug-Logging.");
         add("commands.sf.entry.debug-disable.usage", "/sf debug disable", "/sf debug disable");
         add("commands.sf.entry.debug-disable.description", "Disables debug logging.", "Deaktiviert Debug-Logging.");
         add("commands.sf.entry.debug-dump.usage", "/sf debug dump", "/sf debug dump");
-        add("commands.sf.entry.debug-dump.description", "Dumps internal state to a log file for troubleshooting.", "Schreibt den internen Status in eine Log-Datei fÃ¼r Fehleranalyse.");
+        add("commands.sf.entry.debug-dump.description", "Dumps internal state to a log file for troubleshooting.", "Schreibt den internen Status in eine Log-Datei für Fehleranalyse.");
+
+        // Hub / Lobby
+        add("hub.teleport.teleporting", "{prefix}&eTeleporting to the hub.", "{prefix}&eTeleportiere zum Hub.");
+        add("hub.teleport.missing", "{prefix}&cNo hub world is loaded. Ask an admin to configure one.", "{prefix}&cKeine Hub-Welt geladen. Bitte einen Admin, eine zu konfigurieren.");
+        add("hub.vanishall.hidden", "{prefix}&7Other players are now &fhidden&7.", "{prefix}&7Andere Spieler sind jetzt &fversteckt&7.");
+        add("hub.vanishall.visible", "{prefix}&aOther players are now &fvisible&a.", "{prefix}&aAndere Spieler sind jetzt &fsichtbar&a.");
+        add("hub.launchpad.cooldown", "&eLaunchpad &7» &f{seconds}s &8{bar}", "&eLaunchpad &7» &f{seconds}s &8{bar}");
+        add("hub.selector.proxy-unavailable", "{prefix}&cThis server isn't connected to a proxy.", "{prefix}&cDieser Server ist mit keinem Proxy verbunden.");
+        add("hub.selector.close.name", "&c&lClose", "&c&lSchließen");
+        add("hub.selector.close.lore", Arrays.asList(
+                "&8──────────────",
+                "&7Close this menu.",
+                "&8──────────────",
+                "&8› &7Click to close"
+        ), Arrays.asList(
+                "&8──────────────",
+                "&7Dieses Menü schließen.",
+                "&8──────────────",
+                "&8› &7Zum Schließen klicken"
+        ));
+        add("hub.admin.usage", "{prefix}&eUsage: &f/hub &7<on|off|toggle|reload|give|selector|menu|world ...>", "{prefix}&eBenutzung: &f/hub &7<on|off|toggle|reload|give|selector|menu|world ...>");
+        add("hub.admin.give-usage", "{prefix}&eUsage: &f/hub give &7<player>", "{prefix}&eBenutzung: &f/hub give &7<Spieler>");
+        add("hub.admin.enabled", "{prefix}&aHub mode &lENABLED&a.", "{prefix}&aHub-Modus &lAKTIVIERT&a.");
+        add("hub.admin.disabled", "{prefix}&cHub mode &lDISABLED&c.", "{prefix}&cHub-Modus &lDEAKTIVIERT&c.");
+        add("hub.admin.already-on", "{prefix}&eHub mode is already enabled.", "{prefix}&eHub-Modus ist bereits aktiviert.");
+        add("hub.admin.already-off", "{prefix}&eHub mode is already disabled.", "{prefix}&eHub-Modus ist bereits deaktiviert.");
+        add("hub.admin.reloaded", "{prefix}&eReloaded &fsystems/hub.yml&e.", "{prefix}&esystems/hub.yml &fneu geladen&e.");
+        add("hub.admin.gave", "{prefix}&eGave hub kit to &6{player}&e.", "{prefix}&eHub-Kit an &6{player}&e ausgegeben.");
+        add("hub.admin.target-offline", "{prefix}&cPlayer &6{player}&c is not online.", "{prefix}&cSpieler &6{player}&c ist nicht online.");
+        add("hub.admin.world.list", "{prefix}&eHub worlds: &f{worlds}", "{prefix}&eHub-Welten: &f{worlds}");
+        add("hub.admin.world.added", "{prefix}&eAdded &6{world}&e to hub worlds.", "{prefix}&e&6{world}&e zu Hub-Welten hinzugefuegt.");
+        add("hub.admin.world.removed", "{prefix}&eRemoved &6{world}&e from hub worlds.", "{prefix}&e&6{world}&e aus Hub-Welten entfernt.");
+        add("hub.admin.world.already-listed", "{prefix}&eWorld &6{world}&e is already a hub world.", "{prefix}&eWelt &6{world}&e ist bereits eine Hub-Welt.");
+        add("hub.admin.world.not-listed", "{prefix}&eWorld &6{world}&e is not a hub world.", "{prefix}&eWelt &6{world}&e ist keine Hub-Welt.");
+
+        // ── Arcanum enchantment module ─────────────────────────────────────
+        add("enchant.module-disabled", "{prefix}&cThe Arcanum enchantment module is currently disabled.", "{prefix}&cDas Arcanum-Verzauberungsmodul ist derzeit deaktiviert.");
+        add("enchant.unknown-enchant", "{prefix}&cUnknown enchantment: &f{name}&c. Use &f/sfench list&c.", "{prefix}&cUnbekannte Verzauberung: &f{name}&c. Nutze &f/sfench list&c.");
+        add("enchant.unknown-level", "{prefix}&cInvalid level. &6{enchant}&c goes from &f1&c to &f{maxlevel}&c.", "{prefix}&cUngültige Stufe. &6{enchant}&c geht von &f1&c bis &f{maxlevel}&c.");
+        add("enchant.unknown-category", "{prefix}&cUnknown category: &f{name}&c.", "{prefix}&cUnbekannte Kategorie: &f{name}&c.");
+        add("enchant.usage", Arrays.asList(
+                "",
+                "&5▍ &d𝗔𝗥𝗖𝗔𝗡𝗨𝗠  &8›  &fCommands",
+                "&8──────────────────────────────",
+                "",
+                "  &6Browse",
+                "  &e/sfench list &7[category]            &8» &7List every enchantment",
+                "  &e/sfench info &7<enchant>             &8» &7Full details for one",
+                "  &e/sfench admin                      &8» &7Open the admin GUI",
+                "",
+                "  &6Apply",
+                "  &e/sfench apply &7<enchant> <level>    &8» &7Enchant the item in your hand",
+                "  &e/sfench remove &7<enchant>           &8» &7Remove it from your hand",
+                "",
+                "  &6Give",
+                "  &e/sfench give &7<player> <enchant> <level> [amt]      &8» &7A scroll",
+                "  &e/sfench givebook &7<player> <enchant> <level> [amt]  &8» &7An enchanted book",
+                "  &e/sfench protect &7<player> [amount]  &8» &7Protection Scrolls",
+                "  &e/sfench success &7<player> [amount]  &8» &7Success Scrolls",
+                "",
+                "  &6Manage",
+                "  &e/sfench loot &7toggle <chest> | reload  &8» &7World-loot spawning",
+                "  &e/sfench reload                     &8» &7Reload all configs",
+                "  &e/sfench debug &7<on|off>             &8» &7Log procs to yourself",
+                "&8──────────────────────────────",
+                ""
+        ), Arrays.asList(
+                "",
+                "&5▍ &d𝗔𝗥𝗖𝗔𝗡𝗨𝗠  &8›  &fBefehle",
+                "&8──────────────────────────────",
+                "",
+                "  &6Ansehen",
+                "  &e/sfench list &7[Kategorie]           &8» &7Alle Verzauberungen auflisten",
+                "  &e/sfench info &7<Verzauberung>        &8» &7Alle Details zu einer",
+                "  &e/sfench admin                      &8» &7Admin-GUI öffnen",
+                "",
+                "  &6Anwenden",
+                "  &e/sfench apply &7<Verz.> <Stufe>      &8» &7Item in der Hand verzaubern",
+                "  &e/sfench remove &7<Verz.>             &8» &7Aus der Hand entfernen",
+                "",
+                "  &6Geben",
+                "  &e/sfench give &7<Spieler> <Verz.> <Stufe> [Anz.]      &8» &7Eine Schriftrolle",
+                "  &e/sfench givebook &7<Spieler> <Verz.> <Stufe> [Anz.]  &8» &7Ein Buch",
+                "  &e/sfench protect &7<Spieler> [Anzahl] &8» &7Schutz-Schriftrollen",
+                "  &e/sfench success &7<Spieler> [Anzahl] &8» &7Erfolg-Schriftrollen",
+                "",
+                "  &6Verwalten",
+                "  &e/sfench loot &7toggle <Truhe> | reload  &8» &7Welt-Loot-Spawning",
+                "  &e/sfench reload                     &8» &7Alle Configs neu laden",
+                "  &e/sfench debug &7<on|off>             &8» &7Procs dir protokollieren",
+                "&8──────────────────────────────",
+                ""
+        ));
+
+        // Apply feedback — chat (full) channel.
+        add("enchant.apply.applied", "{prefix}&aApplied {enchant} &7{roman}&a to your item.", "{prefix}&a{enchant} &7{roman}&a auf dein Item angewandt.");
+        add("enchant.apply.upgraded", "{prefix}&aReplaced {enchant} &7{oldroman} &awith {enchant} &7{roman}&a.", "{prefix}&a{enchant} &7{oldroman} &adurch {enchant} &7{roman}&a ersetzt.");
+        add("enchant.apply.wrong-type", "{prefix}&cThat enchantment can only be applied to &f{tags}&c. You are holding &f{item}&c.", "{prefix}&cDiese Verzauberung passt nur auf &f{tags}&c. Du hältst &f{item}&c.");
+        add("enchant.apply.empty-hand", "{prefix}&cHold an item to apply this directly. Shift-click in the menu to get a scroll instead.", "{prefix}&cHalte ein Item, um dies direkt anzuwenden. Shift-Klick im Menü für eine Schriftrolle.");
+        add("enchant.apply.invalid-level", "{prefix}&c{enchant} &conly goes up to level &f{maxlevel}&c.", "{prefix}&c{enchant} &cgeht nur bis Stufe &f{maxlevel}&c.");
+        add("enchant.apply.already-applied", "{prefix}&cThis item already has {enchant} &7{roman}&c.", "{prefix}&cDieses Item hat bereits {enchant} &7{roman}&c.");
+        add("enchant.apply.conflict", "{prefix}&c{enchant} &ccannot coexist with {conflict} &con the same item.", "{prefix}&c{enchant} &ckann nicht mit {conflict} &cauf demselben Item bestehen.");
+        add("enchant.apply.cap", "{prefix}&cThis item already has the maximum number of enchantments (&f{cap}&c). Remove one first.", "{prefix}&cDieses Item hat bereits die maximale Anzahl Verzauberungen (&f{cap}&c). Entferne zuerst eine.");
+        add("enchant.apply.disabled", "{prefix}&cThe Arcanum module is currently disabled.", "{prefix}&cDas Arcanum-Modul ist derzeit deaktiviert.");
+        // Tool-enchant action-bar warning (no {prefix} so it stays a clean one-liner).
+        add("enchant.tool.creative-warning", "&cTreecapitator only works in Survival mode.", "&cTreecapitator funktioniert nur im Überlebensmodus.");
+        // ── Bloodletter bleed-out HUD + death ───────────────────────────────────
+        add("enchant.bloodletter.actionbar", "&4❤ &cBleeding out &8» &f{seconds}s &7left", "&4❤ &cVerblutung &8» &f{seconds}s &7übrig");
+        add("enchant.bloodletter.death-title", "&4&l☠ YOU BLED OUT", "&4&l☠ DU BIST VERBLUTET");
+        add("enchant.bloodletter.death-subtitle", "&cSlain by &f{killer}", "&cErschlagen von &f{killer}");
+        add("enchant.bloodletter.death-message", "&4☠ &cYou bled out from &f{killer}&c's wounds.", "&4☠ &cDu bist an den Wunden von &f{killer}&c verblutet.");
+        add("enchant.bloodletter.gravestone", "&7⚑ A gravestone marks your death at &f{x}&7, &f{y}&7, &f{z} &8({world})", "&7⚑ Ein Grabstein markiert deinen Tod bei &f{x}&7, &f{y}&7, &f{z} &8({world})");
+
+        // Per-player combat-FX toggle (/enchants settings).
+        add("enchant.settings.enabled", "{prefix}&aCombat effects &2enabled&a — you'll see your kill banners and combat feedback.", "{prefix}&aKampfeffekte &2aktiviert&a — du siehst deine Kill-Banner und Kampf-Rueckmeldungen.");
+        add("enchant.settings.disabled", "{prefix}&7Combat effects &8disabled&7 — your kill banners and combat feedback are now hidden.", "{prefix}&7Kampfeffekte &8deaktiviert&7 — deine Kill-Banner und Kampf-Rueckmeldungen sind nun ausgeblendet.");
+
+        // Apply feedback — action bar (transient) channel.
+        add("enchant.actionbar.applied", "&a✔ Enchantment applied", "&a✔ Verzauberung angewandt");
+        add("enchant.actionbar.upgraded", "&a↑ Upgraded to {roman}", "&a↑ Erhöht auf {roman}");
+        add("enchant.actionbar.wrong-type", "&c✖ Wrong item type", "&c✖ Falscher Item-Typ");
+        add("enchant.actionbar.empty-hand", "&c✖ No item in hand", "&c✖ Kein Item in der Hand");
+        add("enchant.actionbar.invalid-level", "&c✖ Invalid level", "&c✖ Ungültige Stufe");
+        add("enchant.actionbar.already-applied", "&c✖ Already applied", "&c✖ Bereits vorhanden");
+        add("enchant.actionbar.conflict", "&c✖ Conflict", "&c✖ Konflikt");
+        add("enchant.actionbar.cap", "&c✖ Slot cap reached", "&c✖ Slot-Limit erreicht");
+        add("enchant.actionbar.disabled", "&c✖ Module disabled", "&c✖ Modul deaktiviert");
+
+        // Remove / give / admin.
+        add("enchant.removed", "{prefix}&aRemoved {enchant} &afrom your held item.", "{prefix}&a{enchant} &avon deinem Item entfernt.");
+        add("enchant.remove.not-present", "{prefix}&cYour held item does not have {enchant}&c.", "{prefix}&cDein Item hat {enchant}&c nicht.");
+        add("enchant.remove.locked", "{prefix}&c{enchant} &ccannot be removed.", "{prefix}&c{enchant} &ckann nicht entfernt werden.");
+        add("enchant.inventory-full", "{prefix}&cThere is no free inventory slot. Free up space and try again.", "{prefix}&cKein freier Inventarplatz. Schaffe Platz und versuche es erneut.");
+        add("enchant.give.received", "{prefix}&aYou received {enchant} &7{roman}&a {kind}&a.", "{prefix}&aDu hast {enchant} &7{roman}&a {kind}&a erhalten.");
+        add("enchant.give.sent", "{prefix}&aGave {enchant} &7{roman}&a {kind} &ato &6{player}&a.", "{prefix}&a{enchant} &7{roman}&a {kind} &aan &6{player}&a gegeben.");
+        add("enchant.give.utility-received", "{prefix}&aYou received &f{amount}x {kind}&a.", "{prefix}&aDu hast &f{amount}x {kind}&a erhalten.");
+        add("enchant.give.utility-sent", "{prefix}&aGave &f{amount}x {kind} &ato &6{player}&a.", "{prefix}&a&f{amount}x {kind} &aan &6{player}&a gegeben.");
+        add("enchant.target-offline", "{prefix}&cPlayer &6{player}&c is not online.", "{prefix}&cSpieler &6{player}&c ist nicht online.");
+        // Categorized codex book (/sfench give <player> book <category>).
+        add("enchant.book.received", "{prefix}&dYou received the {category} &dCodex &7({count} enchantments)&d. Right-click to open.", "{prefix}&dDu hast das {category} &dKompendium &7({count} Verzauberungen)&d erhalten. Rechtsklick zum Oeffnen.");
+        add("enchant.book.sent", "{prefix}&aGave the {category} &aCodex to &6{player}&a.", "{prefix}&aDas {category} &aKompendium an &6{player}&a gegeben.");
+        add("enchant.book.recipient-no-permission", "{prefix}&c{player} lacks permission to receive an Arcanum codex. No book was given.", "{prefix}&c{player} hat keine Berechtigung, ein Arcanum-Kompendium zu erhalten. Es wurde kein Buch gegeben.");
+        add("enchant.book.recipient-no-permission-title", "&4&lAccess Denied", "&4&lZugriff verweigert");
+        add("enchant.book.recipient-no-permission-subtitle", "&7{player} has no codex permission", "&7{player} hat keine Kompendium-Berechtigung");
+        add("enchant.book.lower-level", "{prefix}&cThis item already has &6{enchant} &7{roman}&c — the codex can only raise it higher.", "{prefix}&cDieses Item hat bereits &6{enchant} &7{roman}&c — das Kompendium kann sie nur hoeher setzen.");
+        add("enchant.book.no-item", "{prefix}&cHold an applicable item to apply this. Valid: &f{tags}&c.", "{prefix}&cHalte ein passendes Item, um dies anzuwenden. Gueltig: &f{tags}&c.");
+        // Action-bar hint when a scroll/book is right-clicked in hand (it does nothing there).
+        add("enchant.book.use-hint", "&e✦ &7This must be applied to an item &8— &7right-clicking does nothing.", "&e✦ &7Dies muss auf ein Item angewendet werden &8— &7Rechtsklick bewirkt nichts.");
+        add("enchant.reload.done", "{prefix}&aArcanum reloaded &7({count} enchantments)&a.", "{prefix}&aArcanum neu geladen &7({count} Verzauberungen)&a.");
+        add("enchant.debug.on", "{prefix}&aArcanum proc-debug &aenabled&a. Procs will be logged to you.", "{prefix}&aArcanum-Proc-Debug &aaktiviert&a. Procs werden dir protokolliert.");
+        add("enchant.debug.off", "{prefix}&eArcanum proc-debug disabled.", "{prefix}&eArcanum-Proc-Debug deaktiviert.");
+        add("enchant.loot.toggled", "{prefix}&aLoot for &6{chest}&a is now {state}&a.", "{prefix}&aLoot für &6{chest}&a ist jetzt {state}&a.");
+        add("enchant.loot.unknown", "{prefix}&cUnknown chest type: &f{chest}&c.", "{prefix}&cUnbekannter Truhentyp: &f{chest}&c.");
+        add("enchant.loot.reloaded", "{prefix}&aReloaded &fenchants/loot.yml&a.", "{prefix}&aenchants/loot.yml &aneu geladen&a.");
+        add("enchant.state.enabled", "&aenabled", "&aaktiviert");
+        add("enchant.state.disabled", "&cdisabled", "&cdeaktiviert");
+        add("enchant.kind.scroll", "&fscroll", "&fSchriftrolle");
+        add("enchant.kind.book", "&fbook", "&fBuch");
+
+        // /sfench list — boxed report (matches /sf, /pl styling).
+        add("enchant.list.header", Arrays.asList(
+                "",
+                "&5▍ &d𝗔𝗥𝗖𝗔𝗡𝗨𝗠  &8›  &fEnchantments  &8·  &f{count}",
+                "&8──────────────────────────────",
+                ""
+        ), Arrays.asList(
+                "",
+                "&5▍ &d𝗔𝗥𝗖𝗔𝗡𝗨𝗠  &8›  &fVerzauberungen  &8·  &f{count}",
+                "&8──────────────────────────────",
+                ""
+        ));
+        add("enchant.list.category", "  {color}&l{category}  &8·  &f{count}", "  {color}&l{category}  &8·  &f{count}");
+        add("enchant.list.entry", "    {enchant} &7{maxlevel} &8·  &7{tags}", "    {enchant} &7{maxlevel} &8·  &7{tags}");
+        add("enchant.list.footer", Arrays.asList(
+                "&8──────────────────────────────",
+                ""
+        ), Arrays.asList(
+                "&8──────────────────────────────",
+                ""
+        ));
+
+        // /sfench info — boxed detail.
+        add("enchant.info.header", "&5▍ &d𝗔𝗥𝗖𝗔𝗡𝗨𝗠  &8›  {enchant}", "&5▍ &d𝗔𝗥𝗖𝗔𝗡𝗨𝗠  &8›  {enchant}");
+        add("enchant.info.meta", "  &7Category &8›  {color}{category}   &7Rarity &8›  {rarity}   &7Max &8›  &f{maxlevel}", "  &7Kategorie &8›  {color}{category}   &7Seltenheit &8›  {rarity}   &7Max &8›  &f{maxlevel}");
+        add("enchant.info.tags", "  &7Applies to &8›  &f{tags}", "  &7Passt auf &8›  &f{tags}");
+        add("enchant.info.desc-line", "  &7{line}", "  &7{line}");
+        add("enchant.info.level-line", "  {color}{roman} &8›  &7{params}", "  {color}{roman} &8›  &7{params}");
+        add("enchant.browse.soon", "{prefix}&eThe player browse menu opens with &f/enchants&e.", "{prefix}&eDas Spieler-Browsemenü öffnet sich mit &f/enchants&e.");
+
+        // Scroll application outcomes.
+        add("enchant.scroll.no-xp", "{prefix}&cYou need &f{cost}&c XP levels to apply this scroll.", "{prefix}&cDu brauchst &f{cost}&c XP-Level für diese Schriftrolle.");
+        add("enchant.scroll.failed-destroyed", "{prefix}&cThe application of {enchant} &7{roman}&c failed — the item was destroyed.", "{prefix}&cDas Anwenden von {enchant} &7{roman}&c schlug fehl — das Item wurde zerstört.");
+        add("enchant.scroll.failed-kept", "{prefix}&cThe application of {enchant} &7{roman}&c failed, but the item survived.", "{prefix}&cDas Anwenden von {enchant} &7{roman}&c schlug fehl, aber das Item blieb erhalten.");
+        add("enchant.scroll.failed-protected", "{prefix}&eThe application failed, but a Protection Scroll saved your item.", "{prefix}&eDas Anwenden schlug fehl, aber eine Schutz-Schriftrolle rettete dein Item.");
+        add("enchant.scroll.imbued-protect", "{prefix}&bThis enchant scroll is now &lProtected&b.", "{prefix}&bDiese Verzauberungs-Schriftrolle ist jetzt &lgeschützt&b.");
+        add("enchant.scroll.imbued-boost", "{prefix}&aThis enchant scroll is now &lBoosted&a.", "{prefix}&aDiese Verzauberungs-Schriftrolle ist jetzt &lverstärkt&a.");
+        add("enchant.scroll.extracted", "{prefix}&aExtracted {enchant} &7{roman}&a into a scroll.", "{prefix}&a{enchant} &7{roman}&a in eine Schriftrolle extrahiert.");
+        add("enchant.scroll.no-enchants", "{prefix}&cThat item has no Arcanum enchantments to work with.", "{prefix}&cDieses Item hat keine Arcanum-Verzauberungen.");
+        add("enchant.scroll.transmuted", "{prefix}&dTransmuted {old} &dinto {enchant} &7{roman}&d.", "{prefix}&d{old} &din {enchant} &7{roman}&d umgewandelt.");
+        add("enchant.scroll.transmute-failed", "{prefix}&cNo other enchantment in that category fits this item.", "{prefix}&cKeine andere Verzauberung dieser Kategorie passt auf dieses Item.");
+
+        // Triggered-effect notices and recall / satchel commands.
+        add("enchant.effect.last-stand", "{prefix}&6Last Stand &esaved you from a lethal blow!", "{prefix}&6Letztes Gefecht &erettete dich vor einem tödlichen Schlag!");
+        add("enchant.effect.phoenix", "{prefix}&6Phoenix Feather &erevived you!", "{prefix}&6Phönixfeder &ehat dich wiederbelebt!");
+        add("enchant.effect.sleepless", "{prefix}&cThe Curse of the Sleepless keeps you from sleeping.", "{prefix}&cDer Fluch der Schlaflosen hält dich vom Schlafen ab.");
+        add("enchant.recall.no-enchant", "{prefix}&cYou must be wearing boots with &6Beacon's Memory&c.", "{prefix}&cDu musst Stiefel mit &6Bakens Erinnerung&c tragen.");
+        add("enchant.recall.none", "{prefix}&cYou have not bound a recall point yet. Sneak + right-click to bind one.", "{prefix}&cDu hast noch keinen Rückrufpunkt gesetzt. Schleichen + Rechtsklick zum Setzen.");
+        add("enchant.recall.cooldown", "{prefix}&cRecall is on cooldown for &f{seconds}s&c.", "{prefix}&cRückruf ist noch &f{seconds}s&c im Cooldown.");
+        add("enchant.recall.bound", "{prefix}&aRecall point bound to your current location.", "{prefix}&aRückrufpunkt auf deine aktuelle Position gesetzt.");
+        add("enchant.recall.teleported", "{prefix}&aRecalled to your bound location.", "{prefix}&aZu deinem Rückrufpunkt teleportiert.");
+        add("enchant.satchel.none", "{prefix}&cYou must be wearing a helmet or chestplate with &5Satchel&c.", "{prefix}&cDu musst einen Helm oder Brustpanzer mit &5Satchel&c tragen.");
     }
 
     private MessageDefaults() {
@@ -1148,6 +1678,31 @@ public final class MessageDefaults {
 
     private static void add(String key, List<String> en, List<String> de) {
         DEFAULTS.put(key, new Translation(new ArrayList<>(en), new ArrayList<>(de)));
+    }
+
+    /** The 30× U+2500 dark-gray rule shared by the boxed reports. */
+    private static String boxRule() {
+        StringBuilder builder = new StringBuilder("&8");
+        for (int i = 0; i < 30; i++) {
+            builder.append('─');
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Renders a single command usage in the shared boxed-report style — a blank
+     * line, the {@code ▍ SF-CORE › <Category> · <Command>} title bar, the rule, a
+     * blank, the indented {@code <usage> › <description>} row, and a trailing
+     * blank. Matches the layout of {@code /list} and {@code /sf info}.
+     */
+    private static List<String> usageBox(String category, String command, String usage, String description) {
+        return Arrays.asList(
+                "",
+                BOX_TITLE + category + "  &8·  &f" + command,
+                BOX_RULE,
+                "",
+                "  &6" + usage + "  &8›  &7" + description,
+                "");
     }
 
     private static void section(String category, String en, String de) {

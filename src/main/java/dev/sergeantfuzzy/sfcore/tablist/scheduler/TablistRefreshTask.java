@@ -3,6 +3,7 @@ package dev.sergeantfuzzy.sfcore.tablist.scheduler;
 import dev.sergeantfuzzy.sfcore.Main;
 import dev.sergeantfuzzy.sfcore.platform.scheduler.SchedulerAdapter;
 import dev.sergeantfuzzy.sfcore.tablist.format.TablistRenderer;
+import dev.sergeantfuzzy.sfcore.tablist.format.TablistTeams;
 import dev.sergeantfuzzy.sfcore.tablist.service.TablistService;
 import org.bukkit.entity.Player;
 
@@ -27,7 +28,13 @@ public final class TablistRefreshTask {
     public void start() {
         cancel();
         if (!service.isEnabled()) {
+            // Tablist off — drop any staff-grouping teams we may have created.
+            TablistTeams.reset();
             return;
+        }
+        if (!service.isStaffGroupingEnabled()) {
+            // Grouping toggled off at runtime — clean up the teams.
+            TablistTeams.reset();
         }
         int interval = service.getRefreshIntervalTicks();
         Runnable refresh = () -> {

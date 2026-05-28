@@ -4,6 +4,7 @@ import dev.sergeantfuzzy.sfcore.command.admin.KillCommand;
 import dev.sergeantfuzzy.sfcore.command.admin.PluginListCommand;
 import dev.sergeantfuzzy.sfcore.command.admin.TpsCommand;
 import dev.sergeantfuzzy.sfcore.command.core.HelpGuiCommand;
+import dev.sergeantfuzzy.sfcore.command.core.ListCommand;
 import dev.sergeantfuzzy.sfcore.command.core.SFCoreCommand;
 import dev.sergeantfuzzy.sfcore.command.moderation.BanListCommand;
 import dev.sergeantfuzzy.sfcore.command.moderation.ModerationCommand;
@@ -12,10 +13,45 @@ import dev.sergeantfuzzy.sfcore.command.teleportation.BackCommand;
 import dev.sergeantfuzzy.sfcore.command.teleportation.DelHomeCommand;
 import dev.sergeantfuzzy.sfcore.command.teleportation.HomeCommand;
 import dev.sergeantfuzzy.sfcore.command.teleportation.HomesCommand;
+import dev.sergeantfuzzy.sfcore.command.teleportation.HubCommand;
 import dev.sergeantfuzzy.sfcore.command.teleportation.SetHomeCommand;
 import dev.sergeantfuzzy.sfcore.command.teleportation.SpawnCommand;
 import dev.sergeantfuzzy.sfcore.command.teleportation.TopCommand;
 import dev.sergeantfuzzy.sfcore.command.teleportation.WarpCommand;
+import dev.sergeantfuzzy.sfcore.hub.HubService;
+import dev.sergeantfuzzy.sfcore.hub.kit.HubKitApplier;
+import dev.sergeantfuzzy.sfcore.hub.launchpad.LaunchpadCooldownManager;
+import dev.sergeantfuzzy.sfcore.hub.messaging.BungeeMessenger;
+import dev.sergeantfuzzy.sfcore.enchant.command.EnchantsBrowseCommand;
+import dev.sergeantfuzzy.sfcore.enchant.command.RecallCommand;
+import dev.sergeantfuzzy.sfcore.enchant.command.SatchelCommand;
+import dev.sergeantfuzzy.sfcore.enchant.command.SfEnchantCommand;
+import dev.sergeantfuzzy.sfcore.enchant.effect.BoundMovement;
+import dev.sergeantfuzzy.sfcore.enchant.effect.EnchantState;
+import dev.sergeantfuzzy.sfcore.enchant.effect.EnchantTickTask;
+import dev.sergeantfuzzy.sfcore.enchant.gui.EnchantAdminMenu;
+import dev.sergeantfuzzy.sfcore.enchant.gui.EnchantMenuListener;
+import dev.sergeantfuzzy.sfcore.enchant.item.EnchantItems;
+import dev.sergeantfuzzy.sfcore.enchant.listener.CombatEnchantListener;
+import dev.sergeantfuzzy.sfcore.enchant.listener.CursedEnchantListener;
+import dev.sergeantfuzzy.sfcore.enchant.listener.DefenseEnchantListener;
+import dev.sergeantfuzzy.sfcore.enchant.listener.FarmingEnchantListener;
+import dev.sergeantfuzzy.sfcore.enchant.listener.MovementEnchantListener;
+import dev.sergeantfuzzy.sfcore.enchant.listener.ToolEnchantListener;
+import dev.sergeantfuzzy.sfcore.enchant.listener.UtilityEnchantListener;
+import dev.sergeantfuzzy.sfcore.enchant.loot.EnchantLoot;
+import dev.sergeantfuzzy.sfcore.enchant.scroll.AnvilEnchantListener;
+import dev.sergeantfuzzy.sfcore.enchant.scroll.ScrollApplyService;
+import dev.sergeantfuzzy.sfcore.enchant.scroll.ScrollDragListener;
+import dev.sergeantfuzzy.sfcore.enchant.service.EnchantFeedback;
+import dev.sergeantfuzzy.sfcore.enchant.service.EnchantService;
+import dev.sergeantfuzzy.sfcore.listener.player.HubFallDamageListener;
+import dev.sergeantfuzzy.sfcore.listener.player.HubFishingListener;
+import dev.sergeantfuzzy.sfcore.listener.player.HubItemProtectionListener;
+import dev.sergeantfuzzy.sfcore.listener.player.HubItemUseListener;
+import dev.sergeantfuzzy.sfcore.listener.player.HubJoinListener;
+import dev.sergeantfuzzy.sfcore.listener.player.HubLaunchpadListener;
+import dev.sergeantfuzzy.sfcore.listener.menu.ServerSelectorListener;
 import dev.sergeantfuzzy.sfcore.command.language.LanguageCommand;
 import dev.sergeantfuzzy.sfcore.command.utility.AnvilCommand;
 import dev.sergeantfuzzy.sfcore.command.utility.CraftCommand;
@@ -24,8 +60,10 @@ import dev.sergeantfuzzy.sfcore.command.utility.FeedCommand;
 import dev.sergeantfuzzy.sfcore.command.utility.GamemodeCommand;
 import dev.sergeantfuzzy.sfcore.command.utility.GodCommand;
 import dev.sergeantfuzzy.sfcore.command.utility.HealCommand;
+import dev.sergeantfuzzy.sfcore.command.utility.MapCommand;
 import dev.sergeantfuzzy.sfcore.command.utility.ResearchCommand;
 import dev.sergeantfuzzy.sfcore.command.utility.SmithCommand;
+import dev.sergeantfuzzy.sfcore.command.utility.VirtualStationCommand;
 import dev.sergeantfuzzy.sfcore.command.utility.VitalCommand;
 import dev.sergeantfuzzy.sfcore.command.admin.InvSeeCommand;
 import dev.sergeantfuzzy.sfcore.command.admin.VanishCommand;
@@ -34,6 +72,9 @@ import dev.sergeantfuzzy.sfcore.chat.service.ChatService;
 import dev.sergeantfuzzy.sfcore.tablist.listener.TablistJoinListener;
 import dev.sergeantfuzzy.sfcore.tablist.scheduler.TablistRefreshTask;
 import dev.sergeantfuzzy.sfcore.tablist.service.TablistService;
+import dev.sergeantfuzzy.sfcore.scoreboard.listener.ScoreboardJoinListener;
+import dev.sergeantfuzzy.sfcore.scoreboard.scheduler.ScoreboardRefreshTask;
+import dev.sergeantfuzzy.sfcore.scoreboard.service.ScoreboardService;
 import dev.sergeantfuzzy.sfcore.listener.chat.WarpMenuInputListener;
 import dev.sergeantfuzzy.sfcore.listener.teleport.BackListener;
 import dev.sergeantfuzzy.sfcore.listener.player.CommandOverrideListener;
@@ -89,6 +130,8 @@ public class Main extends JavaPlugin {
     private WarpService warpService;
     private LanguageManager languageManager;
     private TeleportManager teleportManager;
+    private dev.sergeantfuzzy.sfcore.util.teleport.TeleportRequestService teleportRequestService;
+    private dev.sergeantfuzzy.sfcore.message.MessageService messageService;
     private GodModeManager godModeManager;
     private KillModeManager killModeManager;
     private VanishManager vanishManager;
@@ -97,7 +140,10 @@ public class Main extends JavaPlugin {
     private JoinLeaveService joinLeaveService;
     private ChatService chatService;
     private TablistService tablistService;
+    private ScoreboardService scoreboardService;
+    private ScoreboardRefreshTask scoreboardRefreshTask;
     private TablistRefreshTask tablistRefreshTask;
+    private dev.sergeantfuzzy.sfcore.gui.admin.AdminMenuRefreshTask adminMenuRefreshTask;
     private AutoResourcePackManager resourcePackManager;
     private WarpMenuInputManager warpMenuInputManager;
     private dev.sergeantfuzzy.sfcore.gui.admin.StaffMenuInputManager staffMenuInputManager;
@@ -106,6 +152,25 @@ public class Main extends JavaPlugin {
     private TpsService tpsService;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
+    private HubService hubService;
+    private HubKitApplier hubKitApplier;
+    private LaunchpadCooldownManager launchpadCooldownManager;
+    private BungeeMessenger bungeeMessenger;
+    private HubItemUseListener hubItemUseListener;
+    private EnchantService enchantService;
+    private EnchantItems enchantItems;
+    private EnchantFeedback enchantFeedback;
+    private EnchantAdminMenu enchantAdminMenu;
+    private ScrollApplyService scrollApplyService;
+    private EnchantLoot enchantLoot;
+    private EnchantState enchantState;
+    private EnchantTickTask enchantTickTask;
+    private BoundMovement enchantBoundMovement;
+    private dev.sergeantfuzzy.sfcore.enchant.effect.CombatState combatState;
+    private dev.sergeantfuzzy.sfcore.enchant.service.CombatParticleService combatParticles;
+    private dev.sergeantfuzzy.sfcore.enchant.service.HoloFXService holoFX;
+    private dev.sergeantfuzzy.sfcore.enchant.service.ReactiveSpecialsService reactiveSpecials;
+    private dev.sergeantfuzzy.sfcore.enchant.service.CombatHudService combatHud;
     private String releaseDate = "Unknown";
     private long lastLoadDurationMs;
 
@@ -117,7 +182,7 @@ public class Main extends JavaPlugin {
 
         platformInfo = PlatformInfo.get();
         scheduler = new SchedulerAdapter(this);
-        getLogger().info("[SF-Core] Detected platform: " + platformInfo.summary());
+        dev.sergeantfuzzy.sfcore.util.message.ConsoleLog.info(this, "Detected platform: " + platformInfo.summary());
 
         languageManager = new LanguageManager(this);
         dataService = new DataService(this);
@@ -134,11 +199,19 @@ public class Main extends JavaPlugin {
         tablistService = new TablistService(this);
         tablistService.load();
         tablistRefreshTask = new TablistRefreshTask(this, tablistService);
+        scoreboardService = new ScoreboardService(this);
+        scoreboardService.load();
+        scoreboardRefreshTask = new ScoreboardRefreshTask(this, scoreboardService);
+        adminMenuRefreshTask = new dev.sergeantfuzzy.sfcore.gui.admin.AdminMenuRefreshTask(this);
         warpMenuInputManager = new WarpMenuInputManager(this);
         staffMenuInputManager = new dev.sergeantfuzzy.sfcore.gui.admin.StaffMenuInputManager(this);
         invSeeMenuManager = new dev.sergeantfuzzy.sfcore.gui.admin.InvSeeMenuManager(this);
         staffSessionTracker = new dev.sergeantfuzzy.sfcore.util.control.StaffSessionTracker();
         teleportManager = new TeleportManager(this, languageManager);
+        teleportRequestService = new dev.sergeantfuzzy.sfcore.util.teleport.TeleportRequestService(this);
+        dev.sergeantfuzzy.sfcore.message.MessageStore messageStore = new dev.sergeantfuzzy.sfcore.message.MessageStore(this);
+        messageStore.load();
+        messageService = new dev.sergeantfuzzy.sfcore.message.MessageService(this, messageStore);
         godModeManager = new GodModeManager();
         killModeManager = new KillModeManager(this);
         vanishManager = new VanishManager(this);
@@ -147,11 +220,48 @@ public class Main extends JavaPlugin {
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
 
+        // Hub / lobby system — service must exist before listeners or
+        // command registration since they reference it. Dormant when the
+        // master `enabled: false` flag in systems/hub.yml is left at its
+        // default.
+        hubService = new HubService(this);
+        hubService.load();
+        hubKitApplier = new HubKitApplier(this, hubService);
+        launchpadCooldownManager = new LaunchpadCooldownManager(this, hubService);
+        bungeeMessenger = new BungeeMessenger(this, hubService);
+        bungeeMessenger.register();
+
+        // Arcanum custom-enchantment module. The service loads the roster and
+        // config; the GUI/items/feedback depend on it being constructed first.
+        enchantService = new EnchantService(this);
+        enchantService.load();
+        enchantItems = new EnchantItems(enchantService);
+        enchantFeedback = new EnchantFeedback(this);
+        enchantAdminMenu = new EnchantAdminMenu(this);
+        scrollApplyService = new ScrollApplyService(this);
+        enchantLoot = new EnchantLoot(this);
+        enchantLoot.register();
+        enchantState = new EnchantState();
+        combatState = new dev.sergeantfuzzy.sfcore.enchant.effect.CombatState();
+        combatParticles = new dev.sergeantfuzzy.sfcore.enchant.service.CombatParticleService(this);
+        holoFX = new dev.sergeantfuzzy.sfcore.enchant.service.HoloFXService(this);
+        reactiveSpecials = new dev.sergeantfuzzy.sfcore.enchant.service.ReactiveSpecialsService(this, combatState, combatParticles);
+        combatHud = new dev.sergeantfuzzy.sfcore.enchant.service.CombatHudService(this);
+        combatHud.start();
+        enchantBoundMovement = new BoundMovement(enchantService.getStorage());
+        enchantTickTask = new EnchantTickTask(this, enchantBoundMovement);
+
         registerCommands();
         registerListeners();
 
         if (tablistRefreshTask != null) {
             tablistRefreshTask.start();
+        }
+        if (adminMenuRefreshTask != null) {
+            adminMenuRefreshTask.start();
+        }
+        if (scoreboardRefreshTask != null) {
+            scoreboardRefreshTask.start();
         }
         tpsService.start();
         if (vanishManager != null) {
@@ -160,6 +270,12 @@ public class Main extends JavaPlugin {
         if (invSeeMenuManager != null) {
             invSeeMenuManager.start();
         }
+        if (launchpadCooldownManager != null) {
+            launchpadCooldownManager.start();
+        }
+        if (enchantTickTask != null) {
+            enchantTickTask.start();
+        }
 
         lastLoadDurationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - enableStart);
         printBanner(true);
@@ -167,6 +283,34 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (enchantTickTask != null) {
+            enchantTickTask.stop();
+        }
+        if (holoFX != null) {
+            holoFX.clear();
+        }
+        if (combatParticles != null) {
+            combatParticles.clear();
+        }
+        if (combatHud != null) {
+            combatHud.clear();
+        }
+        // Clear Curse of the Bound toughness modifiers and speed throttle so nothing persists past unload.
+        for (org.bukkit.entity.Player online : getServer().getOnlinePlayers()) {
+            dev.sergeantfuzzy.sfcore.enchant.effect.EffectUtil.setBoundToughness(online, 0.0);
+            if (enchantBoundMovement != null) {
+                enchantBoundMovement.restore(online);
+            }
+        }
+        if (launchpadCooldownManager != null) {
+            launchpadCooldownManager.stop();
+        }
+        if (bungeeMessenger != null) {
+            bungeeMessenger.unregister();
+        }
+        if (hubService != null) {
+            hubService.save();
+        }
         if (invSeeMenuManager != null) {
             invSeeMenuManager.stop();
         }
@@ -179,6 +323,15 @@ public class Main extends JavaPlugin {
         if (tablistRefreshTask != null) {
             tablistRefreshTask.cancel();
         }
+        if (adminMenuRefreshTask != null) {
+            adminMenuRefreshTask.cancel();
+        }
+        if (scoreboardRefreshTask != null) {
+            scoreboardRefreshTask.cancel();
+        }
+        // Remove the SF-Core tablist staff/players sort teams from the main
+        // scoreboard so they don't linger after the plugin unloads.
+        dev.sergeantfuzzy.sfcore.tablist.format.TablistTeams.reset();
         if (teleportManager != null) {
             teleportManager.cancelAll();
         }
@@ -205,6 +358,14 @@ public class Main extends JavaPlugin {
 
     public TeleportManager getTeleportManager() {
         return teleportManager;
+    }
+
+    public dev.sergeantfuzzy.sfcore.util.teleport.TeleportRequestService getTeleportRequestService() {
+        return teleportRequestService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.message.MessageService getMessageService() {
+        return messageService;
     }
 
     public GodModeManager getGodModeManager() {
@@ -243,6 +404,10 @@ public class Main extends JavaPlugin {
         return tablistService;
     }
 
+    public ScoreboardService getScoreboardService() {
+        return scoreboardService;
+    }
+
     public AutoResourcePackManager getResourcePackManager() {
         return resourcePackManager;
     }
@@ -271,34 +436,109 @@ public class Main extends JavaPlugin {
         return platformInfo;
     }
 
-    public void reloadPlugin() {
-        reloadConfig();
-        languageManager.reload();
-        dataService.reload();
-        warpService.load();
+    public HubService getHubService() {
+        return hubService;
+    }
+
+    public HubKitApplier getHubKitApplier() {
+        return hubKitApplier;
+    }
+
+    public LaunchpadCooldownManager getLaunchpadCooldownManager() {
+        return launchpadCooldownManager;
+    }
+
+    public BungeeMessenger getBungeeMessenger() {
+        return bungeeMessenger;
+    }
+
+    public HubItemUseListener getHubItemUseListener() {
+        return hubItemUseListener;
+    }
+
+    public EnchantService getEnchantService() {
+        return enchantService;
+    }
+
+    public EnchantItems getEnchantItems() {
+        return enchantItems;
+    }
+
+    public EnchantFeedback getEnchantFeedback() {
+        return enchantFeedback;
+    }
+
+    public EnchantAdminMenu getEnchantAdminMenu() {
+        return enchantAdminMenu;
+    }
+
+    /**
+     * Reloads the world-loot generation listener. The loot subsystem (Phase 4)
+     * registers itself here once wired in; until then this is a safe no-op so the
+     * {@code /sfench loot reload} command remains valid.
+     */
+    public void reloadEnchantLoot() {
+        if (enchantLoot != null) {
+            enchantLoot.reload();
+        }
+    }
+
+    /**
+     * Reloads every live component and returns an ordered map of component label →
+     * elapsed nanoseconds, so callers can report per-file/per-service load times.
+     */
+    public java.util.Map<String, Long> reloadPlugin() {
+        java.util.LinkedHashMap<String, Long> times = new java.util.LinkedHashMap<String, Long>();
+        long s;
+        s = System.nanoTime(); reloadConfig(); times.put("config.yml", System.nanoTime() - s);
+        s = System.nanoTime(); languageManager.reload(); times.put("languages", System.nanoTime() - s);
+        s = System.nanoTime(); dataService.reload(); times.put("data.yml", System.nanoTime() - s);
+        s = System.nanoTime(); warpService.load(); times.put("warps.yml", System.nanoTime() - s);
         if (moderationService != null) {
-            moderationService.reload();
+            s = System.nanoTime(); moderationService.reload(); times.put("moderation.yml", System.nanoTime() - s);
         }
         if (motdService != null) {
-            motdService.reload();
+            s = System.nanoTime(); motdService.reload(); times.put("motd.yml", System.nanoTime() - s);
         }
         if (joinLeaveService != null) {
-            joinLeaveService.reload();
+            s = System.nanoTime(); joinLeaveService.reload(); times.put("join-leave", System.nanoTime() - s);
         }
         if (chatService != null) {
-            chatService.reload();
+            s = System.nanoTime(); chatService.reload(); times.put("chat.yml", System.nanoTime() - s);
         }
         if (tablistService != null) {
+            s = System.nanoTime();
             tablistService.reload();
+            if (tablistRefreshTask != null) {
+                tablistRefreshTask.start();
+            }
+            times.put("tablist.yml", System.nanoTime() - s);
         }
-        if (tablistRefreshTask != null) {
-            tablistRefreshTask.start();
+        if (scoreboardService != null) {
+            s = System.nanoTime();
+            scoreboardService.reload();
+            if (scoreboardRefreshTask != null) {
+                scoreboardRefreshTask.start();
+            }
+            times.put("scoreboard.yml", System.nanoTime() - s);
         }
         if (resourcePackManager != null) {
+            s = System.nanoTime();
             resourcePackManager.refreshConfig();
             resourcePackManager.installBundledPack();
             resourcePackManager.prepareHosting();
+            times.put("resource-pack", System.nanoTime() - s);
         }
+        if (hubService != null) {
+            s = System.nanoTime(); hubService.reload(); times.put("hub.yml", System.nanoTime() - s);
+        }
+        if (enchantService != null) {
+            s = System.nanoTime(); enchantService.reload(); times.put("enchants", System.nanoTime() - s);
+        }
+        if (enchantLoot != null) {
+            s = System.nanoTime(); enchantLoot.reload(); times.put("enchant-loot", System.nanoTime() - s);
+        }
+        return times;
     }
 
     private void registerCommands() {
@@ -306,15 +546,28 @@ public class Main extends JavaPlugin {
         WarpCommand warpCommand = new WarpCommand(this);
         bind("sf", new SFCoreCommand(this, languageManager));
         bind("help", new HelpGuiCommand(this));
+        bind("list", new ListCommand(this));
         bind("home", new HomeCommand(this));
         bind("sethome", new SetHomeCommand(this));
         bind("delhome", new DelHomeCommand(this));
         bind("homes", new HomesCommand(this));
         bind("spawn", spawnCommand);
         bind("setspawn", spawnCommand);
+        getServer().getPluginManager().registerEvents(spawnCommand, this);
+        getServer().getPluginManager().registerEvents(messageService, this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.listener.menu.InboxMenuListener(this), this);
         bind("warp", warpCommand);
         bind("gamemode", new GamemodeCommand(this));
         bind("back", new BackCommand(this));
+        bind("tp", new dev.sergeantfuzzy.sfcore.command.teleportation.TeleportCommand(this, dev.sergeantfuzzy.sfcore.command.teleportation.TeleportCommand.Mode.TO));
+        bind("tphere", new dev.sergeantfuzzy.sfcore.command.teleportation.TeleportCommand(this, dev.sergeantfuzzy.sfcore.command.teleportation.TeleportCommand.Mode.HERE));
+        bind("tpa", new dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand(this, dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand.Mode.REQUEST));
+        bind("tpaccept", new dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand(this, dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand.Mode.ACCEPT));
+        bind("tpdeny", new dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand(this, dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand.Mode.DENY));
+        bind("pos", new dev.sergeantfuzzy.sfcore.command.teleportation.PositionCommand(this));
+        bind("msg", new dev.sergeantfuzzy.sfcore.command.message.MsgCommand(this));
+        bind("rply", new dev.sergeantfuzzy.sfcore.command.message.ReplyCommand(this));
+        bind("inbox", new dev.sergeantfuzzy.sfcore.command.message.InboxCommand(this));
         bind("kill", new KillCommand(this));
         bind("tps", new TpsCommand(this));
         bind("pl", new PluginListCommand(this));
@@ -330,6 +583,11 @@ public class Main extends JavaPlugin {
         bind("anvil", new AnvilCommand(this));
         bind("enchant", new EnchantCommand(this));
         bind("smith", new SmithCommand(this));
+        bind("stonecut", new VirtualStationCommand(this, VirtualStationCommand.Station.STONECUTTER));
+        bind("loom", new VirtualStationCommand(this, VirtualStationCommand.Station.LOOM));
+        bind("grindstone", new VirtualStationCommand(this, VirtualStationCommand.Station.GRINDSTONE));
+        bind("cartography", new VirtualStationCommand(this, VirtualStationCommand.Station.CARTOGRAPHY));
+        bind("map", new MapCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
         bind("ban", new ModerationCommand(this, ModerationCommand.Action.BAN));
@@ -342,6 +600,11 @@ public class Main extends JavaPlugin {
         bind("banlist", new BanListCommand(this));
         bind("status", new ModerationStatusCommand(this));
         bind("staff", new dev.sergeantfuzzy.sfcore.command.admin.StaffCommand(this));
+        bind("hub", new HubCommand(this, hubService, hubKitApplier));
+        bind("sfench", new SfEnchantCommand(this));
+        bind("enchants", new EnchantsBrowseCommand(this));
+        bind("recall", new RecallCommand(this, enchantState));
+        bind("satchel", new SatchelCommand(this, enchantState));
     }
 
     private void registerListeners() {
@@ -366,7 +629,45 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.listener.chat.StaffMenuInputListener(staffMenuInputManager), this);
         getServer().getPluginManager().registerEvents(new ChatManagementListener(this, chatService), this);
         getServer().getPluginManager().registerEvents(new TablistJoinListener(this, tablistService), this);
-        getServer().getPluginManager().registerEvents(new MotdPingListener(this), this);
+        getServer().getPluginManager().registerEvents(new ScoreboardJoinListener(this, scoreboardService), this);
+        MotdPingListener motdPingListener = new MotdPingListener(this);
+        getServer().getPluginManager().registerEvents(motdPingListener, this);
+        // Paper (and forks) fire PaperServerListPingEvent on its own HandlerList,
+        // so register for it explicitly — without this the server-list hover
+        // (player sample) never gets set on Paper. No-op on base Spigot.
+        motdPingListener.registerPaperPingListener();
+
+        // Hub / Lobby system listeners (early-exit when hub-mode is off,
+        // so registration cost is one ConcurrentHashMap read per event in
+        // the dormant state).
+        getServer().getPluginManager().registerEvents(new HubJoinListener(this, hubService, hubKitApplier), this);
+        hubItemUseListener = new HubItemUseListener(this, hubService);
+        getServer().getPluginManager().registerEvents(hubItemUseListener, this);
+        getServer().getPluginManager().registerEvents(new HubItemProtectionListener(this, hubService), this);
+        getServer().getPluginManager().registerEvents(new HubFishingListener(this, hubService), this);
+        getServer().getPluginManager().registerEvents(new HubLaunchpadListener(this, hubService, launchpadCooldownManager), this);
+        getServer().getPluginManager().registerEvents(new HubFallDamageListener(launchpadCooldownManager), this);
+        getServer().getPluginManager().registerEvents(new ServerSelectorListener(this), this);
+
+        // Arcanum enchantment module listeners (combat effects + GUI routing).
+        getServer().getPluginManager().registerEvents(new CombatEnchantListener(this, enchantService, combatHud), this);
+        getServer().getPluginManager().registerEvents(new EnchantMenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new AnvilEnchantListener(this, scrollApplyService), this);
+        getServer().getPluginManager().registerEvents(new ScrollDragListener(this, scrollApplyService), this);
+        getServer().getPluginManager().registerEvents(new DefenseEnchantListener(this, enchantState), this);
+        getServer().getPluginManager().registerEvents(new ToolEnchantListener(this), this);
+        getServer().getPluginManager().registerEvents(new FarmingEnchantListener(this), this);
+        getServer().getPluginManager().registerEvents(new UtilityEnchantListener(this), this);
+        getServer().getPluginManager().registerEvents(new MovementEnchantListener(this, enchantState), this);
+        getServer().getPluginManager().registerEvents(new CursedEnchantListener(this, enchantBoundMovement), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.EnchantLoreListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.EnchantBookUseListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.OnHitDamageListener(this, combatState, combatParticles, holoFX, combatHud), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.OnKillListener(this, combatState, combatParticles, holoFX), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.OnHitProcListener(this, combatState, combatParticles, combatHud), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.OnDeathListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.RangedListener(this, combatState, combatParticles, reactiveSpecials, combatHud), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.ReactiveSpecialsListener(this, combatState, reactiveSpecials), this);
     }
 
     private void bind(String name, CommandExecutor executor) {

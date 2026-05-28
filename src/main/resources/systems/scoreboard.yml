@@ -1,0 +1,55 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core Scoreboard (sidebar)
+# ────────────────────────────────────────────────────────────────────────────
+# A FeatherBoard-style sidebar shown to every player. Each player gets their own
+# board so live, per-player fields (health, hearts) work. Re-read on /sf reload.
+#
+# Colors in the title and lines use legacy codes:
+#   • Color / format codes   &a, &c, &l, &o, ...
+#   • Hex colors             &#RRGGBB   (renders on 1.16+; degrades on older)
+# (The sidebar is drawn with scoreboard teams, which carry legacy text — not the
+#  MiniMessage <tag> set used by the tablist/chat. Use &-codes here.)
+#
+# Placeholders available in the title and every line:
+#   {plugin}          - Plugin name (SF-Core)
+#   {player}          - Player account name
+#   {displayname}     - Player display name
+#   {world}           - Current world
+#   {online}          - Online player count (live)
+#   {max}             - Server slot count
+#   {health}          - Current health (rounded)
+#   {max_health}      - Maximum health (rounded)
+#   {health_percent}  - Health as a percentage, e.g. 93
+#   {hearts}          - A 10-icon ❤/♡ bar that fills with current health
+#   {ip}              - server-ip below
+#   {website}         - server-website below
+#
+# Line notes:
+#   • Empty strings ("") render as blank spacer lines.
+#   • Up to 15 lines are shown (extras are ignored).
+#   • Each line is capped at ~32 visible characters on 1.8–1.12 (longer on 1.13+).
+# ════════════════════════════════════════════════════════════════════════════
+
+enabled: true
+
+# How often (server ticks; 20 = 1s) the sidebar is re-rendered for live fields.
+refresh-interval-ticks: 20
+
+# Sidebar title. Defaults to the plugin name.
+title: "&6&l{plugin}"
+
+# Server address + website shown via {ip} / {website}.
+server-ip: "play.sf-core.com"
+server-website: "www.sf-core.com"
+
+# Sidebar lines, top to bottom.
+lines:
+  - "&8&m                    "
+  - "&7Player &8» &f{player}"
+  - "&7Health &8» &c{health_percent}%"
+  - "&8» {hearts}"
+  - "&7Online &8» &a{online}&7/&a{max}"
+  - "&8&m                    "
+  - "&7IP &8» &e{ip}"
+  - "&7Web &8» &b{website}"
+  - "&8&m                    "

@@ -71,6 +71,11 @@ public final class ChatService {
         return getString("format.components.username.template", "<#AAAAAA>{player}</#AAAAAA>");
     }
 
+    /** Username template for OP/staff — red by default so staff names stand out. */
+    public String getStaffUsernameTemplate() {
+        return getString("format.components.username.staff-template", "<red>{player}</red>");
+    }
+
     public String getSeparatorCharacter() {
         return getString("format.components.separator.character", "»");
     }
@@ -81,6 +86,23 @@ public final class ChatService {
 
     public String getMessageTemplate() {
         return getString("format.components.message.template", "<#FFFFFF>{message}</#FFFFFF>");
+    }
+
+    /** Whether the OP staff tag is shown before OP players' names in chat. */
+    public boolean isStaffPrefixEnabled() {
+        return config == null || config.getBoolean("format.components.prefix.enabled", true);
+    }
+
+    /**
+     * The tag placed before an OP player's name in chat. Default renders as a
+     * red, bold small-caps "STAFF" followed by a heavy vertical bar (ѕᴛᴀꜰꜰ┃) —
+     * the literal characters are U+0455 U+1D1B U+1D00 U+A730 U+A730 U+2503. This
+     * file is compiled as UTF-8 (see pom sourceEncoding); keep it that way when
+     * editing so these characters aren't corrupted.
+     */
+    public String getStaffPrefix() {
+        return getString("format.components.prefix.op",
+                "<red><bold>ѕᴛᴀꜰꜰ ┃ </bold></red>");
     }
 
     private String getString(String path, String fallback) {

@@ -111,6 +111,20 @@ public final class SchedulerAdapter {
         return runAtEntity(entity, task, null);
     }
 
+    /**
+     * Runs {@code task} after a delay on the entity's region (Folia) or the main
+     * thread (otherwise). {@code retired} runs instead if the entity is removed
+     * before the delay elapses. Used for safely despawning short-lived holograms.
+     */
+    public CancellableTask runAtEntityLater(Entity entity, Runnable task, Runnable retired, long delayTicks) {
+        long delay = Math.max(1L, delayTicks);
+        if (isFolia() && entity != null) {
+            Object handle = foliaSchedulers.runAtEntityDelayed(plugin, entity, task, retired, delay);
+            return wrapFolia(handle);
+        }
+        return wrapBukkit(Bukkit.getScheduler().runTaskLater(plugin, task, delay));
+    }
+
     public void cancelAll() {
         if (isFolia()) {
             foliaSchedulers.cancelTasks(plugin);
@@ -172,6 +186,25 @@ public final class SchedulerAdapter {
     }
 
     private static final class FoliaCancellableTask implements CancellableTask {
+
+        /**
+         * The public {@code ScheduledTask} interface. Folia's scheduler returns a
+         * <em>non-public</em> implementation class, so reflecting {@code cancel} off
+         * {@code delegate.getClass()} and invoking it throws {@link IllegalAccessException}
+         * (the declaring class isn't accessible) — which would silently swallow the
+         * cancel and leave repeating tasks running forever. Resolving the method from
+         * the public interface (plus {@code setAccessible(true)}) makes cancel reliable.
+         */
+        private static final Class<?> SCHEDULED_TASK = resolveScheduledTask();
+
+        private static Class<?> resolveScheduledTask() {
+            try {
+                return Class.forName("io.papermc.paper.threadedregions.scheduler.ScheduledTask");
+            } catch (Throwable ignored) {
+                return null;
+            }
+        }
+
         private final Object delegate;
         private volatile boolean cancelled;
 
@@ -179,12 +212,22 @@ public final class SchedulerAdapter {
             this.delegate = delegate;
         }
 
+        private Method resolve(String name) throws NoSuchMethodException {
+            if (SCHEDULED_TASK != null && SCHEDULED_TASK.isInstance(delegate)) {
+                Method method = SCHEDULED_TASK.getMethod(name);
+                method.setAccessible(true);
+                return method;
+            }
+            Method method = delegate.getClass().getMethod(name);
+            method.setAccessible(true);
+            return method;
+        }
+
         @Override
         public void cancel() {
             if (delegate != null) {
                 try {
-                    Method method = delegate.getClass().getMethod("cancel");
-                    method.invoke(delegate);
+                    resolve("cancel").invoke(delegate);
                 } catch (Throwable ignored) {
                     // already cancelled or unavailable
                 }
@@ -201,8 +244,7 @@ public final class SchedulerAdapter {
                 return true;
             }
             try {
-                Method method = delegate.getClass().getMethod("isCancelled");
-                Object value = method.invoke(delegate);
+                Object value = resolve("isCancelled").invoke(delegate);
                 return value instanceof Boolean && (Boolean) value;
             } catch (Throwable ignored) {
                 return false;
@@ -369,6 +411,20 @@ public final class SchedulerAdapter {
                 Method getScheduler = entity.getClass().getMethod("getScheduler");
                 Object entityScheduler = getScheduler.invoke(entity);
                 return entityRun.invoke(entityScheduler, plugin, asConsumer(task), retired);
+            } catch (Throwable throwable) {
+                rethrow(throwable);
+                return null;
+            }
+        }
+
+        Object runAtEntityDelayed(Plugin plugin, Entity entity, Runnable task, Runnable retired, long delayTicks) {
+            if (entityRunDelayed == null) {
+                return runDelayed(plugin, task, delayTicks);
+            }
+            try {
+                Method getScheduler = entity.getClass().getMethod("getScheduler");
+                Object entityScheduler = getScheduler.invoke(entity);
+                return entityRunDelayed.invoke(entityScheduler, plugin, asConsumer(task), retired, delayTicks);
             } catch (Throwable throwable) {
                 rethrow(throwable);
                 return null;

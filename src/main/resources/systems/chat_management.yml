@@ -53,9 +53,19 @@ format:
   template: "{username} {separator} {message}"
 
   components:
-    # Player name. Default: light gray (&7 / #AAAAAA).
+    # Staff tag shown immediately before the name of OP players. Default renders
+    # as a red, bold small-caps "STAFF" followed by a heavy vertical bar
+    # (ѕᴛᴀꜰꜰ┃). Non-OP players never receive a tag. Set enabled to false to turn
+    # it off, or change "op" to any MiniMessage string (include a trailing space
+    # or separator if you want a gap before the name).
+    prefix:
+      enabled: true
+      op: "<red><bold>ѕᴛᴀꜰꜰ ┃ </bold></red>"
+    # Player name. Default: light gray (&7 / #AAAAAA) for regular players,
+    # red for OP/staff via the staff-template.
     username:
       template: "<#AAAAAA>{player}</#AAAAAA>"
+      staff-template: "<red>{player}</red>"
     # Separator character placed between username and message.
     # Default: a typographic right-pointing double-angle quote, light yellow
     # (&e / #FFFF55).

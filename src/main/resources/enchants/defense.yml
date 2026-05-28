@@ -1,0 +1,118 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — DEFENSE enchantments (blue)
+# ════════════════════════════════════════════════════════════════════════════
+
+aegis:
+  display_name: "&9Aegis"
+  category: defense
+  rarity: uncommon
+  max_level: 5
+  applies_to: [ARMOR]
+  conflicts_with: [thornmail]
+  description:
+    - "Flat reduction to all incoming damage."
+  levels:
+    1: { reduction: 0.03 }
+    2: { reduction: 0.05 }
+    3: { reduction: 0.08 }
+    4: { reduction: 0.11 }
+    5: { reduction: 0.15 }
+
+thornmail:
+  display_name: "&3Thornmail"
+  category: defense
+  rarity: rare
+  max_level: 4
+  applies_to: [CHESTPLATE, LEGGINGS]
+  conflicts_with: [aegis]
+  description:
+    - "Reflect a share of damage taken back at attackers."
+  levels:
+    1: { reflect_percent: 0.10, ranged_reflect_percent: 0.0 }
+    2: { reflect_percent: 0.18, ranged_reflect_percent: 0.0 }
+    3: { reflect_percent: 0.25, ranged_reflect_percent: 0.0 }
+    4: { reflect_percent: 0.35, ranged_reflect_percent: 0.05 }
+
+last_stand:
+  display_name: "&9Last Stand"
+  category: defense
+  rarity: epic
+  max_level: 3
+  applies_to: [CHESTPLATE]
+  description:
+    - "Once per life, survive a lethal blow with"
+    - "a burst of resistance and regeneration."
+  levels:
+    1: { resistance_amp: 2, regen_amp: 1, duration_seconds: 5, absorption: false }
+    2: { resistance_amp: 2, regen_amp: 2, duration_seconds: 7, absorption: false }
+    3: { resistance_amp: 3, regen_amp: 2, duration_seconds: 10, absorption: true }
+
+second_wind:
+  display_name: "&bSecond Wind"
+  category: defense
+  rarity: rare
+  max_level: 3
+  applies_to: [BOOTS, LEGGINGS]
+  description:
+    - "A healing sprint burst when your health drops low."
+  levels:
+    1: { hp_threshold: 0.30, speed_amp: 1, heal_hearts: 1, cooldown_seconds: 60 }
+    2: { hp_threshold: 0.35, speed_amp: 2, heal_hearts: 2, cooldown_seconds: 50 }
+    3: { hp_threshold: 0.40, speed_amp: 2, heal_hearts: 3, cooldown_seconds: 40 }
+
+hex_ward:
+  display_name: "&9Hex Ward"
+  category: defense
+  rarity: rare
+  max_level: 4
+  applies_to: [ARMOR]
+  description:
+    - "Shorten the duration of harmful potion effects."
+  levels:
+    1: { reduction: 0.15 }
+    2: { reduction: 0.30 }
+    3: { reduction: 0.50 }
+    4: { reduction: 0.75 }
+
+shieldbreaker_resist:
+  display_name: "&3Shieldbreaker Resist"
+  category: defense
+  rarity: uncommon
+  max_level: 3
+  applies_to: [SHIELD]
+  description:
+    - "Chance to ignore axe shield-disable."
+  levels:
+    1: { ignore_chance: 0.30 }
+    2: { ignore_chance: 0.60 }
+    3: { ignore_chance: 1.00 }
+
+soulbound:
+  display_name: "&6Soulbound"
+  category: defense
+  rarity: legendary
+  max_level: 1
+  applies_to: [ARMOR]
+  description:
+    - "Item stays with you on death (single use)."
+    - "Consumed when it saves you."
+  levels:
+    1: { single_use: true }
+
+phase_cloak:
+  display_name: "&5Phase Cloak"
+  category: defense
+  rarity: epic
+  max_level: 3
+  applies_to: [CHESTPLATE]
+  description:
+    - "Brief invisibility when you take damage."
+  levels:
+    1: { chance: 0.05, invis_seconds: 2, speed: false }
+    2: { chance: 0.10, invis_seconds: 3, speed: false }
+    3: { chance: 0.15, invis_seconds: 4, speed: true }
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

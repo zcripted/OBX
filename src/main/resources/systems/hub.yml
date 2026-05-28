@@ -1,0 +1,201 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core Hub / Lobby
+# ────────────────────────────────────────────────────────────────────────────
+# Multi-server style hub / lobby toolkit. When a player is in one of the
+# configured hub worlds (`worlds:` below) AND `enabled: true`, SF-Core
+# applies the hub kit on join / respawn / world-change and processes the
+# hotbar items (server selector, jump rod, vanish-all toggle, launchpad).
+#
+# Toggle surfaces — all three converge on the same runtime flag and write
+# back to this file when changed in-game:
+#   • Command : /hub on|off|toggle|reload  (admins only, sfcore.hub.admin)
+#   • GUI     : /sf → Admin Menu → "Hub / Lobby Controls" slot
+#   • Config  : edit `enabled` below and run /sf reload (or save in panel)
+#
+# Hub-mode is per-world by design — multi-world setups can use SF-Core both
+# as a hub plugin (on `hub`, `lobby`, etc.) and as essentials on game worlds.
+# ════════════════════════════════════════════════════════════════════════════
+
+# Master toggle. When false the entire system is dormant — no listeners run,
+# no kit is applied, no items are tracked. This matches the existing
+# ServerControlState idiom for clean off-state.
+enabled: false
+
+# Worlds where hub-mode is active. Outside these worlds SF-Core behaves
+# exactly like before (essentials-style core). Case-sensitive world names
+# as reported by Bukkit.getWorld().getName().
+worlds:
+  - "hub"
+  - "lobby"
+
+# Kit applied on join into a hub world, on respawn within one, on world
+# change into one, and to every currently-online hub-world player when
+# hub-mode is toggled on.
+kit:
+  # Clear the player's inventory before applying the hub kit. Disable if
+  # you'd rather merge the kit into whatever the player is carrying.
+  clear-inventory: true
+  # Give the kit again on respawn while in a hub world.
+  give-on-respawn: true
+  # Lock the hotbar so hub items can't be dropped, swapped to another slot,
+  # or moved into chests. Items in non-hotbar slots remain untouched.
+  lock-hotbar: true
+
+# Hotbar items. Each entry has:
+#   enabled        : per-item toggle
+#   slot           : hotbar slot 0–8
+#   material       : Bukkit material name (first match wins, see fallbacks)
+#   material-fallback: ordered list of alternates for older versions
+#   name           : display name (legacy & MiniMessage color codes supported)
+#   lore           : tooltip lines
+items:
+  server-selector:
+    enabled: true
+    slot: 0
+    # NOTE: avoid COMPASS here if WorldEdit is installed — WorldEdit's navigation
+    # wand is a compass (right-click = /thru, left-click = /jumpto), so a compass
+    # would teleport players (with worldedit.navigation.* perms) to their
+    # crosshairs in addition to opening this menu. NETHER_STAR has no such clash.
+    material: "NETHER_STAR"
+    material-fallback: ["NETHER_STAR", "COMPASS"]
+    name: "&6&lServer Selector &7(Right-Click)"
+    lore:
+      - "&8&m─────────────────────"
+      - "&7Open the server selector"
+      - "&7to switch between servers."
+      - ""
+      - "&e› &fRight-click to open"
+      - "&8&m─────────────────────"
+
+  jump-rod:
+    enabled: true
+    slot: 1
+    material: "FISHING_ROD"
+    material-fallback: ["FISHING_ROD"]
+    name: "&b&lJump-To Rod &7(Cast)"
+    lore:
+      - "&8&m─────────────────────"
+      - "&7Cast the rod to teleport"
+      - "&7to where it lands."
+      - ""
+      - "&e› &fRight-click to cast"
+      - "&8&m─────────────────────"
+    # Max travel distance for the hook (vanilla rod range is ~30 blocks).
+    max-distance: 60
+
+  vanish-all:
+    enabled: true
+    slot: 4
+    # Two states (visible / hidden). Each state has its own item.
+    visible:
+      material: "LIME_DYE"
+      material-fallback: ["LIME_DYE", "INK_SACK", "DYE"]
+      name: "&a&lPlayers: &2Visible &7(Right-Click)"
+      lore:
+        - "&8&m─────────────────────"
+        - "&7You can currently see"
+        - "&7other players in the hub."
+        - ""
+        - "&e› &fRight-click to hide them"
+        - "&8&m─────────────────────"
+    hidden:
+      material: "GRAY_DYE"
+      material-fallback: ["GRAY_DYE", "INK_SACK", "DYE"]
+      name: "&7&lPlayers: &8Hidden &7(Right-Click)"
+      lore:
+        - "&8&m─────────────────────"
+        - "&7Other players are hidden"
+        - "&7from your view."
+        - ""
+        - "&e› &fRight-click to show them"
+        - "&8&m─────────────────────"
+
+  launchpad:
+    enabled: true
+    # Last hotbar slot (slots are 0–8).
+    slot: 8
+    material: "FIREWORK_ROCKET"
+    material-fallback: ["FIREWORK_ROCKET", "FIREWORK", "FEATHER"]
+    name: "&e&lLaunchpad &7(Double-Jump)"
+    lore:
+      - "&8&m─────────────────────"
+      - "&7Hold and double-tap"
+      - "&7&lSPACE &7to launch."
+      - ""
+      - "&e› &fNo fall damage on landing"
+      - "&8&m─────────────────────"
+    # Cooldown applied to each player after a launch. Action-bar countdown
+    # shows above the hotbar while cooldown is active. Reasonable & fair
+    # default is 3 seconds.
+    cooldown-seconds: 3
+    # Forward power (look-direction × value) and upward power (Y velocity
+    # added). Tune to your map scale — defaults match a mid-size lobby.
+    forward-power: 1.4
+    up-power: 1.0
+
+# Server list shown in the selector GUI. Each entry:
+#   id           : BungeeCord / Velocity server name (Connect target)
+#   display-name : item display name (legacy color codes supported)
+#   slot         : GUI slot 0–53 (-1 → auto-assign in order)
+#   material     : icon material
+#   material-fallback: ordered alternates
+#   lore         : static lore (live online-count is appended automatically)
+selector:
+  title: "&6&lServer Selector"
+  rows: 3
+  # Live online-player count subchannel ("PlayerCount" on BungeeCord) is
+  # queried for each server when the menu opens, then cached for this many
+  # seconds to avoid flooding the proxy.
+  ping-cache-seconds: 5
+  # Decorative outline of glass panes around the icons.
+  outline:
+    enabled: true
+    material: "GRAY_STAINED_GLASS_PANE"
+    material-fallback: ["GRAY_STAINED_GLASS_PANE", "STAINED_GLASS_PANE", "GLASS_PANE"]
+  # Close button that shuts the selector. The name/lore text is taken from the
+  # language files (hub.selector.close.name / hub.selector.close.lore); only the
+  # appearance toggles live here. slot: -1 auto-places it at the bottom-center.
+  close-button:
+    enabled: true
+    slot: -1
+    material: "BARRIER"
+    material-fallback: ["BARRIER", "RED_STAINED_GLASS_PANE", "BEDROCK"]
+  servers:
+    survival:
+      id: "survival"
+      display-name: "&a&lSurvival"
+      slot: 11
+      material: "GRASS_BLOCK"
+      material-fallback: ["GRASS_BLOCK", "GRASS"]
+      lore:
+        - "&8&m─────────────────────"
+        - "&7Vanilla-plus survival"
+        - "&7with land claims & shops."
+        - "&8&m─────────────────────"
+    creative:
+      id: "creative"
+      display-name: "&b&lCreative"
+      slot: 13
+      material: "DIAMOND_BLOCK"
+      material-fallback: ["DIAMOND_BLOCK"]
+      lore:
+        - "&8&m─────────────────────"
+        - "&7Plot-based creative world"
+        - "&7with WorldEdit access."
+        - "&8&m─────────────────────"
+    minigames:
+      id: "minigames"
+      display-name: "&d&lMinigames"
+      slot: 15
+      material: "EMERALD"
+      material-fallback: ["EMERALD"]
+      lore:
+        - "&8&m─────────────────────"
+        - "&7PvP arenas, parkour,"
+        - "&7and party games."
+        - "&8&m─────────────────────"
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

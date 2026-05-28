@@ -1,0 +1,104 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Arcanum — World-loot integration
+# Scrolls / enchanted books can spawn in world-generated chests. Each chest
+# type is independently toggleable, weighted, and capped. Rarity distribution
+# and category filtering are optional per type.
+#
+# NOTE: world-loot injection uses LootGenerateEvent, which only exists on
+# Minecraft 1.13+. On older servers this section is simply ignored.
+#
+# The module-level master switch below ships OFF so server owners opt in
+# deliberately (per the design's Phase-4 guidance). Flip it on, then enable the
+# chest types you want.
+# ════════════════════════════════════════════════════════════════════════════
+
+# Master switch for ALL world-loot injection.
+enabled: false
+
+# Probability (0.0–1.0) that an enabled chest rolls for Arcanum loot at all,
+# before per-type weight/cap are applied.
+global_roll_chance: 0.5
+
+loot:
+  abandoned_mineshaft: { enabled: true, weight: 15, max_per_chest: 1 }
+  dungeon: { enabled: true, weight: 20, max_per_chest: 1 }
+  stronghold_corridor: { enabled: true, weight: 25, max_per_chest: 2 }
+  stronghold_library: { enabled: true, weight: 40, max_per_chest: 3 }
+  desert_pyramid: { enabled: true, weight: 20, max_per_chest: 1 }
+  jungle_temple: { enabled: true, weight: 20, max_per_chest: 1 }
+  woodland_mansion: { enabled: true, weight: 30, max_per_chest: 2 }
+  nether_fortress: { enabled: true, weight: 25, max_per_chest: 1 }
+  bastion_remnant: { enabled: true, weight: 30, max_per_chest: 2 }
+  end_city: { enabled: true, weight: 35, max_per_chest: 2 }
+  end_city_treasure: { enabled: true, weight: 50, max_per_chest: 3 }
+  shipwreck_treasure: { enabled: true, weight: 25, max_per_chest: 1 }
+  shipwreck_supply: { enabled: false, weight: 10, max_per_chest: 1 }
+  buried_treasure: { enabled: true, weight: 40, max_per_chest: 2 }
+  ruined_portal: { enabled: true, weight: 15, max_per_chest: 1 }
+  ancient_city: { enabled: true, weight: 50, max_per_chest: 3 }
+  trail_ruins: { enabled: true, weight: 20, max_per_chest: 1 }
+  trial_chamber_reward: { enabled: true, weight: 35, max_per_chest: 2 }
+  ominous_vault: { enabled: true, weight: 60, max_per_chest: 3 }
+  village_weaponsmith: { enabled: true, weight: 20, max_per_chest: 1, allowed_categories: [combat, defense] }
+  village_toolsmith: { enabled: true, weight: 20, max_per_chest: 1, allowed_categories: [tools, farming] }
+  village_armorer: { enabled: true, weight: 20, max_per_chest: 1, allowed_categories: [defense, utility] }
+  village_temple: { enabled: true, weight: 15, max_per_chest: 1 }
+  mob_spawner_loot: { enabled: true, weight: 10, max_per_chest: 1 }
+  igloo_basement: { enabled: true, weight: 15, max_per_chest: 1 }
+  pillager_outpost: { enabled: true, weight: 20, max_per_chest: 1 }
+
+# Default rarity distribution (weights) used when a chest type doesn't define
+# its own. Treasure chests should lean rarer; smith chests lean common.
+default_rarity_distribution:
+  common: 30
+  uncommon: 30
+  rare: 22
+  epic: 12
+  legendary: 5
+  mythic: 1
+
+# Per-chest overrides for the rarity distribution.
+rarity_distribution:
+  ancient_city:
+    common: 5
+    uncommon: 15
+    rare: 30
+    epic: 35
+    legendary: 13
+    mythic: 2
+  end_city_treasure:
+    common: 5
+    uncommon: 12
+    rare: 28
+    epic: 35
+    legendary: 17
+    mythic: 3
+  ominous_vault:
+    common: 5
+    uncommon: 10
+    rare: 25
+    epic: 35
+    legendary: 20
+    mythic: 5
+  village_toolsmith:
+    common: 45
+    uncommon: 35
+    rare: 15
+    epic: 5
+    legendary: 0
+    mythic: 0
+  village_weaponsmith:
+    common: 40
+    uncommon: 35
+    rare: 18
+    epic: 7
+    legendary: 0
+    mythic: 0
+
+# Chance an injected drop is a ready-made enchanted book instead of a scroll.
+book_instead_of_scroll_chance: 0.35
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝
