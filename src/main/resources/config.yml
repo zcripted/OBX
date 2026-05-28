@@ -84,6 +84,22 @@ join-motd:
 resource-pack:
   enabled: false
   public-url: ""
+tpa:
+  # Seconds before an outgoing /tpa or /tpahere request expires.
+  expiry-seconds: 60
+afk:
+  # Seconds of inactivity before a player auto-flips to AFK.
+  idle-seconds: 300
+  # Extra seconds after auto-AFK before they get kicked. 0 disables auto-kick.
+  kick-seconds: 0
+  # If true, AFK on/off is broadcast to all players. If false, only the player sees it.
+  broadcast: true
+economy:
+  symbol: "$"
+  currency-name: "Coin"
+  currency-name-plural: "Coins"
+  # Default balance for players the first time they're queried.
+  starting-balance: 100.0
 moderation:
   defaults:
     reason: "No reason provided."

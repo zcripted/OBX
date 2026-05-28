@@ -104,6 +104,19 @@ public class Main extends JavaPlugin {
     private dev.sergeantfuzzy.sfcore.gui.admin.InvSeeMenuManager invSeeMenuManager;
     private dev.sergeantfuzzy.sfcore.util.control.StaffSessionTracker staffSessionTracker;
     private TpsService tpsService;
+    private dev.sergeantfuzzy.sfcore.util.teleport.TpaService tpaService;
+    private dev.sergeantfuzzy.sfcore.messaging.MessageService messageService;
+    private dev.sergeantfuzzy.sfcore.util.control.AfkService afkService;
+    private dev.sergeantfuzzy.sfcore.kit.KitService kitService;
+    private dev.sergeantfuzzy.sfcore.economy.EconomyService economyService;
+    private dev.sergeantfuzzy.sfcore.economy.WorthService worthService;
+    private dev.sergeantfuzzy.sfcore.util.perf.PlaytimeService playtimeService;
+    private dev.sergeantfuzzy.sfcore.storage.SqliteDataStore dataStore;
+    private dev.sergeantfuzzy.sfcore.util.control.FlightStateService flightStateService;
+    private dev.sergeantfuzzy.sfcore.util.control.FreezeService freezeService;
+    private dev.sergeantfuzzy.sfcore.nickname.NicknameService nicknameService;
+    private dev.sergeantfuzzy.sfcore.util.control.PerPlayerTimeService perPlayerTimeService;
+    private dev.sergeantfuzzy.sfcore.jail.JailService jailService;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
     private String releaseDate = "Unknown";
@@ -120,6 +133,8 @@ public class Main extends JavaPlugin {
         getLogger().info("[SF-Core] Detected platform: " + platformInfo.summary());
 
         languageManager = new LanguageManager(this);
+        dataStore = new dev.sergeantfuzzy.sfcore.storage.SqliteDataStore(this);
+        dataStore.open();
         dataService = new DataService(this);
         dataService.load();
         warpService = new WarpService(this);
@@ -146,9 +161,32 @@ public class Main extends JavaPlugin {
         resourcePackManager.installBundledPack();
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
+        tpaService = new dev.sergeantfuzzy.sfcore.util.teleport.TpaService(this);
+        messageService = new dev.sergeantfuzzy.sfcore.messaging.MessageService(this);
+        messageService.load();
+        afkService = new dev.sergeantfuzzy.sfcore.util.control.AfkService(this);
+        kitService = new dev.sergeantfuzzy.sfcore.kit.KitService(this);
+        kitService.load();
+        economyService = new dev.sergeantfuzzy.sfcore.economy.EconomyService(this);
+        economyService.load();
+        worthService = new dev.sergeantfuzzy.sfcore.economy.WorthService(this);
+        worthService.load();
+        playtimeService = new dev.sergeantfuzzy.sfcore.util.perf.PlaytimeService(this);
+        playtimeService.load();
+        flightStateService = new dev.sergeantfuzzy.sfcore.util.control.FlightStateService(this);
+        flightStateService.load();
+        freezeService = new dev.sergeantfuzzy.sfcore.util.control.FreezeService(this);
+        nicknameService = new dev.sergeantfuzzy.sfcore.nickname.NicknameService(this);
+        nicknameService.load();
+        perPlayerTimeService = new dev.sergeantfuzzy.sfcore.util.control.PerPlayerTimeService(this);
+        perPlayerTimeService.load();
+        jailService = new dev.sergeantfuzzy.sfcore.jail.JailService(this);
+        jailService.load();
 
         registerCommands();
         registerListeners();
+
+        dev.sergeantfuzzy.sfcore.economy.VaultEconomyProvider.register(this, economyService);
 
         if (tablistRefreshTask != null) {
             tablistRefreshTask.start();
@@ -159,6 +197,15 @@ public class Main extends JavaPlugin {
         }
         if (invSeeMenuManager != null) {
             invSeeMenuManager.start();
+        }
+        if (tpaService != null) {
+            tpaService.start();
+        }
+        if (afkService != null) {
+            afkService.start();
+        }
+        if (freezeService != null) {
+            freezeService.start();
         }
 
         lastLoadDurationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - enableStart);
@@ -182,11 +229,35 @@ public class Main extends JavaPlugin {
         if (teleportManager != null) {
             teleportManager.cancelAll();
         }
+        if (tpaService != null) {
+            tpaService.stop();
+        }
+        if (afkService != null) {
+            afkService.stop();
+        }
+        if (playtimeService != null) {
+            playtimeService.save();
+        }
         if (dataService != null) {
             dataService.save();
         }
         if (moderationService != null) {
             moderationService.save();
+        }
+        if (messageService != null) {
+            messageService.save();
+        }
+        if (kitService != null) {
+            kitService.save();
+        }
+        if (economyService != null) {
+            economyService.save();
+        }
+        if (freezeService != null) {
+            freezeService.stop();
+        }
+        if (dataStore != null) {
+            dataStore.close();
         }
         printBanner(false);
     }
@@ -263,6 +334,58 @@ public class Main extends JavaPlugin {
         return tpsService;
     }
 
+    public dev.sergeantfuzzy.sfcore.util.teleport.TpaService getTpaService() {
+        return tpaService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.messaging.MessageService getMessageService() {
+        return messageService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.util.control.AfkService getAfkService() {
+        return afkService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.kit.KitService getKitService() {
+        return kitService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.economy.EconomyService getEconomyService() {
+        return economyService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.economy.WorthService getWorthService() {
+        return worthService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.util.perf.PlaytimeService getPlaytimeService() {
+        return playtimeService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.storage.SqliteDataStore getDataStore() {
+        return dataStore;
+    }
+
+    public dev.sergeantfuzzy.sfcore.util.control.FlightStateService getFlightStateService() {
+        return flightStateService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.util.control.FreezeService getFreezeService() {
+        return freezeService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.nickname.NicknameService getNicknameService() {
+        return nicknameService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.util.control.PerPlayerTimeService getPerPlayerTimeService() {
+        return perPlayerTimeService;
+    }
+
+    public dev.sergeantfuzzy.sfcore.jail.JailService getJailService() {
+        return jailService;
+    }
+
     public SchedulerAdapter getSchedulerAdapter() {
         return scheduler;
     }
@@ -299,6 +422,33 @@ public class Main extends JavaPlugin {
             resourcePackManager.installBundledPack();
             resourcePackManager.prepareHosting();
         }
+        if (messageService != null) {
+            messageService.reload();
+        }
+        if (kitService != null) {
+            kitService.reload();
+        }
+        if (economyService != null) {
+            economyService.reload();
+        }
+        if (worthService != null) {
+            worthService.reload();
+        }
+        if (playtimeService != null) {
+            playtimeService.reload();
+        }
+        if (flightStateService != null) {
+            flightStateService.load();
+        }
+        if (nicknameService != null) {
+            nicknameService.reload();
+        }
+        if (perPlayerTimeService != null) {
+            perPlayerTimeService.load();
+        }
+        if (jailService != null) {
+            jailService.reload();
+        }
     }
 
     private void registerCommands() {
@@ -332,6 +482,76 @@ public class Main extends JavaPlugin {
         bind("smith", new SmithCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
+        bind("tpa", new dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand(this, dev.sergeantfuzzy.sfcore.util.teleport.TpaService.RequestType.TO));
+        bind("tpahere", new dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand(this, dev.sergeantfuzzy.sfcore.util.teleport.TpaService.RequestType.HERE));
+        bind("tpaccept", new dev.sergeantfuzzy.sfcore.command.teleportation.TpAcceptCommand(this));
+        bind("tpdeny", new dev.sergeantfuzzy.sfcore.command.teleportation.TpDenyCommand(this));
+        bind("tpcancel", new dev.sergeantfuzzy.sfcore.command.teleportation.TpCancelCommand(this));
+        bind("tptoggle", new dev.sergeantfuzzy.sfcore.command.teleportation.TpToggleCommand(this));
+        bind("tphere", new dev.sergeantfuzzy.sfcore.command.teleportation.TpHereCommand(this));
+        bind("tppos", new dev.sergeantfuzzy.sfcore.command.teleportation.TpPosCommand(this));
+        bind("tpall", new dev.sergeantfuzzy.sfcore.command.teleportation.TpAllCommand(this));
+        bind("msg", new dev.sergeantfuzzy.sfcore.command.messaging.MsgCommand(this));
+        bind("reply", new dev.sergeantfuzzy.sfcore.command.messaging.ReplyCommand(this));
+        bind("ignore", new dev.sergeantfuzzy.sfcore.command.messaging.IgnoreCommand(this));
+        bind("socialspy", new dev.sergeantfuzzy.sfcore.command.messaging.SocialSpyCommand(this));
+        bind("mail", new dev.sergeantfuzzy.sfcore.command.messaging.MailCommand(this));
+        bind("me", new dev.sergeantfuzzy.sfcore.command.messaging.MeCommand(this));
+        bind("broadcast", new dev.sergeantfuzzy.sfcore.command.messaging.BroadcastCommand(this));
+        bind("staffchat", new dev.sergeantfuzzy.sfcore.command.messaging.StaffChatCommand(this));
+        bind("afk", new dev.sergeantfuzzy.sfcore.command.utility.AfkCommand(this));
+        bind("kit", new dev.sergeantfuzzy.sfcore.command.utility.KitCommand(this));
+        bind("balance", new dev.sergeantfuzzy.sfcore.command.economy.BalanceCommand(this));
+        bind("baltop", new dev.sergeantfuzzy.sfcore.command.economy.BalTopCommand(this));
+        bind("pay", new dev.sergeantfuzzy.sfcore.command.economy.PayCommand(this));
+        bind("eco", new dev.sergeantfuzzy.sfcore.command.economy.EcoCommand(this));
+        bind("worth", new dev.sergeantfuzzy.sfcore.command.economy.WorthCommand(this));
+        bind("sell", new dev.sergeantfuzzy.sfcore.command.economy.SellCommand(this));
+        bind("sellall", new dev.sergeantfuzzy.sfcore.command.economy.SellAllCommand(this));
+        bind("seen", new dev.sergeantfuzzy.sfcore.command.info.SeenCommand(this));
+        bind("firstseen", new dev.sergeantfuzzy.sfcore.command.info.FirstSeenCommand(this));
+        bind("playtime", new dev.sergeantfuzzy.sfcore.command.info.PlaytimeCommand(this));
+        bind("list", new dev.sergeantfuzzy.sfcore.command.info.ListCommand(this));
+        bind("near", new dev.sergeantfuzzy.sfcore.command.info.NearCommand(this));
+        bind("whois", new dev.sergeantfuzzy.sfcore.command.info.WhoisCommand(this));
+        bind("realname", new dev.sergeantfuzzy.sfcore.command.info.RealnameCommand(this));
+        bind("info", new dev.sergeantfuzzy.sfcore.command.info.InfoCommand(this));
+        bind("fly", new dev.sergeantfuzzy.sfcore.command.utility.FlyCommand(this));
+        bind("flyspeed", new dev.sergeantfuzzy.sfcore.command.utility.FlySpeedCommand(this));
+        bind("walkspeed", new dev.sergeantfuzzy.sfcore.command.utility.WalkSpeedCommand(this));
+        bind("freeze", new dev.sergeantfuzzy.sfcore.command.admin.FreezeCommand(this));
+        bind("enderchest", new dev.sergeantfuzzy.sfcore.command.utility.EnderchestCommand(this));
+        bind("disposal", new dev.sergeantfuzzy.sfcore.command.utility.DisposalCommand(this));
+        bind("hat", new dev.sergeantfuzzy.sfcore.command.utility.HatCommand(this));
+        bind("clearinv", new dev.sergeantfuzzy.sfcore.command.utility.ClearInvCommand(this));
+        bind("repair", new dev.sergeantfuzzy.sfcore.command.utility.RepairCommand(this));
+        bind("more", new dev.sergeantfuzzy.sfcore.command.utility.MoreCommand(this));
+        bind("skull", new dev.sergeantfuzzy.sfcore.command.utility.SkullCommand(this));
+        bind("itemname", new dev.sergeantfuzzy.sfcore.command.utility.ItemNameCommand(this));
+        bind("itemlore", new dev.sergeantfuzzy.sfcore.command.utility.ItemLoreCommand(this));
+        bind("unbreakable", new dev.sergeantfuzzy.sfcore.command.utility.UnbreakableCommand(this));
+        bind("give", new dev.sergeantfuzzy.sfcore.command.utility.GiveCommand(this));
+        bind("i", new dev.sergeantfuzzy.sfcore.command.utility.ItemCommand(this));
+        bind("book", new dev.sergeantfuzzy.sfcore.command.utility.BookCommand(this));
+        bind("nick", new dev.sergeantfuzzy.sfcore.command.utility.NickCommand(this));
+        bind("time", new dev.sergeantfuzzy.sfcore.command.world.TimeCommand(this));
+        bind("day", new dev.sergeantfuzzy.sfcore.command.world.DayCommand(this, 1000L));
+        bind("night", new dev.sergeantfuzzy.sfcore.command.world.DayCommand(this, 13000L));
+        bind("sun", new dev.sergeantfuzzy.sfcore.command.world.DayCommand(this, 6000L));
+        bind("weather", new dev.sergeantfuzzy.sfcore.command.world.WeatherCommand(this));
+        bind("ptime", new dev.sergeantfuzzy.sfcore.command.world.PTimeCommand(this));
+        bind("pweather", new dev.sergeantfuzzy.sfcore.command.world.PWeatherCommand(this));
+        bind("jail", new dev.sergeantfuzzy.sfcore.command.admin.JailCommand(this));
+        bind("unjail", new dev.sergeantfuzzy.sfcore.command.admin.UnjailCommand(this));
+        bind("jails", new dev.sergeantfuzzy.sfcore.command.admin.JailsCommand(this));
+        bind("setjail", new dev.sergeantfuzzy.sfcore.command.admin.SetJailCommand(this));
+        bind("deljail", new dev.sergeantfuzzy.sfcore.command.admin.DelJailCommand(this));
+        bind("jailtime", new dev.sergeantfuzzy.sfcore.command.admin.JailTimeCommand(this));
+        bind("butcher", new dev.sergeantfuzzy.sfcore.command.admin.ButcherCommand(this));
+        bind("spawnmob", new dev.sergeantfuzzy.sfcore.command.admin.SpawnMobCommand(this));
+        bind("spawner", new dev.sergeantfuzzy.sfcore.command.admin.SpawnerCommand(this));
+        bind("smite", new dev.sergeantfuzzy.sfcore.command.admin.SmiteCommand(this));
+        bind("tree", new dev.sergeantfuzzy.sfcore.command.admin.TreeCommand(this));
         bind("ban", new ModerationCommand(this, ModerationCommand.Action.BAN));
         bind("unban", new ModerationCommand(this, ModerationCommand.Action.UNBAN));
         bind("kick", new ModerationCommand(this, ModerationCommand.Action.KICK));
@@ -367,6 +587,32 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChatManagementListener(this, chatService), this);
         getServer().getPluginManager().registerEvents(new TablistJoinListener(this, tablistService), this);
         getServer().getPluginManager().registerEvents(new MotdPingListener(this), this);
+        if (tpaService != null) {
+            getServer().getPluginManager().registerEvents(tpaService, this);
+        }
+        if (afkService != null) {
+            getServer().getPluginManager().registerEvents(afkService, this);
+        }
+        if (playtimeService != null) {
+            getServer().getPluginManager().registerEvents(playtimeService, this);
+        }
+        if (flightStateService != null) {
+            getServer().getPluginManager().registerEvents(flightStateService, this);
+        }
+        if (freezeService != null) {
+            getServer().getPluginManager().registerEvents(freezeService, this);
+        }
+        if (perPlayerTimeService != null) {
+            getServer().getPluginManager().registerEvents(perPlayerTimeService, this);
+        }
+        if (nicknameService != null) {
+            getServer().getPluginManager().registerEvents(
+                    new dev.sergeantfuzzy.sfcore.nickname.NicknameApplyListener(nicknameService), this);
+        }
+        if (jailService != null) {
+            getServer().getPluginManager().registerEvents(
+                    new dev.sergeantfuzzy.sfcore.jail.JailListener(this), this);
+        }
     }
 
     private void bind(String name, CommandExecutor executor) {

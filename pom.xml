@@ -54,6 +54,16 @@
             <version>${bungeecord.chat.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- SQLite JDBC driver: declared in plugin.yml `libraries:` for Paper/Folia
+             auto-download. Scope is provided so the compile classpath has it without
+             shading the driver into our JAR. Spigot/PurPur builds that ignore the
+             `libraries:` field need the driver dropped on the server classpath. -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.45.3.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -96,41 +106,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>prepare-unobfuscated-copy</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                      tofile="${project.build.directory}/${project.build.finalName}-unobf.jar"
-                                      overwrite="true"/>
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>obfuscation-finished-message</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <delete file="${project.build.directory}/original-${project.build.finalName}.${project.packaging}" failonerror="false"/>
-                                <delete file="${project.build.directory}/${project.build.finalName}-unobf.jar" failonerror="false"/>
-                                <echo message="ProGuard obfuscation finished successfully."/>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.2.0</version>
@@ -142,6 +117,11 @@
                     </dependency>
                 </dependencies>
                 <executions>
+                    <!-- ProGuard runs after maven-jar-plugin (declared above) and
+                         consumes the unobfuscated `${finalName}.jar` as input. It
+                         writes a SECOND artefact, `${finalName}-obfuscated.jar`, and
+                         leaves the original unobfuscated jar untouched so both
+                         artefacts ship from a single `mvn package`. -->
                     <execution>
                         <id>run-proguard</id>
                         <phase>package</phase>
@@ -153,9 +133,9 @@
                             <includePluginDependencies>true</includePluginDependencies>
                             <arguments>
                                 <argument>-injars</argument>
-                                <argument>${project.build.directory}/${project.build.finalName}-unobf.jar</argument>
-                                <argument>-outjars</argument>
                                 <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
+                                <argument>-outjars</argument>
+                                <argument>${project.build.directory}/${project.build.finalName}-obfuscated.jar</argument>
                                 <argument>-libraryjars</argument>
                                 <argument>${settings.localRepository}/org/spigotmc/spigot-api/${spigot.version}/spigot-api-${spigot.version}.jar</argument>
                                 <argument>-libraryjars</argument>
@@ -164,6 +144,32 @@
                                 <argument>${proguard.java.lib}</argument>
                                 <argument>@${basedir}/proguard.pro</argument>
                             </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <!-- Declared AFTER exec-maven-plugin so this runs as the last
+                         package-phase step. Logs a friendly summary confirming both
+                         artefacts exist; drops the rare `original-...jar` orphan
+                         that some jar-plugin transformers leave behind. -->
+                    <execution>
+                        <id>build-summary</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <delete file="${project.build.directory}/original-${project.build.finalName}.${project.packaging}" failonerror="false"/>
+                                <echo message="SF-Core build finished:"/>
+                                <echo message="  unobfuscated : ${project.build.finalName}.jar"/>
+                                <echo message="  obfuscated   : ${project.build.finalName}-obfuscated.jar"/>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>

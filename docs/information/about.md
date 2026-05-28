@@ -1,5 +1,17 @@
 # Commands and Permissions
 
+> **Storage:** As of 2026-05-11, every per-player record SF-Core writes lives in SQLite
+> (`plugins/SF-Core/sf-core.db`). Legacy YAML files (`data.yml`, `moderation.yml`,
+> `playtime.yml`, `economy.yml`, `messaging.yml`, `kits-data.yml`) are migrated on first
+> boot and renamed `<name>.migrated`. The only YAML files SF-Core still writes are
+> admin-configurable definitions (`config.yml`, `motd.yml`, `kits.yml`, `worth.yml`,
+> `jails.yml`, language packs).
+>
+> **/sf admin menu** now hosts a **Jail Center** sub-menu (under the Moderation slot) and
+> a **Mob Tools** sub-menu (under the Fun Utilities slot) with click-through buttons for
+> `/jails`, `/setjail`, `/deljail`, `/jailtime`, `/butcher 32`, `/spawnmob`, `/smite`,
+> and `/tree`.
+
 ## Player (Public)
 | Command | Aliases | Usage (arguments) | Example usage | Description | OP/Default permission level | Permission node |
 | -------------------- | -------------------- | -------------------- | -------------------- | -------------------- | -------------------- | -------------------- |
@@ -22,6 +34,38 @@
 | `/sethome` | `--` | `/sethome [name]` | `/sethome base` | Set a named home at your current location. | true | `sfcore.home.set` |
 | `/spawn` | Subcommands: tp, teleport, go, goto | `/spawn` | `/spawn` | Teleport to the server spawn point. | true | `sfcore.spawn.tp, sfcore.spawn` |
 | `/spawn info` | Subcommands: information, details, about | `/spawn info` | `/spawn info` | Show spawn location details. | true | `sfcore.spawn.info` |
+| `/tpa` | Command: /call, /tpask | `/tpa <player>` | `/tpa Notch` | Request to teleport to another player. Receiver gets clickable Accept/Deny buttons. | true | `sfcore.tpa` |
+| `/tpahere` | Command: /tpaskhere | `/tpahere <player>` | `/tpahere Notch` | Request a player to teleport to you. | true | `sfcore.tpahere` |
+| `/tpaccept` | Command: /tpyes, /tpac | `/tpaccept [player]` | `/tpaccept` | Accept the most recent (or named) pending teleport request. | true | `sfcore.tpaccept` |
+| `/tpdeny` | Command: /tpno, /tpd | `/tpdeny [player]` | `/tpdeny` | Deny the most recent (or named) pending teleport request. | true | `sfcore.tpdeny` |
+| `/tpcancel` | Command: /tpc | `/tpcancel` | `/tpcancel` | Cancel your outgoing teleport request. | true | `sfcore.tpcancel` |
+| `/tptoggle` | Command: /tpt | `/tptoggle` | `/tptoggle` | Toggle whether you accept incoming teleport requests. | true | `sfcore.tptoggle` |
+| `--` | `--` | `--` | `--` | **Messaging** | `--` | `--` |
+| `/msg` | Command: /tell, /w, /whisper, /pm | `/msg <player> <message>` | `/msg Notch hi` | Send a private message. | true | `sfcore.msg` |
+| `/reply` | Command: /r | `/r <message>` | `/r thanks!` | Reply to the most recent message partner. | true | `sfcore.msg` |
+| `/ignore` | Command: /block | `/ignore [player]` | `/ignore Spammer` | Toggle ignoring messages and chat from a player; no args lists current ignores. | true | `sfcore.ignore` |
+| `/mail` | `--` | `/mail <send|read|list|clear> [player] [message]` | `/mail send Notch See you later` | Send, read, or clear offline mail (max 50 entries per inbox). | true | `sfcore.mail` |
+| `/me` | Command: /action | `/me <action>` | `/me waves` | Broadcast an action-style message. | true | `sfcore.me` |
+| `--` | `--` | `--` | `--` | **Activity** | `--` | `--` |
+| `/afk` | Command: /away | `/afk` | `/afk` | Toggle your AFK status. Idle players auto-flip after the configured threshold. | true | `sfcore.afk` |
+| `--` | `--` | `--` | `--` | **Kits** | `--` | `--` |
+| `/kit` | Command: /kits | `/kit [name|list|info]` | `/kit starter` | Claim a kit (gated by `sfcore.kit.<name>`), list available kits, or inspect contents. | true | `sfcore.kit` |
+| `--` | `--` | `--` | `--` | **Economy** | `--` | `--` |
+| `/balance` | Command: /bal, /money | `/balance [player]` | `/balance` | Show your balance, or another player's. | true | `sfcore.balance` |
+| `/baltop` | Command: /balancetop, /moneytop | `/baltop [page]` | `/baltop` | View the wealth leaderboard. | true | `sfcore.baltop` |
+| `/pay` | `--` | `/pay <player> <amount>` | `/pay Notch 50` | Pay another player from your balance. | true | `sfcore.pay` |
+| `/worth` | Command: /value | `/worth [amount]` | `/worth 32` | Show the configured sell-price of the item in your hand. | true | `sfcore.worth` |
+| `/sell` | `--` | `/sell <hand|all|material>` | `/sell hand` | Sell the item in your hand, every saleable item, or a specific material. | true | `sfcore.sell` |
+| `/sellall` | `--` | `/sellall` | `/sellall` | Shorthand for `/sell all`. | true | `sfcore.sellall` |
+| `--` | `--` | `--` | `--` | **Player Info** | `--` | `--` |
+| `/seen` | Command: /lastseen | `/seen <player>` | `/seen Notch` | Show when a player was last seen. | true | `sfcore.seen` |
+| `/firstseen` | `--` | `/firstseen <player>` | `/firstseen Notch` | Show a player's first join timestamp. | true | `sfcore.firstseen` |
+| `/playtime` | Command: /ptime | `/playtime [player]` | `/playtime` | Show total playtime (and current session for online players). | true | `sfcore.playtime` |
+| `/list` | Command: /who, /online, /players | `/list` | `/list` | List visible online players with AFK markers. | true | `sfcore.list` |
+| `/near` | Command: /nearby | `/near [radius]` | `/near 32` | List players in range with distance markers. | true | `sfcore.near` |
+| `/whois` | `--` | `/whois <player>` | `/whois Notch` | Detailed profile snapshot (status, world, mode, AFK, vanish, playtime). | true | `sfcore.whois` |
+| `/realname` | `--` | `/realname <displayname>` | `/realname Mr.Cool` | Resolve a display/custom name back to its real account name. | true | `sfcore.realname` |
+| `/info` | Command: /profile | `/info <player>` | `/info Notch` | Profile card with clickable Seen / Playtime / Tpa / Whois action row. | true | `sfcore.info.player` |
 | `--` | `--` | `--` | `--` | **Warps** | `--` | `--` |
 | `/warp` | Command: /warps, /w, /goto, /go, /travel | `/warp <name/subcommand>` | `/warp market` | Base permission required for all warp commands. | true | `sfcore.warp` |
 | `/warp categories` | Subcommands: cats, groups, sections | `/warp categories` | `/warp categories` | List warp categories with counts. | true | `sfcore.warp.list` |
@@ -35,6 +79,59 @@
 | Command | Aliases | Usage (arguments) | Example usage | Description | OP/Default permission level | Permission node |
 | -------------------- | -------------------- | -------------------- | -------------------- | -------------------- | -------------------- | -------------------- |
 | `--` | `--` | `--` | `--` | **Admin / Moderation** | `--` | `--` |
+| `/afk <player>` | `--` | `/afk Notch` | `/afk Notch` | Toggle another player's AFK state. | op | `sfcore.afk.others` |
+| `/broadcast` | Command: /bc | `/broadcast <message>` | `/broadcast Server restart in 5m` | Broadcast a server-wide message. | op | `sfcore.broadcast` |
+| `/socialspy` | Command: /spy | `/socialspy` | `/socialspy` | Toggle staff visibility of every private message. | op | `sfcore.socialspy` |
+| `/staffchat` | Command: /sc, /achat | `/staffchat <message>` | `/staffchat heads up` | Send a message visible only to staff. | op | `sfcore.staffchat` |
+| `/tphere` | Command: /s, /tphr | `/tphere <player>` | `/tphere Notch` | Force a player to teleport to you. | op | `sfcore.tphere` |
+| `/tppos` | Command: /tpcoords | `/tppos <x> <y> <z> [world] [yaw] [pitch]` | `/tppos 100 64 100` | Teleport to literal coordinates. Supports `~` for current. | op | `sfcore.tppos` |
+| `/tpall` | Command: /tpeveryone | `/tpall` | `/tpall` | Teleport every online player to you. | op | `sfcore.tpall` |
+| `/kit give` | `--` | `/kit give <player> <kit>` | `/kit give Notch starter` | Give a kit to another player (bypasses cooldown). | op | `sfcore.kit.give` |
+| `/kit reload` | `--` | `/kit reload` | `/kit reload` | Reload `kits.yml` at runtime. | op | `sfcore.kit.reload` |
+| `/eco` | Command: /economy | `/eco <give|take|set|reset> <player> [amount]` | `/eco give Notch 1000` | Staff balance management. | op | `sfcore.eco` |
+| `--` | `--` | `--` | `--` | **Flight & Movement** | `--` | `--` |
+| `/fly` | Command: /flight | `/fly [player]` | `/fly Notch` | Toggle flight; state persists across reconnects via SQLite. | op | `sfcore.fly` / `sfcore.fly.others` |
+| `/flyspeed` | Command: /fspeed | `/flyspeed <0-10>` | `/flyspeed 5` | Set fly speed on a CMI-style 0-10 scale. | op | `sfcore.flyspeed` |
+| `/walkspeed` | Command: /wspeed | `/walkspeed <0-10>` | `/walkspeed 4` | Set walk speed on a CMI-style 0-10 scale. | op | `sfcore.walkspeed` |
+| `/freeze` | Command: /frz | `/freeze <player>` | `/freeze Griefer` | Toggle movement freeze with an action-bar reminder. | op | `sfcore.freeze` |
+| `--` | `--` | `--` | `--` | **Inventory Utilities** | `--` | `--` |
+| `/enderchest` | Command: /ec | `/enderchest [player]` | `/enderchest Notch` | Open your or another player's ender chest. | op | `sfcore.enderchest` / `sfcore.enderchest.others` |
+| `/disposal` | Command: /trash | `/disposal` | `/disposal` | Open a one-shot trash inventory. | op | `sfcore.disposal` |
+| `/hat` | Command: /head-on | `/hat` | `/hat` | Wear the held item as a hat. | op | `sfcore.hat` |
+| `/clearinv` | Command: /ci, /clearinventory | `/clearinv [player]` | `/clearinv Notch` | Clear your or another player's inventory. | op | `sfcore.clearinv` / `sfcore.clearinv.others` |
+| `/repair` | Command: /fix | `/repair [all]` | `/repair all` | Repair the held item or every repairable item. | op | `sfcore.repair` / `sfcore.repair.all` |
+| `/more` | Command: /stack, /max | `/more` | `/more` | Fill the held stack to its maximum size. | op | `sfcore.more` |
+| `/skull` | Command: /head | `/skull <player>` | `/skull Notch` | Receive a player head item. | op | `sfcore.skull` |
+| `--` | `--` | `--` | `--` | **Item Editing** | `--` | `--` |
+| `/itemname` | Command: /rename | `/itemname <name|clear>` | `/itemname &6King's Blade` | Rename the held item; `clear` removes the name. | op | `sfcore.itemname` |
+| `/itemlore` | Command: /lore | `/itemlore <add|set|clear> [index] <text>` | `/itemlore add &7Fits like a glove` | Add, set, or clear lore on the held item. | op | `sfcore.itemlore` |
+| `/unbreakable` | Command: /unb | `/unbreakable` | `/unbreakable` | Toggle unbreakable on the held item. | op | `sfcore.unbreakable` |
+| `/give` | `--` | `/give <player> <material> [amount]` | `/give Notch DIAMOND 16` | Give items to another player. | op | `sfcore.give` |
+| `/i` | Command: /item | `/i <material> [amount]` | `/i IRON_INGOT 32` | Give yourself items. | op | `sfcore.item` |
+| `/book` | `--` | `/book [new|unsign|copy]` | `/book unsign` | Get a writable book, unsign a signed one, or copy held book. | op | `sfcore.book` |
+| `--` | `--` | `--` | `--` | **Nicknames** | `--` | `--` |
+| `/nick` | Command: /nickname | `/nick <name|off> [player]` | `/nick &b&lShadow` | Set or clear a nickname. Colour codes require `sfcore.nick.color`. | op | `sfcore.nick` / `sfcore.nick.others` / `sfcore.nick.color` |
+| `--` | `--` | `--` | `--` | **World / Time / Weather** | `--` | `--` |
+| `/time` | `--` | `/time <set|add> <value> [world]` | `/time set 1000` | Set or add to the world's time. | op | `sfcore.time` |
+| `/day` | `--` | `/day [world]` | `/day` | Shortcut to morning. | op | `sfcore.time` |
+| `/night` | `--` | `/night [world]` | `/night` | Shortcut to night. | op | `sfcore.time` |
+| `/sun` | `--` | `/sun [world]` | `/sun` | Clear weather + noon. | op | `sfcore.weather` |
+| `/weather` | `--` | `/weather <clear|rain|thunder> [world]` | `/weather rain` | Change weather. | op | `sfcore.weather` |
+| `/ptime` | `--` | `/ptime <time|reset>` | `/ptime night` | Per-player time override; persisted to SQLite. | op | `sfcore.ptime` |
+| `/pweather` | `--` | `/pweather <clear|rain|thunder|reset>` | `/pweather rain` | Per-player weather override (session-scoped). | op | `sfcore.pweather` |
+| `--` | `--` | `--` | `--` | **Jail** | `--` | `--` |
+| `/jail` | `--` | `/jail <player> <jail> [duration] [reason]` | `/jail Griefer downtown 1h Greifing` | Jail a player; success line includes a clickable `[Unjail]` button. | op | `sfcore.jail` |
+| `/unjail` | `--` | `/unjail <player>` | `/unjail Griefer` | Release a jailed player. | op | `sfcore.unjail` |
+| `/jails` | Command: /jaillist | `/jails` | `/jails` | List configured jail anchors. | op | `sfcore.jails` |
+| `/setjail` | Command: /jailset | `/setjail <name>` | `/setjail downtown` | Create a jail anchor at your location. | op | `sfcore.setjail` |
+| `/deljail` | Command: /jaildel | `/deljail <name>` | `/deljail downtown` | Delete a jail anchor. | op | `sfcore.deljail` |
+| `/jailtime` | `--` | `/jailtime [player]` | `/jailtime Griefer` | Show remaining jail time. | op | `sfcore.jailtime` |
+| `--` | `--` | `--` | `--` | **Mob / World Tools** | `--` | `--` |
+| `/butcher` | Command: /killmobs | `/butcher [radius] [type]` | `/butcher 32 ZOMBIE` | Kill nearby mobs, optionally filtered by type. | op | `sfcore.butcher` |
+| `/spawnmob` | Command: /mob | `/spawnmob <type> [count]` | `/spawnmob COW 4` | Spawn mobs at your crosshair. | op | `sfcore.spawnmob` |
+| `/spawner` | Command: /setspawner | `/spawner <type>` | `/spawner SKELETON` | Change the spawned type of the looked-at spawner. | op | `sfcore.spawner` |
+| `/smite` | Command: /lightning | `/smite [player]` | `/smite Notch` | Strike lightning at a player or your crosshair. | op | `sfcore.smite` |
+| `/tree` | `--` | `/tree [type]` | `/tree REDWOOD` | Generate a tree at your crosshair. | op | `sfcore.tree` |
 | `/ban` | `--` | `/ban <player> [reason]` | `/ban ChanceDaRepper Repeated griefing` | Permanently ban a player and log the action to the moderation audit/Discord webhook. | op | `sfcore.moderation.ban` |
 | `/banlist` | Command: /blist | `/banlist` | `/banlist` | Show all active bans, including temporary bans that have not expired yet. | op | `sfcore.moderation.banlist` |
 | `/kill` | Command: /crosskill, /aimkill, /targetkill | `/kill` | `/kill` | Toggle kill mode; left-click to kill the entity in your crosshairs. | op | `sfcore.kill` |

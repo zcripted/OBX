@@ -54,11 +54,15 @@ public class DelHomeCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player) || args.length != 1) {
             return new ArrayList<String>();
         }
         Player player = (Player) sender;
-        Set<String> homes = dataService.getHomes(player.getUniqueId());
-        return new ArrayList<String>(homes);
+        String prefix = args[0].toLowerCase();
+        List<String> matches = new ArrayList<String>();
+        for (String home : dataService.getHomes(player.getUniqueId())) {
+            if (home.toLowerCase().startsWith(prefix)) matches.add(home);
+        }
+        return matches;
     }
 }

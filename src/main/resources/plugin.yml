@@ -20,6 +20,8 @@ load: POSTWORLD
 # (e.g. WarpMenuStyling.resolveMaterial), so we never relied on the legacy
 # translator in the first place.
 api-version: '1.13'
+libraries:
+  - org.xerial:sqlite-jdbc:3.45.3.0
 commands:
   sf:
     description: Shows SF-Core help, information, and admin tools.
@@ -192,6 +194,336 @@ commands:
     description: Ändert deine bevorzugte SF-Core-Sprache.
     usage: "/<command> <Englisch|EN|Deutsch|DE>"
     permission: sfcore.language
+  tpa:
+    description: Request to teleport to another player.
+    aliases: [call, tpask]
+    usage: "/<command> <player>"
+    permission: sfcore.tpa
+  tpahere:
+    description: Request another player to teleport to you.
+    aliases: [tpaskhere]
+    usage: "/<command> <player>"
+    permission: sfcore.tpahere
+  tpaccept:
+    description: Accept a pending teleport request.
+    aliases: [tpyes, tpac]
+    usage: "/<command> [player]"
+    permission: sfcore.tpaccept
+  tpdeny:
+    description: Deny a pending teleport request.
+    aliases: [tpno, tpd]
+    usage: "/<command> [player]"
+    permission: sfcore.tpdeny
+  tpcancel:
+    description: Cancel your outgoing teleport request.
+    aliases: [tpc]
+    usage: "/<command>"
+    permission: sfcore.tpcancel
+  tptoggle:
+    description: Toggle accepting teleport requests.
+    aliases: [tpt]
+    usage: "/<command>"
+    permission: sfcore.tptoggle
+  tphere:
+    description: Teleport another player to you.
+    aliases: [s, tphr]
+    usage: "/<command> <player>"
+    permission: sfcore.tphere
+  tppos:
+    description: Teleport to specific coordinates.
+    aliases: [tpcoords]
+    usage: "/<command> <x> <y> <z> [world] [yaw] [pitch]"
+    permission: sfcore.tppos
+  tpall:
+    description: Teleport every online player to you.
+    aliases: [tpeveryone]
+    usage: "/<command>"
+    permission: sfcore.tpall
+  msg:
+    description: Send a private message to another player.
+    aliases: [tell, w, whisper, pm]
+    usage: "/<command> <player> <message>"
+    permission: sfcore.msg
+  reply:
+    description: Reply to your most recent private message partner.
+    aliases: [r]
+    usage: "/<command> <message>"
+    permission: sfcore.msg
+  ignore:
+    description: Toggle ignoring another player's messages.
+    aliases: [block]
+    usage: "/<command> [player]"
+    permission: sfcore.ignore
+  socialspy:
+    description: Toggle staff visibility of all private messages.
+    aliases: [spy]
+    usage: "/<command>"
+    permission: sfcore.socialspy
+  mail:
+    description: Send, read, list, or clear mail.
+    usage: "/<command> <send|read|list|clear> [player] [message]"
+    permission: sfcore.mail
+  me:
+    description: Broadcast an action-message in third person.
+    aliases: [action]
+    usage: "/<command> <action>"
+    permission: sfcore.me
+  broadcast:
+    description: Broadcast a message to all online players.
+    aliases: [bc]
+    usage: "/<command> <message>"
+    permission: sfcore.broadcast
+  staffchat:
+    description: Send a message visible only to staff.
+    aliases: [sc, achat]
+    usage: "/<command> <message>"
+    permission: sfcore.staffchat
+  afk:
+    description: Toggle your AFK state.
+    aliases: [away]
+    usage: "/<command> [player]"
+    permission: sfcore.afk
+  kit:
+    description: Claim or manage starter kits.
+    aliases: [kits]
+    usage: "/<command> [name|list|info|give|reload]"
+    permission: sfcore.kit
+  balance:
+    description: Show your or another player's balance.
+    aliases: [bal, money]
+    usage: "/<command> [player]"
+    permission: sfcore.balance
+  baltop:
+    description: List the wealthiest players.
+    aliases: [balancetop, moneytop]
+    usage: "/<command> [page]"
+    permission: sfcore.baltop
+  pay:
+    description: Pay another player from your balance.
+    usage: "/<command> <player> <amount>"
+    permission: sfcore.pay
+  eco:
+    description: Manage player balances (staff).
+    aliases: [economy]
+    usage: "/<command> <give|take|set|reset> <player> [amount]"
+    permission: sfcore.eco
+  worth:
+    description: Look up the sell value of the item in your hand.
+    aliases: [value]
+    usage: "/<command> [amount]"
+    permission: sfcore.worth
+  sell:
+    description: Sell items from your inventory.
+    usage: "/<command> <hand|all|material>"
+    permission: sfcore.sell
+  sellall:
+    description: Sell every saleable item in your inventory.
+    usage: "/<command>"
+    permission: sfcore.sellall
+  seen:
+    description: Show when a player was last seen online.
+    aliases: [lastseen]
+    usage: "/<command> <player>"
+    permission: sfcore.seen
+  firstseen:
+    description: Show when a player first joined.
+    usage: "/<command> <player>"
+    permission: sfcore.firstseen
+  playtime:
+    description: Show a player's total playtime.
+    aliases: [ptime]
+    usage: "/<command> [player]"
+    permission: sfcore.playtime
+  list:
+    description: List visible online players.
+    aliases: [who, online, players]
+    usage: "/<command>"
+    permission: sfcore.list
+  near:
+    description: List players within range.
+    aliases: [nearby]
+    usage: "/<command> [radius]"
+    permission: sfcore.near
+  whois:
+    description: Show a player's detailed profile snapshot.
+    usage: "/<command> <player>"
+    permission: sfcore.whois
+  realname:
+    description: Look up the real name behind a display name.
+    usage: "/<command> <displayname>"
+    permission: sfcore.realname
+  info:
+    description: Show a player profile card with quick actions.
+    aliases: [profile]
+    usage: "/<command> <player>"
+    permission: sfcore.info.player
+  fly:
+    description: Toggle flight for yourself or another player.
+    aliases: [flight]
+    usage: "/<command> [player]"
+    permission: sfcore.fly
+  flyspeed:
+    description: Set your fly speed (0-10).
+    aliases: [fspeed]
+    usage: "/<command> <0-10>"
+    permission: sfcore.flyspeed
+  walkspeed:
+    description: Set your walk speed (0-10).
+    aliases: [wspeed]
+    usage: "/<command> <0-10>"
+    permission: sfcore.walkspeed
+  freeze:
+    description: Toggle a player's freeze state.
+    aliases: [frz]
+    usage: "/<command> <player>"
+    permission: sfcore.freeze
+  enderchest:
+    description: Open an ender chest, optionally another player's.
+    aliases: [ec]
+    usage: "/<command> [player]"
+    permission: sfcore.enderchest
+  disposal:
+    description: Open a trash inventory; items disappear when closed.
+    aliases: [trash]
+    usage: "/<command>"
+    permission: sfcore.disposal
+  hat:
+    description: Put the held item on your head.
+    aliases: [head-on]
+    usage: "/<command>"
+    permission: sfcore.hat
+  clearinv:
+    description: Clear your or another player's inventory.
+    aliases: [ci, clearinventory]
+    usage: "/<command> [player]"
+    permission: sfcore.clearinv
+  repair:
+    description: Repair the item in your hand or every repairable item.
+    aliases: [fix]
+    usage: "/<command> [all]"
+    permission: sfcore.repair
+  more:
+    description: Fill the held stack to its maximum size.
+    aliases: [stack, max]
+    usage: "/<command>"
+    permission: sfcore.more
+  skull:
+    description: Give yourself a player head.
+    aliases: [head]
+    usage: "/<command> <player>"
+    permission: sfcore.skull
+  itemname:
+    description: Rename the item in your hand.
+    aliases: [rename]
+    usage: "/<command> <name|clear>"
+    permission: sfcore.itemname
+  itemlore:
+    description: Add, set, or clear lore on the held item.
+    aliases: [lore]
+    usage: "/<command> <add|set|clear> [index] <text>"
+    permission: sfcore.itemlore
+  unbreakable:
+    description: Toggle unbreakable on the held item.
+    aliases: [unb]
+    usage: "/<command>"
+    permission: sfcore.unbreakable
+  give:
+    description: Give a material stack to a player.
+    usage: "/<command> <player> <material> [amount]"
+    permission: sfcore.give
+  i:
+    description: Give yourself a material stack.
+    aliases: [item]
+    usage: "/<command> <material> [amount]"
+    permission: sfcore.item
+  book:
+    description: Get a writable book, unsign, or copy held book.
+    usage: "/<command> [new|unsign|copy]"
+    permission: sfcore.book
+  nick:
+    description: Set your or another player's nickname.
+    aliases: [nickname]
+    usage: "/<command> <name|off> [player]"
+    permission: sfcore.nick
+  time:
+    description: Set or add to the world's time.
+    usage: "/<command> <set|add> <value> [world]"
+    permission: sfcore.time
+  day:
+    description: Set the world's time to morning.
+    usage: "/<command> [world]"
+    permission: sfcore.time
+  night:
+    description: Set the world's time to night.
+    usage: "/<command> [world]"
+    permission: sfcore.time
+  sun:
+    description: Clear the weather and set time to noon.
+    usage: "/<command> [world]"
+    permission: sfcore.weather
+  weather:
+    description: Change the weather.
+    usage: "/<command> <clear|rain|thunder> [world]"
+    permission: sfcore.weather
+  ptime:
+    description: Set or reset your personal time override.
+    usage: "/<command> <time|reset>"
+    permission: sfcore.ptime
+  pweather:
+    description: Set or reset your personal weather override.
+    usage: "/<command> <clear|rain|thunder|reset>"
+    permission: sfcore.pweather
+  jail:
+    description: Jail a player.
+    usage: "/<command> <player> <jail> [duration] [reason]"
+    permission: sfcore.jail
+  unjail:
+    description: Release a jailed player.
+    usage: "/<command> <player>"
+    permission: sfcore.unjail
+  jails:
+    description: List configured jail anchors.
+    aliases: [jaillist]
+    usage: "/<command>"
+    permission: sfcore.jails
+  setjail:
+    description: Create a jail anchor at your current location.
+    aliases: [jailset]
+    usage: "/<command> <name>"
+    permission: sfcore.setjail
+  deljail:
+    description: Delete a jail anchor.
+    aliases: [jaildel]
+    usage: "/<command> <name>"
+    permission: sfcore.deljail
+  jailtime:
+    description: Show remaining jail time.
+    usage: "/<command> [player]"
+    permission: sfcore.jailtime
+  butcher:
+    description: Kill nearby mobs.
+    aliases: [killmobs]
+    usage: "/<command> [radius] [type]"
+    permission: sfcore.butcher
+  spawnmob:
+    description: Spawn mobs at your crosshair.
+    aliases: [mob]
+    usage: "/<command> <type> [count]"
+    permission: sfcore.spawnmob
+  spawner:
+    description: Change the spawned type of the spawner you are looking at.
+    aliases: [setspawner]
+    usage: "/<command> <type>"
+    permission: sfcore.spawner
+  smite:
+    description: Strike lightning at a player or your crosshair.
+    aliases: [lightning]
+    usage: "/<command> [player]"
+    permission: sfcore.smite
+  tree:
+    description: Generate a tree at your crosshair.
+    usage: "/<command> [type]"
+    permission: sfcore.tree
 permissions:
   sfcore.*:
     description: Grants access to all SF-Core permissions.
@@ -586,4 +918,247 @@ permissions:
       sfcore.staff.menu: true
   sfcore.staff.menu:
     description: Allows opening the staff overview menu via /staff.
+    default: op
+  sfcore.tpa:
+    description: Allows sending a /tpa teleport-to-other request.
+    default: true
+  sfcore.tpahere:
+    description: Allows sending a /tpahere teleport-to-self request.
+    default: true
+  sfcore.tpaccept:
+    description: Allows accepting an incoming teleport request.
+    default: true
+  sfcore.tpdeny:
+    description: Allows denying an incoming teleport request.
+    default: true
+  sfcore.tpcancel:
+    description: Allows cancelling your outgoing teleport request.
+    default: true
+  sfcore.tptoggle:
+    description: Allows toggling whether you accept teleport requests.
+    default: true
+  sfcore.tphere:
+    description: Allows forcibly teleporting another player to you.
+    default: op
+  sfcore.tppos:
+    description: Allows teleporting to literal coordinates.
+    default: op
+  sfcore.tpall:
+    description: Allows teleporting all online players to you.
+    default: op
+  sfcore.msg:
+    description: Allows sending and receiving private messages.
+    default: true
+  sfcore.ignore:
+    description: Allows toggling per-player chat/message ignores.
+    default: true
+  sfcore.socialspy:
+    description: Allows viewing every private message via /socialspy.
+    default: op
+  sfcore.mail:
+    description: Allows using the offline mail system.
+    default: true
+  sfcore.me:
+    description: Allows broadcasting /me action messages.
+    default: true
+  sfcore.broadcast:
+    description: Allows broadcasting a server-wide /broadcast.
+    default: op
+  sfcore.staffchat:
+    description: Allows reading and sending staff-only chat.
+    default: op
+  sfcore.afk:
+    description: Allows toggling your AFK state via /afk.
+    default: true
+  sfcore.afk.others:
+    description: Allows toggling AFK state on other players.
+    default: op
+  sfcore.afk.exempt:
+    description: Exempts a player from the AFK idle timer.
+    default: false
+  sfcore.afk.exempt-kick:
+    description: Exempts an AFK player from the idle kick timer.
+    default: false
+  sfcore.kit:
+    description: Allows running /kit and claiming kits the player has access to.
+    default: true
+  sfcore.kit.list:
+    description: Allows listing kits via /kit list.
+    default: true
+  sfcore.kit.info:
+    description: Allows viewing kit contents via /kit info.
+    default: true
+  sfcore.kit.give:
+    description: Allows giving a kit to another player via /kit give.
+    default: op
+  sfcore.kit.reload:
+    description: Allows reloading kits.yml at runtime.
+    default: op
+  sfcore.kit.*:
+    description: Grants every per-kit permission (sfcore.kit.&lt;name&gt;).
+    default: op
+  sfcore.balance:
+    description: Allows viewing balances via /balance.
+    default: true
+  sfcore.baltop:
+    description: Allows viewing the wealth leaderboard via /baltop.
+    default: true
+  sfcore.pay:
+    description: Allows paying other players via /pay.
+    default: true
+  sfcore.eco:
+    description: Allows staff balance management via /eco.
+    default: op
+  sfcore.worth:
+    description: Allows checking item worth via /worth.
+    default: true
+  sfcore.sell:
+    description: Allows selling items via /sell.
+    default: true
+  sfcore.sellall:
+    description: Allows running /sellall to sell every priced item.
+    default: true
+  sfcore.seen:
+    description: Allows checking when a player was last seen via /seen.
+    default: true
+  sfcore.firstseen:
+    description: Allows checking when a player first joined via /firstseen.
+    default: true
+  sfcore.playtime:
+    description: Allows checking playtime via /playtime.
+    default: true
+  sfcore.list:
+    description: Allows viewing the online player list via /list.
+    default: true
+  sfcore.list.vanished:
+    description: Allows /list to include vanished players.
+    default: op
+  sfcore.near:
+    description: Allows scanning nearby players via /near.
+    default: true
+  sfcore.whois:
+    description: Allows viewing a player's profile snapshot via /whois.
+    default: true
+  sfcore.realname:
+    description: Allows looking up a player's real name via /realname.
+    default: true
+  sfcore.info.player:
+    description: Allows viewing the /info profile card.
+    default: true
+  sfcore.fly:
+    description: Allows toggling flight on yourself.
+    default: op
+  sfcore.fly.others:
+    description: Allows toggling flight on other players.
+    default: op
+  sfcore.flyspeed:
+    description: Allows setting your fly speed.
+    default: op
+  sfcore.walkspeed:
+    description: Allows setting your walk speed.
+    default: op
+  sfcore.freeze:
+    description: Allows freezing another player in place.
+    default: op
+  sfcore.enderchest:
+    description: Allows opening your own ender chest.
+    default: op
+  sfcore.enderchest.others:
+    description: Allows opening another player's ender chest.
+    default: op
+  sfcore.disposal:
+    description: Allows opening a virtual disposal inventory.
+    default: op
+  sfcore.hat:
+    description: Allows using /hat to put a held item on your head.
+    default: op
+  sfcore.clearinv:
+    description: Allows clearing your own inventory.
+    default: op
+  sfcore.clearinv.others:
+    description: Allows clearing another player's inventory.
+    default: op
+  sfcore.repair:
+    description: Allows repairing the item in hand.
+    default: op
+  sfcore.repair.all:
+    description: Allows repairing every repairable item.
+    default: op
+  sfcore.more:
+    description: Allows filling held stack to maximum.
+    default: op
+  sfcore.skull:
+    description: Allows obtaining a player head via /skull.
+    default: op
+  sfcore.itemname:
+    description: Allows renaming the held item.
+    default: op
+  sfcore.itemlore:
+    description: Allows adding or editing lore on the held item.
+    default: op
+  sfcore.unbreakable:
+    description: Allows toggling unbreakable on the held item.
+    default: op
+  sfcore.give:
+    description: Allows giving items to other players.
+    default: op
+  sfcore.item:
+    description: Allows giving items to yourself via /i.
+    default: op
+  sfcore.book:
+    description: Allows /book and its subcommands.
+    default: op
+  sfcore.nick:
+    description: Allows changing your own nickname.
+    default: op
+  sfcore.nick.others:
+    description: Allows changing another player's nickname.
+    default: op
+  sfcore.nick.color:
+    description: Allows colour codes in nicknames.
+    default: op
+  sfcore.time:
+    description: Allows changing the world's time.
+    default: op
+  sfcore.weather:
+    description: Allows changing the world's weather.
+    default: op
+  sfcore.ptime:
+    description: Allows setting your personal time override.
+    default: op
+  sfcore.pweather:
+    description: Allows setting your personal weather override.
+    default: op
+  sfcore.jail:
+    description: Allows jailing players.
+    default: op
+  sfcore.unjail:
+    description: Allows releasing jailed players.
+    default: op
+  sfcore.jails:
+    description: Allows listing configured jail anchors.
+    default: op
+  sfcore.setjail:
+    description: Allows creating jail anchors.
+    default: op
+  sfcore.deljail:
+    description: Allows deleting jail anchors.
+    default: op
+  sfcore.jailtime:
+    description: Allows checking remaining jail time.
+    default: op
+  sfcore.butcher:
+    description: Allows killing nearby mobs.
+    default: op
+  sfcore.spawnmob:
+    description: Allows spawning mobs.
+    default: op
+  sfcore.spawner:
+    description: Allows changing spawner entity types.
+    default: op
+  sfcore.smite:
+    description: Allows striking lightning.
+    default: op
+  sfcore.tree:
+    description: Allows generating trees at a target block.
     default: op

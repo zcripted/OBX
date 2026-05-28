@@ -91,6 +91,44 @@ public final class MainMenuListener implements Listener {
                         ((Player) clicker).closeInventory();
                     }
                     break;
+            case JAIL_CENTER:
+                if (slot == AdminSubMenu.BACK_SLOT) {
+                    AdminMenu.open(plugin, (Player) clicker);
+                } else if (slot == AdminMenu.CLOSE_SLOT) {
+                    ((Player) clicker).closeInventory();
+                } else if (slot == 10) {
+                    ((Player) clicker).closeInventory();
+                    ((Player) clicker).performCommand("jails");
+                } else if (slot == 12) {
+                    ((Player) clicker).closeInventory();
+                    ((Player) clicker).sendMessage("§eType: §f/setjail <name>§e to anchor at your current location.");
+                } else if (slot == 14) {
+                    ((Player) clicker).closeInventory();
+                    ((Player) clicker).sendMessage("§eType: §f/deljail <name>§e to remove a jail anchor.");
+                } else if (slot == 16) {
+                    ((Player) clicker).closeInventory();
+                    ((Player) clicker).sendMessage("§eType: §f/jailtime <player>§e to check remaining time.");
+                }
+                break;
+            case MOB_TOOLS:
+                if (slot == AdminSubMenu.BACK_SLOT) {
+                    AdminMenu.open(plugin, (Player) clicker);
+                } else if (slot == AdminMenu.CLOSE_SLOT) {
+                    ((Player) clicker).closeInventory();
+                } else if (slot == 10) {
+                    ((Player) clicker).closeInventory();
+                    ((Player) clicker).performCommand("butcher 32");
+                } else if (slot == 12) {
+                    ((Player) clicker).closeInventory();
+                    ((Player) clicker).sendMessage("§eType: §f/spawnmob <type> [count]§e to spawn mobs.");
+                } else if (slot == 14) {
+                    ((Player) clicker).closeInventory();
+                    ((Player) clicker).performCommand("smite");
+                } else if (slot == 16) {
+                    ((Player) clicker).closeInventory();
+                    ((Player) clicker).performCommand("tree");
+                }
+                break;
             case SERVER_STATE:
             case PLAYER_ACCESS:
             case PERFORMANCE_HEALTH:

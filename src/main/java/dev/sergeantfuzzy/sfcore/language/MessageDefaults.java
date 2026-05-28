@@ -40,6 +40,48 @@ public final class MessageDefaults {
         section("utility",
                 "Utility commands and quick actions.",
                 "Hilfsbefehle und Schnellaktionen.");
+        section("tpa",
+                "Player-to-player teleport-request flow (/tpa, /tpahere, /tpaccept, /tpdeny, /tpcancel, /tptoggle).",
+                "Spieler-zu-Spieler Teleport-Anfragen (/tpa, /tpahere, /tpaccept, /tpdeny, /tpcancel, /tptoggle).");
+        section("messaging",
+                "Private messages, mail, broadcasts, and staff chat.",
+                "Privatnachrichten, Mail, Broadcasts und Staff-Chat.");
+        section("afk",
+                "AFK toggle, broadcast lines, and idle-kick messages.",
+                "AFK-Umschalter, Broadcasts und Auto-Kick-Nachrichten.");
+        section("kit",
+                "Kit claim, cooldown, info, and staff messages.",
+                "Kit-Anforderung, Cooldown, Info- und Staff-Nachrichten.");
+        section("economy",
+                "Balance, baltop, pay, eco, worth, and sell flows.",
+                "Kontostand, Bestenliste, Bezahlen, Eco-Befehle, Wert und Verkauf.");
+        section("info",
+                "Player lookup commands (/seen, /firstseen, /playtime, /list, /near, /whois, /realname, /info).",
+                "Spieler-Suchbefehle (/seen, /firstseen, /playtime, /list, /near, /whois, /realname, /info).");
+        section("flight",
+                "Flight, fly-speed, and walk-speed commands.",
+                "Flug, Fluggeschwindigkeit und Laufgeschwindigkeit.");
+        section("freeze",
+                "Movement-freeze command and broadcast lines.",
+                "Bewegungs-Einfrieren — Befehle und Hinweise.");
+        section("inventory",
+                "Inventory utilities (/enderchest, /disposal, /hat, /clearinv, /repair, /more, /skull).",
+                "Inventar-Hilfsbefehle (/enderchest, /disposal, /hat, /clearinv, /repair, /more, /skull).");
+        section("item",
+                "Item-editing commands (/itemname, /itemlore, /unbreakable, /give, /i, /book).",
+                "Item-Bearbeitung (/itemname, /itemlore, /unbreakable, /give, /i, /book).");
+        section("nickname",
+                "Nickname command and feedback.",
+                "Nickname-Befehl und Hinweise.");
+        section("world",
+                "World, time, and weather control commands.",
+                "Welt-, Zeit- und Wetterbefehle.");
+        section("jail",
+                "Jail command suite and listener feedback.",
+                "Jail-Befehle und Hinweise.");
+        section("mob",
+                "Mob- and world-tool commands (/butcher, /spawnmob, /spawner, /smite, /tree).",
+                "Mob- und Welt-Werkzeuge (/butcher, /spawnmob, /spawner, /smite, /tree).");
 
         // Core
         add("core.prefix", "&6\uD835\uDDE6\uD835\uDDD9-\uD835\uDDD6\uD835\uDDE2\uD835\uDDE5\uD835\uDDD8 &8➠ &e", "&6\uD835\uDDE6\uD835\uDDD9-\uD835\uDDD6\uD835\uDDE2\uD835\uDDE5\uD835\uDDD8 &8➠ &e");
@@ -1115,6 +1157,345 @@ public final class MessageDefaults {
         add("commands.sf.entry.debug-disable.description", "Disables debug logging.", "Deaktiviert Debug-Logging.");
         add("commands.sf.entry.debug-dump.usage", "/sf debug dump", "/sf debug dump");
         add("commands.sf.entry.debug-dump.description", "Dumps internal state to a log file for troubleshooting.", "Schreibt den internen Status in eine Log-Datei fÃ¼r Fehleranalyse.");
+
+        // TPA — teleport requests
+        add("tpa.usage-to", "{prefix}&eUsage: &f/tpa <player>", "{prefix}&eBenutzung: &f/tpa <Spieler>");
+        add("tpa.usage-here", "{prefix}&eUsage: &f/tpahere <player>", "{prefix}&eBenutzung: &f/tpahere <Spieler>");
+        add("tpa.target-not-online", "{prefix}&cPlayer &6{player}&c is not online.", "{prefix}&cSpieler &6{player}&c ist nicht online.");
+        add("tpa.same-player", "{prefix}&cYou cannot teleport to yourself.", "{prefix}&cDu kannst dich nicht zu dir selbst teleportieren.");
+        add("tpa.already-pending", "{prefix}&eYou already have a pending request. Use &6/tpcancel&e first.", "{prefix}&eDu hast bereits eine offene Anfrage. Nutze zuerst &6/tpcancel&e.");
+        add("tpa.receiver-off", "{prefix}&e&6{player}&e is not accepting teleport requests.", "{prefix}&e&6{player}&e akzeptiert derzeit keine Teleport-Anfragen.");
+        add("tpa.sent-to-sender", "{prefix}&eRequest sent to &6{player}&e. Expires in &6{seconds}s&e.", "{prefix}&eAnfrage an &6{player}&e gesendet. LÃ¤uft in &6{seconds}s&e ab.");
+        add("tpa.sent-here-sender", "{prefix}&eRequest sent to &6{player}&e to teleport here. Expires in &6{seconds}s&e.", "{prefix}&eAnfrage an &6{player}&e zum Hierhin-Teleport gesendet. LÃ¤uft in &6{seconds}s&e ab.");
+        add("tpa.received-to-prefix", "{prefix}&e&6{player}&e wants to teleport to you. ", "{prefix}&e&6{player}&e mÃ¶chte sich zu dir teleportieren. ");
+        add("tpa.received-here-prefix", "{prefix}&e&6{player}&e wants you to teleport to them. ", "{prefix}&e&6{player}&e mÃ¶chte, dass du dich zu ihm teleportierst. ");
+        add("tpa.button.accept", "&a&l[Accept]", "&a&l[Annehmen]");
+        add("tpa.button.deny", "&c&l[Deny]", "&c&l[Ablehnen]");
+        add("tpa.button.separator", " &8&l| ", " &8&l| ");
+        add("tpa.button.accept-hover", Arrays.asList("&aAccept the teleport request from &6{player}&a.", "&7Click to run &f/tpaccept {player}"),
+                Arrays.asList("&aAkzeptiere die Anfrage von &6{player}&a.", "&7Klicke fÃ¼r &f/tpaccept {player}"));
+        add("tpa.button.deny-hover", Arrays.asList("&cDeny the teleport request from &6{player}&c.", "&7Click to run &f/tpdeny {player}"),
+                Arrays.asList("&cLehne die Anfrage von &6{player}&c ab.", "&7Klicke fÃ¼r &f/tpdeny {player}"));
+        add("tpa.no-pending", "{prefix}&eYou have no pending teleport requests.", "{prefix}&eKeine offenen Teleport-Anfragen.");
+        add("tpa.sender-offline", "{prefix}&e&6{player}&e is no longer online.", "{prefix}&e&6{player}&e ist nicht mehr online.");
+        add("tpa.accepted-sender", "{prefix}&a&6{player}&a accepted your teleport request.", "{prefix}&a&6{player}&a hat deine Anfrage akzeptiert.");
+        add("tpa.accepted-receiver", "{prefix}&aTeleport request from &6{player}&a accepted.", "{prefix}&aAnfrage von &6{player}&a akzeptiert.");
+        add("tpa.denied-sender", "{prefix}&c&6{player}&c denied your teleport request.", "{prefix}&c&6{player}&c hat deine Anfrage abgelehnt.");
+        add("tpa.denied-receiver", "{prefix}&cDenied the teleport request from &6{player}&c.", "{prefix}&cAnfrage von &6{player}&c abgelehnt.");
+        add("tpa.cancel-none", "{prefix}&eYou have no outgoing teleport request to cancel.", "{prefix}&eKeine ausgehende Teleport-Anfrage zum Abbrechen.");
+        add("tpa.cancelled-sender", "{prefix}&eCancelled your request to &6{player}&e.", "{prefix}&eAnfrage an &6{player}&e abgebrochen.");
+        add("tpa.cancelled-receiver", "{prefix}&e&6{player}&e cancelled their teleport request.", "{prefix}&e&6{player}&e hat die Anfrage zurÃ¼ckgezogen.");
+        add("tpa.toggle-on", "{prefix}&aNow accepting teleport requests.", "{prefix}&aTeleport-Anfragen werden wieder angenommen.");
+        add("tpa.toggle-off", "{prefix}&cTeleport requests are now blocked.", "{prefix}&cTeleport-Anfragen werden blockiert.");
+        add("tpa.teleporting", "{prefix}&eTeleporting to &6{player}&e.", "{prefix}&eTeleportiere zu &6{player}&e.");
+
+        // /tphere /tppos /tpall
+        add("teleport.tphere.usage", "{prefix}&eUsage: &f/tphere <player>", "{prefix}&eBenutzung: &f/tphere <Spieler>");
+        add("teleport.tphere.success", "{prefix}&ePulled &6{player}&e to your location.", "{prefix}&e&6{player}&e zu deiner Position gezogen.");
+        add("teleport.tphere.target-message", "{prefix}&eYou were summoned by &6{player}&e.", "{prefix}&eDu wurdest von &6{player}&e gerufen.");
+        add("teleport.tppos.usage", "{prefix}&eUsage: &f/tppos <x> <y> <z> [world] [yaw] [pitch]", "{prefix}&eBenutzung: &f/tppos <x> <y> <z> [Welt] [Yaw] [Pitch]");
+        add("teleport.tppos.invalid", "{prefix}&cInvalid coordinates. Use numbers or &6~&c for current.", "{prefix}&cUngÃ¼ltige Koordinaten. Verwende Zahlen oder &6~&c fÃ¼r die aktuelle.");
+        add("teleport.tppos.unknown-world", "{prefix}&cUnknown world &6{world}&c.", "{prefix}&cUnbekannte Welt &6{world}&c.");
+        add("teleport.tppos.teleporting", "{prefix}&eTeleporting to &6{x}, {y}, {z} &ein &6{world}&e.", "{prefix}&eTeleportiere zu &6{x}, {y}, {z} &ein &6{world}&e.");
+        add("teleport.tpall.success", "{prefix}&ePulled &6{count}&e player(s) to your location.", "{prefix}&e&6{count}&e Spieler zu dir gezogen.");
+
+        // Messaging — private messages
+        add("messaging.msg.usage", "{prefix}&eUsage: &f/msg <player> <message>", "{prefix}&eBenutzung: &f/msg <Spieler> <Nachricht>");
+        add("messaging.target-offline", "{prefix}&cPlayer &6{player}&c is not online.", "{prefix}&cSpieler &6{player}&c ist nicht online.");
+        add("messaging.msg.outgoing", "&8[&7you &8→ &7{player}&8] &f{message}", "&8[&7du &8→ &7{player}&8] &f{message}");
+        add("messaging.msg.incoming", "&8[&7{player} &8→ &7you&8] &f{message}", "&8[&7{player} &8→ &7du&8] &f{message}");
+        add("messaging.msg.you-are-ignoring", "{prefix}&eYou are ignoring &6{player}&e. Use &f/ignore {player}&e to undo.", "{prefix}&eDu ignorierst &6{player}&e. Nutze &f/ignore {player}&e zum Aufheben.");
+        add("messaging.reply.usage", "{prefix}&eUsage: &f/r <message>", "{prefix}&eBenutzung: &f/r <Nachricht>");
+        add("messaging.reply.none", "{prefix}&eNo recent recipient — use &f/msg <player>&e first.", "{prefix}&eKein letzter EmpfÃ¤nger — nutze zuerst &f/msg <Spieler>&e.");
+        add("messaging.reply.offline", "{prefix}&eThat player is no longer online.", "{prefix}&eDer Spieler ist nicht mehr online.");
+        add("messaging.ignore.usage", "{prefix}&eUsage: &f/ignore [player]", "{prefix}&eBenutzung: &f/ignore [Spieler]");
+        add("messaging.ignore.self", "{prefix}&cYou cannot ignore yourself.", "{prefix}&cDu kannst dich nicht selbst ignorieren.");
+        add("messaging.ignore.empty", "{prefix}&eYou are not ignoring anyone.", "{prefix}&eDu ignorierst niemanden.");
+        add("messaging.ignore.list", "{prefix}&eIgnored: &6{players}", "{prefix}&eIgnoriert: &6{players}");
+        add("messaging.ignore.added", "{prefix}&eIgnoring &6{player}&e.", "{prefix}&eIgnoriere &6{player}&e.");
+        add("messaging.ignore.removed", "{prefix}&eNo longer ignoring &6{player}&e.", "{prefix}&eIgnoriere &6{player}&e nicht mehr.");
+        add("messaging.ignore.unknown", "{prefix}&cUnknown player &6{player}&c.", "{prefix}&cUnbekannter Spieler &6{player}&c.");
+        add("messaging.socialspy.on", "{prefix}&aSocial spy enabled.", "{prefix}&aSocial Spy aktiviert.");
+        add("messaging.socialspy.off", "{prefix}&cSocial spy disabled.", "{prefix}&cSocial Spy deaktiviert.");
+        add("messaging.socialspy.line", "&8[&dspy&8] &7{from} &8→ &7{to}&8: &f{message}", "&8[&dspy&8] &7{from} &8→ &7{to}&8: &f{message}");
+
+        // Mail
+        add("messaging.mail.usage", "{prefix}&eUsage: &f/mail <send|read|list|clear>", "{prefix}&eBenutzung: &f/mail <send|read|list|clear>");
+        add("messaging.mail.send-usage", "{prefix}&eUsage: &f/mail send <player> <message>", "{prefix}&eBenutzung: &f/mail send <Spieler> <Nachricht>");
+        add("messaging.mail.empty", "{prefix}&eYour mailbox is empty.", "{prefix}&eDeine Mailbox ist leer.");
+        add("messaging.mail.header", "{prefix}&6Mailbox &7(&e{count}&7)", "{prefix}&6Mailbox &7(&e{count}&7)");
+        add("messaging.mail.entry", "&8[&e{index}&8] &6{from} &8&l|&7 {sentAt}\\n  &f{body}", "&8[&e{index}&8] &6{from} &8&l|&7 {sentAt}\\n  &f{body}");
+        add("messaging.mail.footer", "{prefix}&7Type &f/mail clear &7to clear your mailbox.", "{prefix}&7Mit &f/mail clear &7leerst du die Mailbox.");
+        add("messaging.mail.cleared", "{prefix}&eCleared &6{count}&e mail entr(ies).", "{prefix}&e&6{count}&e Mail-EintrÃ¤ge entfernt.");
+        add("messaging.mail.sent", "{prefix}&eMail delivered to &6{player}&e.", "{prefix}&eMail an &6{player}&e zugestellt.");
+        add("messaging.mail.notify-receiver", "{prefix}&eNew mail from &6{player}&e — use &f/mail read&e to view.", "{prefix}&eNeue Mail von &6{player}&e — mit &f/mail read&e Ã¶ffnen.");
+        add("messaging.mail.full", "{prefix}&c&6{player}&c's mailbox is full.", "{prefix}&cMailbox von &6{player}&c ist voll.");
+        add("messaging.mail.unknown-recipient", "{prefix}&cUnknown player &6{player}&c.", "{prefix}&cUnbekannter Spieler &6{player}&c.");
+
+        // /me /broadcast /staffchat
+        add("messaging.me.usage", "{prefix}&eUsage: &f/me <action>", "{prefix}&eBenutzung: &f/me <Aktion>");
+        add("messaging.me.broadcast", "&d* {player} &f{message}", "&d* {player} &f{message}");
+        add("messaging.broadcast.usage", "{prefix}&eUsage: &f/broadcast <message>", "{prefix}&eBenutzung: &f/broadcast <Nachricht>");
+        add("messaging.broadcast.line", "&6&l[Broadcast] &e{message}", "&6&l[Broadcast] &e{message}");
+        add("messaging.staffchat.usage", "{prefix}&eUsage: &f/staffchat <message>", "{prefix}&eBenutzung: &f/staffchat <Nachricht>");
+        add("messaging.staffchat.line", "&8[&c&lstaff&8] &c{player}&7: &f{message}", "&8[&c&lstaff&8] &c{player}&7: &f{message}");
+
+        // AFK
+        add("afk.now-afk", "{prefix}&7&o{player} is now AFK.", "{prefix}&7&o{player} ist jetzt AFK.");
+        add("afk.no-longer-afk", "{prefix}&7&o{player} is no longer AFK.", "{prefix}&7&o{player} ist nicht mehr AFK.");
+        add("afk.set-other-on", "{prefix}&eSet &6{player}&e to AFK.", "{prefix}&e&6{player}&e auf AFK gesetzt.");
+        add("afk.set-other-off", "{prefix}&eRemoved AFK from &6{player}&e.", "{prefix}&eAFK von &6{player}&e entfernt.");
+        add("afk.kick-reason", "&cYou were kicked for being AFK too long.", "&cDu wurdest wegen zu langer AFK-Zeit gekickt.");
+
+        // Kits
+        add("kit.not-found", "{prefix}&cKit &6{kit}&c does not exist.", "{prefix}&cKit &6{kit}&c existiert nicht.");
+        add("kit.no-permission", "{prefix}&cYou do not have permission for the &6{kit}&c kit.", "{prefix}&cKeine Berechtigung fÃ¼r das Kit &6{kit}&c.");
+        add("kit.cooldown", "{prefix}&eKit &6{kit}&e is on cooldown &7(&6{seconds}s&7).", "{prefix}&eKit &6{kit}&e ist im Cooldown &7(&6{seconds}s&7).");
+        add("kit.claimed", "{prefix}&aClaimed kit &6{kit}&a.", "{prefix}&aKit &6{kit}&a erhalten.");
+        add("kit.overflow", "{prefix}&7&o{count} item(s) dropped near you (inventory full).", "{prefix}&7&o{count} Item(s) lagen neben dir (Inventar voll).");
+        add("kit.given-staff", "{prefix}&eGave &6{kit}&e to &6{player}&e.", "{prefix}&e&6{kit}&e an &6{player}&e gegeben.");
+        add("kit.list.empty", "{prefix}&eNo kits are available to you.", "{prefix}&eKeine Kits verfÃ¼gbar.");
+        add("kit.list.header", "{prefix}&6Kits &7(&e{count}&7)", "{prefix}&6Kits &7(&e{count}&7)");
+        add("kit.list.entries", "{prefix}&f{kits}", "{prefix}&f{kits}");
+        add("kit.info-usage", "{prefix}&eUsage: &f/kit info <name>", "{prefix}&eBenutzung: &f/kit info <Name>");
+        add("kit.info.header", "{prefix}&6Kit Info &7— &e{kit}", "{prefix}&6Kit-Info &7— &e{kit}");
+        add("kit.info.cooldown", "{prefix}&eCooldown: &f{seconds}s", "{prefix}&eCooldown: &f{seconds}s");
+        add("kit.info.items", "{prefix}&eContents: &f{items}", "{prefix}&eInhalt: &f{items}");
+        add("kit.give-usage", "{prefix}&eUsage: &f/kit give <player> <kit>", "{prefix}&eBenutzung: &f/kit give <Spieler> <Kit>");
+        add("kit.reloaded", "{prefix}&aKits reloaded.", "{prefix}&aKits neu geladen.");
+
+        // Economy
+        add("economy.balance.self", "{prefix}&eBalance: &6{amount}", "{prefix}&eKontostand: &6{amount}");
+        add("economy.balance.other", "{prefix}&e&6{player}&e: &6{amount}", "{prefix}&e&6{player}&e: &6{amount}");
+        add("economy.unknown-player", "{prefix}&cUnknown player &6{player}&c.", "{prefix}&cUnbekannter Spieler &6{player}&c.");
+        add("economy.invalid-amount", "{prefix}&cInvalid amount: &6{input}&c.", "{prefix}&cUngÃ¼ltiger Betrag: &6{input}&c.");
+        add("economy.amount-positive", "{prefix}&cAmount must be greater than zero.", "{prefix}&cDer Betrag muss grÃ¶ÃŸer als null sein.");
+        add("economy.baltop.empty", "{prefix}&eNo balances recorded yet.", "{prefix}&eEs sind noch keine GuthabenstÃ¤nde erfasst.");
+        add("economy.baltop.header", "{prefix}&6Top Balances &7— &epage {page}/{totalPages}", "{prefix}&6Bestenliste &7— &eSeite {page}/{totalPages}");
+        add("economy.baltop.entry", "{prefix}&7#&e{rank} &f{player} &7→ &6{amount}", "{prefix}&7#&e{rank} &f{player} &7→ &6{amount}");
+        add("economy.baltop.footer", "{prefix}&7Page &e{page}&7/&e{totalPages}", "{prefix}&7Seite &e{page}&7/&e{totalPages}");
+        add("economy.pay.usage", "{prefix}&eUsage: &f/pay <player> <amount>", "{prefix}&eBenutzung: &f/pay <Spieler> <Betrag>");
+        add("economy.pay.self", "{prefix}&cYou cannot pay yourself.", "{prefix}&cDu kannst dich nicht selbst bezahlen.");
+        add("economy.pay.insufficient", "{prefix}&cInsufficient funds — you need &6{amount}&c.", "{prefix}&cZu wenig Guthaben — du brauchst &6{amount}&c.");
+        add("economy.pay.sent", "{prefix}&aSent &6{amount}&a to &6{player}&a.", "{prefix}&aHabe &6{amount}&a an &6{player}&a gesendet.");
+        add("economy.pay.received", "{prefix}&aReceived &6{amount}&a from &6{player}&a.", "{prefix}&aHabe &6{amount}&a von &6{player}&a erhalten.");
+        add("economy.eco.usage", "{prefix}&eUsage: &f/eco <give|take|set|reset> <player> [amount]", "{prefix}&eBenutzung: &f/eco <give|take|set|reset> <Spieler> [Betrag]");
+        add("economy.eco.give", "{prefix}&eGave &6{amount}&e to &6{player}&e &7(now &6{balance}&7).", "{prefix}&e&6{amount}&e an &6{player}&e gegeben &7(jetzt &6{balance}&7).");
+        add("economy.eco.take", "{prefix}&eTook &6{amount}&e from &6{player}&e &7(now &6{balance}&7).", "{prefix}&e&6{amount}&e von &6{player}&e abgezogen &7(jetzt &6{balance}&7).");
+        add("economy.eco.set", "{prefix}&eSet &6{player}&e to &6{balance}&e.", "{prefix}&e&6{player}&e auf &6{balance}&e gesetzt.");
+        add("economy.eco.reset", "{prefix}&eReset &6{player}&e's balance &7(now &6{balance}&7).", "{prefix}&eKontostand von &6{player}&e zurÃ¼ckgesetzt &7(jetzt &6{balance}&7).");
+        add("economy.worth.empty-hand", "{prefix}&eHold the item you want to value.", "{prefix}&eHalte den zu bewertenden Gegenstand.");
+        add("economy.worth.no-price", "{prefix}&c&6{material}&c has no configured price.", "{prefix}&c&6{material}&c hat keinen festgelegten Preis.");
+        add("economy.worth.result", "{prefix}&e&6{amount}&e x &6{material} &7→ &6{total} &7(&6{each}&7 each)", "{prefix}&e&6{amount}&e x &6{material} &7→ &6{total} &7(je &6{each}&7)");
+        add("economy.sell.usage", "{prefix}&eUsage: &f/sell <hand|all|material>", "{prefix}&eBenutzung: &f/sell <hand|all|Material>");
+        add("economy.sell.unknown-material", "{prefix}&cUnknown material &6{material}&c.", "{prefix}&cUnbekanntes Material &6{material}&c.");
+        add("economy.sell.none", "{prefix}&eYou have no &6{material}&e to sell.", "{prefix}&eDu hast kein &6{material}&e zum Verkaufen.");
+        add("economy.sell.nothing", "{prefix}&eNothing in your inventory has a sell price.", "{prefix}&eNichts in deinem Inventar hat einen Preis.");
+        add("economy.sell.result", "{prefix}&aSold &6{amount}&a x &6{material}&a for &6{total} &7(balance &6{balance}&7).", "{prefix}&a&6{amount}&a x &6{material}&a fÃ¼r &6{total}&a verkauft &7(Konto &6{balance}&7).");
+        add("economy.sell.all", "{prefix}&aSold everything for &6{total} &7(balance &6{balance}&7).", "{prefix}&aAlles fÃ¼r &6{total}&a verkauft &7(Konto &6{balance}&7).");
+
+        // Player info / lookup
+        add("info.unknown-player", "{prefix}&cUnknown player &6{player}&c.", "{prefix}&cUnbekannter Spieler &6{player}&c.");
+        add("info.seen.usage", "{prefix}&eUsage: &f/seen <player>", "{prefix}&eBenutzung: &f/seen <Spieler>");
+        add("info.seen.online", "{prefix}&a&6{player}&a is online right now.", "{prefix}&a&6{player}&a ist gerade online.");
+        add("info.seen.unknown", "{prefix}&e&6{player}&e has no recorded last-seen.", "{prefix}&eFÃ¼r &6{player}&e ist kein Last-Seen vermerkt.");
+        add("info.seen.line", "{prefix}&e&6{player}&e last seen: &f{lastSeen}", "{prefix}&e&6{player}&e zuletzt gesehen: &f{lastSeen}");
+        add("info.firstseen.usage", "{prefix}&eUsage: &f/firstseen <player>", "{prefix}&eBenutzung: &f/firstseen <Spieler>");
+        add("info.firstseen.unknown", "{prefix}&e&6{player}&e has no recorded first-join.", "{prefix}&eFÃ¼r &6{player}&e ist kein Erst-Beitritt vermerkt.");
+        add("info.firstseen.line", "{prefix}&e&6{player}&e first joined: &f{firstSeen}", "{prefix}&e&6{player}&e erstmals: &f{firstSeen}");
+        add("info.playtime.self", "{prefix}&ePlaytime: &6{total} &7(this session &6{session}&7)", "{prefix}&eSpielzeit: &6{total} &7(diese Session &6{session}&7)");
+        add("info.playtime.other-online", "{prefix}&e&6{player}&e playtime: &6{total} &7(session &6{session}&7)", "{prefix}&eSpielzeit von &6{player}&e: &6{total} &7(Session &6{session}&7)");
+        add("info.playtime.other", "{prefix}&e&6{player}&e playtime: &6{total}", "{prefix}&eSpielzeit von &6{player}&e: &6{total}");
+        add("info.list.header", "{prefix}&6Online &7(&e{count}&7/&e{max}&7)", "{prefix}&6Online &7(&e{count}&7/&e{max}&7)");
+        add("info.list.entries", "{prefix}&f{names}", "{prefix}&f{names}");
+        add("info.list.no-players", "&7nobody is online", "&7niemand online");
+        add("info.list.afk-suffix", " &7(afk)", " &7(afk)");
+        add("info.list.vanish-suffix", " &8&l[v]", " &8&l[v]");
+        add("info.near.none", "{prefix}&eNo players within &6{radius}m&e.", "{prefix}&eKeine Spieler im Umkreis von &6{radius}m&e.");
+        add("info.near.list", "{prefix}&eWithin &6{radius}m &e&7(&e{count}&7): &r{players}", "{prefix}&eIm Umkreis von &6{radius}m &e&7(&e{count}&7): &r{players}");
+        add("info.whois.usage", "{prefix}&eUsage: &f/whois <player>", "{prefix}&eBenutzung: &f/whois <Spieler>");
+        add("info.whois.online", Arrays.asList(
+                "{prefix}&6&l{player}",
+                "{prefix}&7UUID: &f{uuid}",
+                "{prefix}&7Status: &aonline &8• &7World: &f{world} &8• &7Mode: &f{gamemode}",
+                "{prefix}&7Health: &f{health} &8• &7Food: &f{food} &8• &7XP: &f{xpLevel}",
+                "{prefix}&7AFK: &f{afk} &8• &7Vanished: &f{vanished}",
+                "{prefix}&7First seen: &f{firstSeen}",
+                "{prefix}&7Last seen: &f{lastSeen}",
+                "{prefix}&7Playtime: &f{playtime}"
+        ), Arrays.asList(
+                "{prefix}&6&l{player}",
+                "{prefix}&7UUID: &f{uuid}",
+                "{prefix}&7Status: &aonline &8• &7Welt: &f{world} &8• &7Modus: &f{gamemode}",
+                "{prefix}&7Leben: &f{health} &8• &7Hunger: &f{food} &8• &7XP: &f{xpLevel}",
+                "{prefix}&7AFK: &f{afk} &8• &7Vanished: &f{vanished}",
+                "{prefix}&7Erstmals: &f{firstSeen}",
+                "{prefix}&7Zuletzt: &f{lastSeen}",
+                "{prefix}&7Spielzeit: &f{playtime}"
+        ));
+        add("info.whois.offline", Arrays.asList(
+                "{prefix}&6&l{player}",
+                "{prefix}&7UUID: &f{uuid}",
+                "{prefix}&7Status: &coffline",
+                "{prefix}&7First seen: &f{firstSeen}",
+                "{prefix}&7Last seen: &f{lastSeen}",
+                "{prefix}&7Playtime: &f{playtime}"
+        ), Arrays.asList(
+                "{prefix}&6&l{player}",
+                "{prefix}&7UUID: &f{uuid}",
+                "{prefix}&7Status: &coffline",
+                "{prefix}&7Erstmals: &f{firstSeen}",
+                "{prefix}&7Zuletzt: &f{lastSeen}",
+                "{prefix}&7Spielzeit: &f{playtime}"
+        ));
+        add("info.realname.usage", "{prefix}&eUsage: &f/realname <displayname>", "{prefix}&eBenutzung: &f/realname <Anzeigename>");
+        add("info.realname.match", "{prefix}&e{display} &7→ &f{real}", "{prefix}&e{display} &7→ &f{real}");
+        add("info.realname.no-match", "{prefix}&eNo online player matches &6{player}&e.", "{prefix}&eKein Online-Spieler passt zu &6{player}&e.");
+        add("info.info.usage", "{prefix}&eUsage: &f/info <player>", "{prefix}&eBenutzung: &f/info <Spieler>");
+        add("info.info.header", "{prefix}&6Profile &7— &e{player}", "{prefix}&6Profil &7— &e{player}");
+        add("info.info.identity", "{prefix}&7UUID: &f{uuid} &8• &7Status: &f{online}", "{prefix}&7UUID: &f{uuid} &8• &7Status: &f{online}");
+        add("info.info.timeline", "{prefix}&7First seen: &f{firstSeen} &8• &7Last seen: &f{lastSeen}", "{prefix}&7Erstmals: &f{firstSeen} &8• &7Zuletzt: &f{lastSeen}");
+        add("info.info.playtime-line", "{prefix}&7Playtime: &f{playtime}", "{prefix}&7Spielzeit: &f{playtime}");
+        add("info.info.actions-prefix", "{prefix}&7Actions: ", "{prefix}&7Aktionen: ");
+        add("info.info.actions-separator", " &8&l| ", " &8&l| ");
+        add("info.info.actions-seen", "&b[Seen]", "&b[Seen]");
+        add("info.info.actions-playtime", "&b[Playtime]", "&b[Playtime]");
+        add("info.info.actions-tpa", "&b[Tpa]", "&b[Tpa]");
+        add("info.info.actions-whois", "&b[Whois]", "&b[Whois]");
+        add("info.info.hover-seen", Arrays.asList("&bRun &f/seen {player}"), Arrays.asList("&bAusfÃ¼hren: &f/seen {player}"));
+        add("info.info.hover-playtime", Arrays.asList("&bRun &f/playtime {player}"), Arrays.asList("&bAusfÃ¼hren: &f/playtime {player}"));
+        add("info.info.hover-tpa", Arrays.asList("&bRun &f/tpa {player}"), Arrays.asList("&bAusfÃ¼hren: &f/tpa {player}"));
+        add("info.info.hover-whois", Arrays.asList("&bRun &f/whois {player}"), Arrays.asList("&bAusfÃ¼hren: &f/whois {player}"));
+
+        // Flight / fly-speed / walk-speed
+        add("flight.fly.on-self", "{prefix}&aFlight enabled.", "{prefix}&aFlugmodus aktiviert.");
+        add("flight.fly.off-self", "{prefix}&cFlight disabled.", "{prefix}&cFlugmodus deaktiviert.");
+        add("flight.fly.on-other", "{prefix}&aEnabled flight for &6{player}&a.", "{prefix}&aFlug fÃ¼r &6{player}&a aktiviert.");
+        add("flight.fly.off-other", "{prefix}&cDisabled flight for &6{player}&c.", "{prefix}&cFlug fÃ¼r &6{player}&c deaktiviert.");
+        add("flight.speed.usage-fly", "{prefix}&eUsage: &f/flyspeed <0-10>", "{prefix}&eBenutzung: &f/flyspeed <0-10>");
+        add("flight.speed.usage-walk", "{prefix}&eUsage: &f/walkspeed <0-10>", "{prefix}&eBenutzung: &f/walkspeed <0-10>");
+        add("flight.speed.invalid", "{prefix}&cInvalid speed value &6{input}&c.", "{prefix}&cUngÃ¼ltiger Wert &6{input}&c.");
+        add("flight.speed.range", "{prefix}&cSpeed must be between 0 and 10.", "{prefix}&cDer Wert muss zwischen 0 und 10 liegen.");
+        add("flight.speed.set-fly", "{prefix}&eFly speed set to &6{value}&e.", "{prefix}&eFluggeschwindigkeit auf &6{value}&e gesetzt.");
+        add("flight.speed.set-walk", "{prefix}&eWalk speed set to &6{value}&e.", "{prefix}&eLaufgeschwindigkeit auf &6{value}&e gesetzt.");
+
+        // Freeze
+        add("freeze.usage", "{prefix}&eUsage: &f/freeze <player>", "{prefix}&eBenutzung: &f/freeze <Spieler>");
+        add("freeze.frozen-other", "{prefix}&b&6{player}&b is now frozen.", "{prefix}&b&6{player}&b ist nun eingefroren.");
+        add("freeze.unfrozen-other", "{prefix}&a&6{player}&a is no longer frozen.", "{prefix}&a&6{player}&a ist nicht mehr eingefroren.");
+        add("freeze.now-frozen", "{prefix}&bYou have been frozen by staff.", "{prefix}&bDu wurdest vom Team eingefroren.");
+        add("freeze.no-longer-frozen", "{prefix}&aYou are no longer frozen.", "{prefix}&aDu bist nicht mehr eingefroren.");
+        add("freeze.actionbar", "&b&l[ FROZEN ] &7You cannot move while frozen.", "&b&l[ EINGEFROREN ] &7Du kannst dich nicht bewegen.");
+
+        // Inventory
+        add("inventory.enderchest.other", "{prefix}&eOpened &6{player}&e's ender chest.", "{prefix}&eEnderchest von &6{player}&e geÃ¶ffnet.");
+        add("inventory.disposal.title", "&8Disposal", "&8Entsorgen");
+        add("inventory.hat.empty-hand", "{prefix}&eHold an item to wear it as a hat.", "{prefix}&eHalte einen Gegenstand zum Aufsetzen.");
+        add("inventory.hat.applied", "{prefix}&eHat applied.", "{prefix}&eHut aufgesetzt.");
+        add("inventory.clearinv.self", "{prefix}&eInventory cleared.", "{prefix}&eInventar geleert.");
+        add("inventory.clearinv.other", "{prefix}&eCleared &6{player}&e's inventory.", "{prefix}&eInventar von &6{player}&e geleert.");
+        add("inventory.repair.empty-hand", "{prefix}&eHold an item to repair it.", "{prefix}&eHalte einen Gegenstand zum Reparieren.");
+        add("inventory.repair.not-repairable", "{prefix}&c&6{material}&c is not repairable.", "{prefix}&c&6{material}&c ist nicht reparierbar.");
+        add("inventory.repair.single", "{prefix}&aRepaired &6{material}&a.", "{prefix}&a&6{material}&a repariert.");
+        add("inventory.repair.all", "{prefix}&aRepaired &6{count}&a item(s).", "{prefix}&a&6{count}&a Gegenstand/-stÃ¤nde repariert.");
+        add("inventory.more.empty-hand", "{prefix}&eHold an item to stack it.", "{prefix}&eHalte einen Gegenstand zum AuffÃ¼llen.");
+        add("inventory.more.unstackable", "{prefix}&c&6{material}&c does not stack.", "{prefix}&c&6{material}&c ist nicht stapelbar.");
+        add("inventory.more.filled", "{prefix}&aFilled &6{material}&a to &6{amount}&a.", "{prefix}&a&6{material}&a auf &6{amount}&a aufgefÃ¼llt.");
+        add("inventory.skull.usage", "{prefix}&eUsage: &f/skull <player>", "{prefix}&eBenutzung: &f/skull <Spieler>");
+        add("inventory.skull.given", "{prefix}&aGave you &6{player}&a's head.", "{prefix}&aDu erhÃ¤ltst den Kopf von &6{player}&a.");
+        add("inventory.skull.unsupported", "{prefix}&cPlayer heads are not supported on this server version.", "{prefix}&cSpielerkÃ¶pfe werden auf dieser Version nicht unterstÃ¼tzt.");
+
+        // Item editing
+        add("item.empty-hand", "{prefix}&eYou must hold an item.", "{prefix}&eDu musst einen Gegenstand halten.");
+        add("item.no-meta", "{prefix}&cThis item cannot store metadata.", "{prefix}&cDieses Item kann keine Metadaten speichern.");
+        add("item.unknown-material", "{prefix}&cUnknown material &6{material}&c.", "{prefix}&cUnbekanntes Material &6{material}&c.");
+        add("item.itemname.set", "{prefix}&eRenamed to &r{name}&e.", "{prefix}&eUmbenannt in &r{name}&e.");
+        add("item.itemname.cleared", "{prefix}&eItem name cleared.", "{prefix}&eItem-Name entfernt.");
+        add("item.itemlore.usage", "{prefix}&eUsage: &f/itemlore <add|set|clear> [index] <text>", "{prefix}&eBenutzung: &f/itemlore <add|set|clear> [Index] <Text>");
+        add("item.itemlore.added", "{prefix}&eAdded lore line: &r{line}", "{prefix}&eLore hinzugefÃ¼gt: &r{line}");
+        add("item.itemlore.set", "{prefix}&eSet lore line &6{index}&e: &r{line}", "{prefix}&eLore-Zeile &6{index}&e gesetzt: &r{line}");
+        add("item.itemlore.cleared", "{prefix}&eLore cleared.", "{prefix}&eLore entfernt.");
+        add("item.unbreakable.enabled", "{prefix}&aItem marked unbreakable.", "{prefix}&aItem ist nun unzerbrechlich.");
+        add("item.unbreakable.disabled", "{prefix}&cItem is breakable again.", "{prefix}&cItem ist wieder zerbrechlich.");
+        add("item.unbreakable.unsupported", "{prefix}&cUnbreakable flag is unavailable on this server version.", "{prefix}&cDas Unbreakable-Flag ist auf dieser Version nicht verfÃ¼gbar.");
+        add("item.give.usage", "{prefix}&eUsage: &f/give <player> <material> [amount]", "{prefix}&eBenutzung: &f/give <Spieler> <Material> [Anzahl]");
+        add("item.give.invalid-amount", "{prefix}&cInvalid amount &6{input}&c.", "{prefix}&cUngÃ¼ltige Anzahl &6{input}&c.");
+        add("item.give.sent", "{prefix}&aGave &6{amount}&a x &6{material}&a to &6{player}&a.", "{prefix}&a&6{amount}&a x &6{material}&a an &6{player}&a gegeben.");
+        add("item.give.overflow", "{prefix}&7&o{count} item(s) dropped near you (inventory full).", "{prefix}&7&o{count} Items fielen daneben (Inventar voll).");
+        add("item.i.usage", "{prefix}&eUsage: &f/i <material> [amount]", "{prefix}&eBenutzung: &f/i <Material> [Anzahl]");
+        add("item.i.received", "{prefix}&aReceived &6{amount}&a x &6{material}&a.", "{prefix}&a&6{amount}&a x &6{material}&a erhalten.");
+        add("item.book.usage", "{prefix}&eUsage: &f/book <new|unsign|copy>", "{prefix}&eBenutzung: &f/book <new|unsign|copy>");
+        add("item.book.received", "{prefix}&aHere's a fresh writable book.", "{prefix}&aHier ist ein leeres Buch & Feder.");
+        add("item.book.unsigned", "{prefix}&aBook unsigned — it's editable again.", "{prefix}&aBuch entsiegelt — wieder bearbeitbar.");
+        add("item.book.copied", "{prefix}&aBook copied.", "{prefix}&aBuch kopiert.");
+        add("item.book.unsupported", "{prefix}&cBooks are not supported on this server version.", "{prefix}&cBÃ¼cher werden auf dieser Version nicht unterstÃ¼tzt.");
+        add("item.book.not-signed", "{prefix}&eHold a signed book to unsign it.", "{prefix}&eHalte ein signiertes Buch zum Entsiegeln.");
+        add("item.book.not-book", "{prefix}&eHold a book to copy it.", "{prefix}&eHalte ein Buch zum Kopieren.");
+
+        // Nickname
+        add("nickname.usage", "{prefix}&eUsage: &f/nick <name|off> [player]", "{prefix}&eBenutzung: &f/nick <Name|off> [Spieler]");
+        add("nickname.length", "{prefix}&cNickname must be 2-32 characters.", "{prefix}&cName muss 2-32 Zeichen lang sein.");
+        add("nickname.applied-self", "{prefix}&eYour nickname is now &r{nickname}&e.", "{prefix}&eDein Nickname ist jetzt &r{nickname}&e.");
+        add("nickname.applied-other", "{prefix}&eSet &6{player}&e's nickname to &r{nickname}&e.", "{prefix}&eNickname von &6{player}&e auf &r{nickname}&e gesetzt.");
+        add("nickname.cleared-self", "{prefix}&eYour nickname is cleared.", "{prefix}&eDein Nickname wurde entfernt.");
+        add("nickname.cleared-other", "{prefix}&eCleared &6{player}&e's nickname.", "{prefix}&eNickname von &6{player}&e entfernt.");
+
+        // World / time / weather
+        add("world.unknown", "{prefix}&cUnknown world &6{world}&c.", "{prefix}&cUnbekannte Welt &6{world}&c.");
+        add("world.time.usage", "{prefix}&eUsage: &f/time <set|add> <value> [world]", "{prefix}&eBenutzung: &f/time <set|add> <Wert> [Welt]");
+        add("world.time.invalid", "{prefix}&cInvalid time value &6{input}&c.", "{prefix}&cUngÃ¼ltige Zeitangabe &6{input}&c.");
+        add("world.time.changed", "{prefix}&eTime in &6{world}&e set to &6{time}&e.", "{prefix}&eZeit in &6{world}&e auf &6{time}&e gesetzt.");
+        add("world.weather.usage", "{prefix}&eUsage: &f/weather <clear|rain|thunder> [world]", "{prefix}&eBenutzung: &f/weather <clear|rain|thunder> [Welt]");
+        add("world.weather.changed", "{prefix}&eWeather in &6{world}&e set to &6{weather}&e.", "{prefix}&eWetter in &6{world}&e auf &6{weather}&e gesetzt.");
+        add("world.ptime.usage", "{prefix}&eUsage: &f/ptime <day|noon|night|midnight|reset|ticks>", "{prefix}&eBenutzung: &f/ptime <day|noon|night|midnight|reset|Ticks>");
+        add("world.ptime.set", "{prefix}&ePersonal time set to &6{time}&e ticks.", "{prefix}&ePersÃ¶nliche Zeit auf &6{time}&e Ticks gesetzt.");
+        add("world.ptime.reset", "{prefix}&ePersonal time reset.", "{prefix}&ePersÃ¶nliche Zeit zurÃ¼ckgesetzt.");
+        add("world.pweather.usage", "{prefix}&eUsage: &f/pweather <clear|rain|thunder|reset>", "{prefix}&eBenutzung: &f/pweather <clear|rain|thunder|reset>");
+        add("world.pweather.set", "{prefix}&ePersonal weather set to &6{weather}&e.", "{prefix}&ePersÃ¶nliches Wetter auf &6{weather}&e gesetzt.");
+        add("world.pweather.reset", "{prefix}&ePersonal weather reset.", "{prefix}&ePersÃ¶nliches Wetter zurÃ¼ckgesetzt.");
+
+        // Jail
+        add("jail.usage", "{prefix}&eUsage: &f/jail <player> <jail> [duration] [reason]", "{prefix}&eBenutzung: &f/jail <Spieler> <Jail> [Dauer] [Grund]");
+        add("jail.unknown-jail", "{prefix}&cUnknown jail &6{jail}&c.", "{prefix}&cUnbekannter Jail &6{jail}&c.");
+        add("jail.default-reason", "No reason provided.", "Kein Grund angegeben.");
+        add("jail.notify-target", "{prefix}&cYou have been jailed at &6{jail}&c for &6{duration}&c. &7Reason: &f{reason}", "{prefix}&cDu wurdest in &6{jail}&c fÃ¼r &6{duration}&c eingesperrt. &7Grund: &f{reason}");
+        add("jail.jailed-prefix", "{prefix}&e&6{player}&e jailed at &6{jail}&e for &6{duration}&e &7({reason}&7)", "{prefix}&e&6{player}&e in &6{jail}&e fÃ¼r &6{duration}&e eingesperrt &7({reason}&7)");
+        add("jail.button.unjail", "&a&l[Unjail]", "&a&l[Freilassen]");
+        add("jail.button.unjail-hover", Arrays.asList("&aRelease &6{player}&a.", "&7Click to run &f/unjail {player}"),
+                Arrays.asList("&a&6{player}&a freilassen.", "&7Klicke fÃ¼r &f/unjail {player}"));
+        add("jail.teleporting", "{prefix}&eTeleporting to jail &6{jail}&e.", "{prefix}&eTeleportiere ins Jail &6{jail}&e.");
+        add("jail.on-join", "{prefix}&cYou are jailed at &6{jail}&c. Remaining: &6{remaining}&c.", "{prefix}&cDu bist in &6{jail}&c. Verbleibend: &6{remaining}&c.");
+        add("jail.blocked-teleport", "{prefix}&cYou cannot teleport while jailed.", "{prefix}&cIm Jail kannst du dich nicht teleportieren.");
+        add("jail.blocked-command", "{prefix}&cThat command is unavailable while jailed.", "{prefix}&cDieser Befehl ist im Jail nicht verfÃ¼gbar.");
+        add("jail.unjail.usage", "{prefix}&eUsage: &f/unjail <player>", "{prefix}&eBenutzung: &f/unjail <Spieler>");
+        add("jail.unjail.not-jailed", "{prefix}&e&6{player}&e is not jailed.", "{prefix}&e&6{player}&e ist nicht im Jail.");
+        add("jail.unjail.released", "{prefix}&aReleased &6{player}&a from jail.", "{prefix}&a&6{player}&a aus dem Jail entlassen.");
+        add("jail.unjail.released-target", "{prefix}&aYou have been released from jail.", "{prefix}&aDu wurdest aus dem Jail entlassen.");
+        add("jail.jails.empty", "{prefix}&eNo jails configured. Use &f/setjail <name>&e to create one.", "{prefix}&eKeine Jails konfiguriert. Mit &f/setjail <Name>&e anlegen.");
+        add("jail.jails.list", "{prefix}&6Jails &7(&e{count}&7): &f{names}", "{prefix}&6Jails &7(&e{count}&7): &f{names}");
+        add("jail.setjail.usage", "{prefix}&eUsage: &f/setjail <name>", "{prefix}&eBenutzung: &f/setjail <Name>");
+        add("jail.setjail.created", "{prefix}&aJail &6{jail}&a anchored at your location.", "{prefix}&aJail &6{jail}&a wurde an deinem Standort gespeichert.");
+        add("jail.setjail.failed", "{prefix}&cFailed to create jail &6{jail}&c.", "{prefix}&cKonnte Jail &6{jail}&c nicht erstellen.");
+        add("jail.deljail.usage", "{prefix}&eUsage: &f/deljail <name>", "{prefix}&eBenutzung: &f/deljail <Name>");
+        add("jail.deljail.deleted", "{prefix}&eDeleted jail &6{jail}&e.", "{prefix}&eJail &6{jail}&e gelÃ¶scht.");
+        add("jail.jailtime.usage", "{prefix}&eUsage: &f/jailtime [player]", "{prefix}&eBenutzung: &f/jailtime [Spieler]");
+        add("jail.jailtime.not-jailed", "{prefix}&e&6{player}&e is not jailed.", "{prefix}&e&6{player}&e ist nicht im Jail.");
+        add("jail.jailtime.line", "{prefix}&e&6{player}&e: jail &6{jail}&e, &6{remaining}&e left, reason: &7{reason}", "{prefix}&e&6{player}&e: Jail &6{jail}&e, verbleibend &6{remaining}&e, Grund: &7{reason}");
+
+        // Mob / world tools
+        add("mob.unknown-type", "{prefix}&cUnknown entity type &6{type}&c.", "{prefix}&cUnbekannter EntitÃ¤tstyp &6{type}&c.");
+        add("mob.unspawnable-type", "{prefix}&cEntity type &6{type}&c is not spawnable here.", "{prefix}&cEntitÃ¤tstyp &6{type}&c lÃ¤sst sich hier nicht spawnen.");
+        add("mob.butcher.result", "{prefix}&aKilled &6{count}&a mob(s) within &6{radius}m&a.", "{prefix}&a&6{count}&a Mob(s) im Umkreis von &6{radius}m&a entfernt.");
+        add("mob.spawnmob.usage", "{prefix}&eUsage: &f/spawnmob <type> [count]", "{prefix}&eBenutzung: &f/spawnmob <Typ> [Anzahl]");
+        add("mob.spawnmob.result", "{prefix}&aSpawned &6{count}&a x &6{type}&a.", "{prefix}&a&6{count}&a x &6{type}&a gespawnt.");
+        add("mob.spawner.usage", "{prefix}&eUsage: &f/spawner <type>", "{prefix}&eBenutzung: &f/spawner <Typ>");
+        add("mob.spawner.no-target", "{prefix}&cLook at a spawner block first.", "{prefix}&cVisiere zuerst einen Spawnerblock an.");
+        add("mob.spawner.set", "{prefix}&aSpawner set to &6{type}&a.", "{prefix}&aSpawner auf &6{type}&a gesetzt.");
+        add("mob.smite.usage", "{prefix}&eUsage: &f/smite [player]", "{prefix}&eBenutzung: &f/smite [Spieler]");
+        add("mob.smite.struck", "{prefix}&eLightning struck &6{target}&e.", "{prefix}&eBlitz auf &6{target}&e geschlagen.");
+        add("mob.tree.unknown", "{prefix}&cUnknown tree type &6{type}&c.", "{prefix}&cUnbekannter Baumtyp &6{type}&c.");
+        add("mob.tree.grown", "{prefix}&aGenerated a &6{type}&a tree.", "{prefix}&a&6{type}&a-Baum erzeugt.");
+        add("mob.tree.failed", "{prefix}&cCould not generate a tree here.", "{prefix}&cKonnte hier keinen Baum erzeugen.");
     }
 
     private MessageDefaults() {
