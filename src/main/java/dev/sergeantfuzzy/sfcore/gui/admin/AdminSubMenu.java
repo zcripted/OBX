@@ -70,9 +70,86 @@ public final class AdminSubMenu {
         String stripped = ChatColor.stripColor(placeholder.name()).toLowerCase();
         if ("server control".equals(stripped)) {
             openServerControlMenu(player, placeholder);
+        } else if ("moderation".equals(stripped)) {
+            openJailCenterMenu(plugin, player, placeholder);
+        } else if ("fun utilities".equals(stripped)) {
+            openMobToolsMenu(plugin, player, placeholder);
         } else {
             openGenericMenu(player, placeholder);
         }
+    }
+
+    public static void openJailCenterMenu(Main plugin, Player player, AdminMenu.PlaceholderView placeholder) {
+        Holder holder = new Holder(placeholder, SubMenuType.JAIL_CENTER);
+        Inventory inventory = Bukkit.createInventory(holder, 27, AdminMenu.gradientTitle("Jail Center"));
+        holder.setInventory(inventory);
+        fillWithFiller(inventory);
+
+        int jailCount = plugin.getJailService() == null ? 0 : plugin.getJailService().getJails().size();
+        StringBuilder jailList = new StringBuilder();
+        if (plugin.getJailService() != null) {
+            int i = 0;
+            for (dev.sergeantfuzzy.sfcore.jail.Jail jail : plugin.getJailService().getJails()) {
+                if (i++ > 0) jailList.append(", ");
+                jailList.append(jail.getName());
+            }
+        }
+
+        place(inventory, 10, createMenuItem(new String[]{"IRON_BARS"}, ChatColor.GOLD + "Jail Anchors",
+                loreLines(
+                        ChatColor.GRAY + "Configured jails: " + ChatColor.YELLOW + jailCount,
+                        jailList.length() == 0 ? ChatColor.DARK_GRAY + "(none yet)" : ChatColor.GRAY + jailList.toString(),
+                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "run /jails"
+                )));
+        place(inventory, 12, createMenuItem(new String[]{"COMPASS"}, ChatColor.GOLD + "Set Jail Here",
+                loreLines(
+                        ChatColor.GRAY + "Save this location as a jail anchor.",
+                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "suggests /setjail <name>"
+                )));
+        place(inventory, 14, createMenuItem(new String[]{"REDSTONE_BLOCK"}, ChatColor.RED + "Delete Jail",
+                loreLines(
+                        ChatColor.GRAY + "Remove a jail anchor by name.",
+                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "suggests /deljail <name>"
+                )));
+        place(inventory, 16, createMenuItem(new String[]{"CLOCK", "WATCH"}, ChatColor.AQUA + "Check Jail Time",
+                loreLines(
+                        ChatColor.GRAY + "View remaining jail time for a player.",
+                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "suggests /jailtime <player>"
+                )));
+        place(inventory, BACK_SLOT, createBackItem());
+        place(inventory, CLOSE_SLOT, createCloseItem());
+        player.openInventory(inventory);
+    }
+
+    public static void openMobToolsMenu(Main plugin, Player player, AdminMenu.PlaceholderView placeholder) {
+        Holder holder = new Holder(placeholder, SubMenuType.MOB_TOOLS);
+        Inventory inventory = Bukkit.createInventory(holder, 27, AdminMenu.gradientTitle("Mob Tools"));
+        holder.setInventory(inventory);
+        fillWithFiller(inventory);
+
+        place(inventory, 10, createMenuItem(new String[]{"DIAMOND_SWORD"}, ChatColor.RED + "Butcher Nearby",
+                loreLines(
+                        ChatColor.GRAY + "Kill mobs within 32 blocks.",
+                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "runs /butcher 32"
+                )));
+        place(inventory, 12, createMenuItem(new String[]{"BLAZE_POWDER"}, ChatColor.GOLD + "Spawn Mob",
+                loreLines(
+                        ChatColor.GRAY + "Spawn a mob at your crosshair.",
+                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "suggests /spawnmob <type>"
+                )));
+        place(inventory, 14, createMenuItem(new String[]{"LIGHTNING_ROD", "TRIDENT"}, ChatColor.AQUA + "Smite at Crosshair",
+                loreLines(
+                        ChatColor.GRAY + "Strike lightning at your crosshair.",
+                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "runs /smite"
+                )));
+        place(inventory, 16, createMenuItem(new String[]{"OAK_SAPLING", "SAPLING"}, ChatColor.GREEN + "Grow Tree",
+                loreLines(
+                        ChatColor.GRAY + "Generate a tree at your crosshair.",
+                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "runs /tree"
+                )));
+        place(inventory, BACK_SLOT, createBackItem());
+        place(inventory, CLOSE_SLOT, createCloseItem());
+        player.openInventory(inventory);
     }
 
     private static void openGenericMenu(Player player, AdminMenu.PlaceholderView placeholder) {

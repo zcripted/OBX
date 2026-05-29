@@ -1,0 +1,21 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core Item Worth
+# ────────────────────────────────────────────────────────────────────────────
+# Per-material sell value used by /worth, /sell, and /sellall. Missing keys
+# (or values of 0) mean the item cannot be sold. Material names follow the
+# Bukkit enum (lower-case in this file is fine — the lookup is normalized).
+# ════════════════════════════════════════════════════════════════════════════
+worth:
+  cobblestone: 0.05
+  stone: 0.07
+  dirt: 0.02
+  oak_log: 0.50
+  iron_ingot: 2.00
+  gold_ingot: 4.00
+  diamond: 15.00
+  emerald: 12.00
+  redstone: 0.25
+  lapis_lazuli: 0.40
+  coal: 0.30
+  wheat: 0.20
+  bread: 0.50

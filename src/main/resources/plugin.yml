@@ -20,6 +20,8 @@ load: POSTWORLD
 # (e.g. WarpMenuStyling.resolveMaterial), so we never relied on the legacy
 # translator in the first place.
 api-version: '1.13'
+libraries:
+  - org.xerial:sqlite-jdbc:3.45.3.0
 commands:
   sf:
     description: Shows SF-Core help, information, and admin tools.

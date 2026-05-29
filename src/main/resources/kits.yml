@@ -1,0 +1,42 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core Kits
+# ────────────────────────────────────────────────────────────────────────────
+# Each kit is defined under "kits.<name>". Permissions:
+#   sfcore.kit.<name>     — required to claim the kit (kits.* bypasses all)
+#
+# Item formats:
+#   "MATERIAL"            — single item, amount 1
+#   "MATERIAL:AMOUNT"     — short form with amount
+#   { material: STONE, amount: 16, name: "&aPretty Stone", lore: ["&7Soft"], enchants: { UNBREAKING: 1 } }
+# ════════════════════════════════════════════════════════════════════════════
+kits:
+  starter:
+    display-name: "&aStarter Kit"
+    cooldown-seconds: 86400
+    first-join: true
+    icon: CHEST
+    items:
+      - "WOODEN_SWORD"
+      - "WOODEN_PICKAXE"
+      - "WOODEN_AXE"
+      - "WOODEN_SHOVEL"
+      - "BREAD:8"
+      - "TORCH:16"
+  miner:
+    display-name: "&6Miner Kit"
+    cooldown-seconds: 43200
+    icon: IRON_PICKAXE
+    items:
+      - "STONE_PICKAXE"
+      - "STONE_SHOVEL"
+      - "TORCH:32"
+      - "COOKED_BEEF:16"
+  builder:
+    display-name: "&bBuilder Kit"
+    cooldown-seconds: 21600
+    icon: BRICKS
+    items:
+      - "OAK_PLANKS:64"
+      - "COBBLESTONE:64"
+      - "GLASS:32"
+      - "TORCH:16"

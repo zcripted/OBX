@@ -54,6 +54,48 @@ public final class MessageDefaults {
         section("utility",
                 "Utility commands and quick actions.",
                 "Hilfsbefehle und Schnellaktionen.");
+        section("tpa",
+                "Player-to-player teleport-request flow (/tpa, /tpahere, /tpaccept, /tpdeny, /tpcancel, /tptoggle).",
+                "Spieler-zu-Spieler Teleport-Anfragen (/tpa, /tpahere, /tpaccept, /tpdeny, /tpcancel, /tptoggle).");
+        section("messaging",
+                "Private messages, mail, broadcasts, and staff chat.",
+                "Privatnachrichten, Mail, Broadcasts und Staff-Chat.");
+        section("afk",
+                "AFK toggle, broadcast lines, and idle-kick messages.",
+                "AFK-Umschalter, Broadcasts und Auto-Kick-Nachrichten.");
+        section("kit",
+                "Kit claim, cooldown, info, and staff messages.",
+                "Kit-Anforderung, Cooldown, Info- und Staff-Nachrichten.");
+        section("economy",
+                "Balance, baltop, pay, eco, worth, and sell flows.",
+                "Kontostand, Bestenliste, Bezahlen, Eco-Befehle, Wert und Verkauf.");
+        section("info",
+                "Player lookup commands (/seen, /firstseen, /playtime, /list, /near, /whois, /realname, /info).",
+                "Spieler-Suchbefehle (/seen, /firstseen, /playtime, /list, /near, /whois, /realname, /info).");
+        section("flight",
+                "Flight, fly-speed, and walk-speed commands.",
+                "Flug, Fluggeschwindigkeit und Laufgeschwindigkeit.");
+        section("freeze",
+                "Movement-freeze command and broadcast lines.",
+                "Bewegungs-Einfrieren — Befehle und Hinweise.");
+        section("inventory",
+                "Inventory utilities (/enderchest, /disposal, /hat, /clearinv, /repair, /more, /skull).",
+                "Inventar-Hilfsbefehle (/enderchest, /disposal, /hat, /clearinv, /repair, /more, /skull).");
+        section("item",
+                "Item-editing commands (/itemname, /itemlore, /unbreakable, /give, /i, /book).",
+                "Item-Bearbeitung (/itemname, /itemlore, /unbreakable, /give, /i, /book).");
+        section("nickname",
+                "Nickname command and feedback.",
+                "Nickname-Befehl und Hinweise.");
+        section("world",
+                "World, time, and weather control commands.",
+                "Welt-, Zeit- und Wetterbefehle.");
+        section("jail",
+                "Jail command suite and listener feedback.",
+                "Jail-Befehle und Hinweise.");
+        section("mob",
+                "Mob- and world-tool commands (/butcher, /spawnmob, /spawner, /smite, /tree).",
+                "Mob- und Welt-Werkzeuge (/butcher, /spawnmob, /spawner, /smite, /tree).");
 
         // Core
         add("core.prefix", "&6\uD835\uDDE6\uD835\uDDD9-\uD835\uDDD6\uD835\uDDE2\uD835\uDDE5\uD835\uDDD8 &8➠ &e", "&6\uD835\uDDE6\uD835\uDDD9-\uD835\uDDD6\uD835\uDDE2\uD835\uDDE5\uD835\uDDD8 &8➠ &e");

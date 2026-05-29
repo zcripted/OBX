@@ -1,0 +1,17 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core Jails
+# ────────────────────────────────────────────────────────────────────────────
+# Jail location definitions. Per-player jail state (who is jailed, for how
+# long, and why) lives in SQLite. Use /setjail <name> in-game to populate this
+# file from your current location, or hand-edit the keys below.
+#
+#   jails:
+#     downtown:
+#       world: world
+#       x: 0
+#       y: 64
+#       z: 0
+#       yaw: 0
+#       pitch: 0
+# ════════════════════════════════════════════════════════════════════════════
+jails: {}

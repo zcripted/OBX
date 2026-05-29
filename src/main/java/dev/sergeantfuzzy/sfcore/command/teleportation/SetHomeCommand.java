@@ -8,9 +8,14 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-public class SetHomeCommand implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class SetHomeCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
     private final DataService dataService;
@@ -45,5 +50,27 @@ public class SetHomeCommand implements CommandExecutor {
         dataService.setHome(player.getUniqueId(), homeName, location);
         languages.send(player, "teleport.home.set", Placeholders.with("home", homeName));
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        // Suggest existing home names so /sethome can overwrite without
+        // accidentally typing the wrong name; "home" is also surfaced as the
+        // default slot.
+        if (!(sender instanceof Player) || args.length != 1) {
+            return Collections.emptyList();
+        }
+        Player player = (Player) sender;
+        String prefix = args[0].toLowerCase();
+        List<String> matches = new ArrayList<>();
+        boolean hasDefault = false;
+        for (String home : dataService.getHomes(player.getUniqueId())) {
+            if (home.equalsIgnoreCase("home")) hasDefault = true;
+            if (home.toLowerCase().startsWith(prefix)) matches.add(home);
+        }
+        if (!hasDefault && "home".startsWith(prefix)) {
+            matches.add(0, "home");
+        }
+        return matches;
     }
 }
