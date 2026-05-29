@@ -24,7 +24,7 @@ public class IgnoreCommand implements CommandExecutor, TabCompleter {
 
     public IgnoreCommand(Main plugin) {
         this.languages = plugin.getLanguageManager();
-        this.messageService = plugin.getMessageService();
+        this.messageService = plugin.getMailService();
     }
 
     @Override

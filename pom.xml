@@ -193,6 +193,12 @@
                                 <argument>-libraryjars</argument>
                                 <argument>${settings.localRepository}/net/md-5/bungeecord-chat/${bungeecord.chat.version}/bungeecord-chat-${bungeecord.chat.version}.jar</argument>
                                 <argument>-libraryjars</argument>
+                                <argument>${settings.localRepository}/io/netty/netty-transport/4.1.97.Final/netty-transport-4.1.97.Final.jar</argument>
+                                <argument>-libraryjars</argument>
+                                <argument>${settings.localRepository}/io/netty/netty-common/4.1.97.Final/netty-common-4.1.97.Final.jar</argument>
+                                <argument>-libraryjars</argument>
+                                <argument>${settings.localRepository}/io/netty/netty-buffer/4.1.97.Final/netty-buffer-4.1.97.Final.jar</argument>
+                                <argument>-libraryjars</argument>
                                 <argument>${proguard.java.lib}</argument>
                                 <argument>@${basedir}/proguard.pro</argument>
                             </arguments>

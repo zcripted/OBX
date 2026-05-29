@@ -26,7 +26,7 @@ public class MailCommand implements CommandExecutor, TabCompleter {
 
     public MailCommand(Main plugin) {
         this.languages = plugin.getLanguageManager();
-        this.messageService = plugin.getMessageService();
+        this.messageService = plugin.getMailService();
     }
 
     @Override

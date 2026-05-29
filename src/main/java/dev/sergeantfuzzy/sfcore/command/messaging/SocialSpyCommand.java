@@ -19,7 +19,7 @@ public class SocialSpyCommand implements CommandExecutor, TabCompleter {
 
     public SocialSpyCommand(Main plugin) {
         this.languages = plugin.getLanguageManager();
-        this.messageService = plugin.getMessageService();
+        this.messageService = plugin.getMailService();
     }
 
     @Override

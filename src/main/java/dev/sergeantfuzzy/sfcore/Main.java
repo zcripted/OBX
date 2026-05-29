@@ -151,7 +151,7 @@ public class Main extends JavaPlugin {
     private dev.sergeantfuzzy.sfcore.util.control.StaffSessionTracker staffSessionTracker;
     private TpsService tpsService;
     private dev.sergeantfuzzy.sfcore.util.teleport.TpaService tpaService;
-    private dev.sergeantfuzzy.sfcore.messaging.MessageService messageService;
+    private dev.sergeantfuzzy.sfcore.messaging.MessageService mailService;
     private dev.sergeantfuzzy.sfcore.util.control.AfkService afkService;
     private dev.sergeantfuzzy.sfcore.kit.KitService kitService;
     private dev.sergeantfuzzy.sfcore.economy.EconomyService economyService;
@@ -237,8 +237,8 @@ public class Main extends JavaPlugin {
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
         tpaService = new dev.sergeantfuzzy.sfcore.util.teleport.TpaService(this);
-        messageService = new dev.sergeantfuzzy.sfcore.messaging.MessageService(this);
-        messageService.load();
+        mailService = new dev.sergeantfuzzy.sfcore.messaging.MessageService(this);
+        mailService.load();
         afkService = new dev.sergeantfuzzy.sfcore.util.control.AfkService(this);
         kitService = new dev.sergeantfuzzy.sfcore.kit.KitService(this);
         kitService.load();
@@ -491,8 +491,8 @@ public class Main extends JavaPlugin {
         return tpaService;
     }
 
-    public dev.sergeantfuzzy.sfcore.messaging.MessageService getMessageService() {
-        return messageService;
+    public dev.sergeantfuzzy.sfcore.messaging.MessageService getMailService() {
+        return mailService;
     }
 
     public dev.sergeantfuzzy.sfcore.util.control.AfkService getAfkService() {
@@ -708,17 +708,10 @@ public class Main extends JavaPlugin {
         bind("map", new MapCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
-        bind("tpa", new dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand(this, dev.sergeantfuzzy.sfcore.util.teleport.TpaService.RequestType.TO));
-        bind("tpahere", new dev.sergeantfuzzy.sfcore.command.teleportation.TpaCommand(this, dev.sergeantfuzzy.sfcore.util.teleport.TpaService.RequestType.HERE));
-        bind("tpaccept", new dev.sergeantfuzzy.sfcore.command.teleportation.TpAcceptCommand(this));
-        bind("tpdeny", new dev.sergeantfuzzy.sfcore.command.teleportation.TpDenyCommand(this));
         bind("tpcancel", new dev.sergeantfuzzy.sfcore.command.teleportation.TpCancelCommand(this));
         bind("tptoggle", new dev.sergeantfuzzy.sfcore.command.teleportation.TpToggleCommand(this));
-        bind("tphere", new dev.sergeantfuzzy.sfcore.command.teleportation.TpHereCommand(this));
         bind("tppos", new dev.sergeantfuzzy.sfcore.command.teleportation.TpPosCommand(this));
         bind("tpall", new dev.sergeantfuzzy.sfcore.command.teleportation.TpAllCommand(this));
-        bind("msg", new dev.sergeantfuzzy.sfcore.command.messaging.MsgCommand(this));
-        bind("reply", new dev.sergeantfuzzy.sfcore.command.messaging.ReplyCommand(this));
         bind("ignore", new dev.sergeantfuzzy.sfcore.command.messaging.IgnoreCommand(this));
         bind("socialspy", new dev.sergeantfuzzy.sfcore.command.messaging.SocialSpyCommand(this));
         bind("mail", new dev.sergeantfuzzy.sfcore.command.messaging.MailCommand(this));

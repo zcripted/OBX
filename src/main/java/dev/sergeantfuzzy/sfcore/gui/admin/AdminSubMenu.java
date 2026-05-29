@@ -60,7 +60,9 @@ public final class AdminSubMenu {
         TIME,
         GAMERULES,
         PLUGIN_SYSTEMS,
-        HUB
+        HUB,
+        JAIL_CENTER,
+        MOB_TOOLS
     }
 
     private AdminSubMenu() {
