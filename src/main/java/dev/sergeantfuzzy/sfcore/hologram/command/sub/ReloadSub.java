@@ -1,5 +1,6 @@
 package dev.sergeantfuzzy.sfcore.hologram.command.sub;
 
+import dev.sergeantfuzzy.sfcore.hologram.HoloMessages;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloContext;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloSubCommand;
 import org.bukkit.command.CommandSender;
@@ -30,8 +31,8 @@ public final class ReloadSub implements HoloSubCommand {
         long start = System.nanoTime();
         ctx.service().reload();
         double ms = (System.nanoTime() - start) / 1_000_000.0;
-        sender.sendMessage(String.format("§6§lSF-Core Holograms §8› §areloaded in §f%.2fms§a • backend: §f%s",
-                ms, ctx.service().getBackend() == null ? "dormant" : ctx.service().getBackend().describe()));
+        sender.sendMessage(HoloMessages.inline(String.format("§areloaded in §f%.2fms§a • backend: §f%s",
+                ms, ctx.service().getBackend() == null ? "dormant" : ctx.service().getBackend().describe())));
         return true;
     }
 

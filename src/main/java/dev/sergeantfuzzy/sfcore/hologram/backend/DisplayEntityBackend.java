@@ -81,6 +81,18 @@ public final class DisplayEntityBackend implements HologramBackend {
             entities.add(entity);
             entityIds.add(entity.getEntityId());
         }
+
+        // Phase 5 — block-display board behind the text. The board entity
+        // shares the hologram's billboard so it tracks the same orientation
+        // as the line stack, sitting slightly behind on entity-local Z.
+        if (settings.isBoardEnabled()) {
+            Entity board = spawnBoard(world, origin, settings, lineSpacing, lines.size());
+            if (board != null) {
+                entities.add(board);
+                entityIds.add(board.getEntityId());
+            }
+        }
+
         spawnedByHologram.put(hologramKey(hologram), entities);
         hologram.setEntityIds(entityIds);
 
@@ -248,6 +260,76 @@ public final class DisplayEntityBackend implements HologramBackend {
             INIT.setItemStack.invoke(entity, stack);
         }
         return entity;
+    }
+
+    /**
+     * Spawns the configured block-display board, sized via Transformation so a
+     * single {@code BlockDisplay} entity carries the whole rectangle.
+     *
+     * <p>The board sits in entity-local space: translation pulls the model
+     * back along {@code -Z} by {@code offsetBack}, shifts left by half its
+     * width so it stays centered, and vertically aligns with the line stack;
+     * scale stretches the unit block to {@code (width, height, depth)}.
+     * Because both the board and the text lines run the same billboard, the
+     * board rotates with them and stays behind the text on every viewer.
+     */
+    private Entity spawnBoard(World world, Location origin, HologramSettings settings,
+                              double lineSpacing, int lineCount) {
+        if (INIT.blockDisplay == null || INIT.setBlock == null
+                || INIT.materialCreateBlockData == null || INIT.setTransformation == null
+                || INIT.transformationCtor == null || INIT.vector3fCtor == null
+                || INIT.quaternionfCtor == null) {
+            return null;
+        }
+        Material material = Material.matchMaterial(settings.getBoardMaterial());
+        if (material == null || !material.isBlock()) {
+            // Fall back to STONE — every version since 1.8 has it and isBlock()-true.
+            // WHITE_CONCRETE only exists on 1.13+ so we can't reference it directly
+            // without breaking the legacy compile target.
+            material = Material.STONE;
+        }
+        try {
+            Entity entity = (Entity) INIT.worldSpawn.invoke(world, origin.clone(), INIT.blockDisplay);
+            Object blockData = INIT.materialCreateBlockData.invoke(material);
+            INIT.setBlock.invoke(entity, blockData);
+
+            // Match the text's billboard + view range so visibility tracks together.
+            if (INIT.setBillboard != null && INIT.billboardEnum != null) {
+                Object enumValue = enumValueOf(INIT.billboardEnum, settings.getBillboard().name());
+                if (enumValue != null) {
+                    INIT.setBillboard.invoke(entity, enumValue);
+                }
+            }
+            if (INIT.setViewRange != null) {
+                float vr = (float) Math.min(64.0, Math.max(1.0, settings.getShowRange() / 16.0));
+                INIT.setViewRange.invoke(entity, vr);
+            }
+
+            float width = (float) (settings.getBoardWidth() * settings.getScale());
+            float configuredHeight = (float) settings.getBoardHeight();
+            float height;
+            if (configuredHeight > 0f) {
+                height = (float) (configuredHeight * settings.getScale());
+            } else {
+                // Auto-fit to the line stack with a small margin above + below.
+                float stackHeight = (float) (Math.max(1, lineCount) * lineSpacing + 0.2);
+                height = stackHeight;
+            }
+            float depth = 0.05f;
+            float midY = (float) ((Math.max(1, lineCount) - 1) * lineSpacing / 2.0 + 0.1);
+            float backOffset = (float) settings.getBoardOffsetBack();
+
+            Object translation = INIT.vector3fCtor.newInstance(-width / 2f, midY - height / 2f, -backOffset - depth);
+            Object leftRotation = INIT.quaternionfCtor.newInstance(0f, 0f, 0f, 1f);
+            Object scaleVec = INIT.vector3fCtor.newInstance(width, height, depth);
+            Object rightRotation = INIT.quaternionfCtor.newInstance(0f, 0f, 0f, 1f);
+            Object transformation = INIT.transformationCtor.newInstance(translation, leftRotation, scaleVec, rightRotation);
+            INIT.setTransformation.invoke(entity, transformation);
+            return entity;
+        } catch (Throwable throwable) {
+            plugin.getLogger().warning("[Holograms] Failed to spawn board: " + throwable.getMessage());
+            return null;
+        }
     }
 
     private Entity spawnBlock(World world, Location loc, HologramLine.BlockLine line, HologramSettings settings) throws Exception {

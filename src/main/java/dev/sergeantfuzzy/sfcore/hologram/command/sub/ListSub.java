@@ -1,5 +1,6 @@
 package dev.sergeantfuzzy.sfcore.hologram.command.sub;
 
+import dev.sergeantfuzzy.sfcore.hologram.HoloMessages;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloContext;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloSubCommand;
 import dev.sergeantfuzzy.sfcore.hologram.model.Hologram;
@@ -32,8 +33,8 @@ public final class ListSub implements HoloSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         Collection<Hologram> all = ctx.service().getRegistry().all();
-        sender.sendMessage("§6§lSF-Core Holograms §8› §7" + all.size() + " loaded");
-        sender.sendMessage("§8──────────────────────────────");
+        sender.sendMessage(HoloMessages.header(all.size() + " loaded"));
+        sender.sendMessage(HoloMessages.DIVIDER);
         if (all.isEmpty()) {
             sender.sendMessage("§7  (none — use §f/holo create §7to make one)");
             return true;

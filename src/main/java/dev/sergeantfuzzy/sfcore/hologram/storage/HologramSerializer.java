@@ -57,6 +57,11 @@ public final class HologramSerializer {
         settings.set("interaction-cooldown-ms", s.getInteractionCooldownMs());
         settings.set("view-permission", s.getViewPermission());
         settings.set("hide-behind-walls", s.isHideBehindWalls());
+        settings.set("board-enabled", s.isBoardEnabled());
+        settings.set("board-material", s.getBoardMaterial());
+        settings.set("board-width", s.getBoardWidth());
+        settings.set("board-height", s.getBoardHeight());
+        settings.set("board-offset-back", s.getBoardOffsetBack());
 
         List<HologramLine> lines = hologram.getLines();
         java.util.List<Map<String, Object>> serializedLines = new java.util.ArrayList<>(lines.size());
@@ -142,6 +147,14 @@ public final class HologramSerializer {
             s.setInteractionCooldownMs(settings.getLong("interaction-cooldown-ms", 500L));
             s.setViewPermission(settings.getString("view-permission"));
             s.setHideBehindWalls(settings.getBoolean("hide-behind-walls", false));
+            s.setBoardEnabled(settings.getBoolean("board-enabled", false));
+            String boardMat = settings.getString("board-material");
+            if (boardMat != null && !boardMat.isEmpty()) {
+                s.setBoardMaterial(boardMat);
+            }
+            s.setBoardWidth(settings.getDouble("board-width", 1.5));
+            s.setBoardHeight(settings.getDouble("board-height", 0.0));
+            s.setBoardOffsetBack(settings.getDouble("board-offset-back", 0.05));
         }
         List<?> lineList = section.getList("lines");
         if (lineList != null) {

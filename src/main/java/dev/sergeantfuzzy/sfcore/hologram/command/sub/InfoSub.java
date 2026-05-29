@@ -1,5 +1,6 @@
 package dev.sergeantfuzzy.sfcore.hologram.command.sub;
 
+import dev.sergeantfuzzy.sfcore.hologram.HoloMessages;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloContext;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloSubCommand;
 import dev.sergeantfuzzy.sfcore.hologram.model.Hologram;
@@ -32,7 +33,8 @@ public final class InfoSub implements HoloSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage("§6§lSF-Core Holograms");
+            sender.sendMessage(HoloMessages.header("Module overview"));
+            sender.sendMessage(HoloMessages.DIVIDER);
             sender.sendMessage("§7Backend: §f" + ctx.service().getBackend().describe());
             sender.sendMessage("§7Loaded holograms: §f" + ctx.service().getRegistry().size());
             sender.sendMessage("§7Packet layer: §f"
@@ -45,8 +47,8 @@ public final class InfoSub implements HoloSubCommand {
         }
         Location loc = hologram.getLocation();
         HologramSettings s = hologram.getSettings();
-        sender.sendMessage("§6§lHologram §8› §f" + hologram.getId().value());
-        sender.sendMessage("§8──────────────────────────────");
+        sender.sendMessage(HoloMessages.header(hologram.getId().value()));
+        sender.sendMessage(HoloMessages.DIVIDER);
         sender.sendMessage(String.format("§7Location: §f%s §8• §f%.2f, %.2f, %.2f §8(yaw §f%.0f§8)",
                 loc.getWorld() == null ? "?" : loc.getWorld().getName(),
                 loc.getX(), loc.getY(), loc.getZ(), loc.getYaw()));
@@ -56,6 +58,12 @@ public final class InfoSub implements HoloSubCommand {
                 s.getShowRange(), s.getUpdateRange(), s.isSeeThrough(), s.hasShadow()));
         sender.sendMessage(String.format("§7Alignment: §f%s §8• §7Text opacity: §f%d §8• §7Line width: §f%d",
                 s.getTextAlignment().name(), s.getTextOpacity(), s.getLineWidth()));
+        sender.sendMessage(String.format("§7Board: %s §8· §f%s §8· §f%.2f §7× §f%s §8· §7back §f%.2f",
+                s.isBoardEnabled() ? "§aenabled" : "§cdisabled",
+                s.getBoardMaterial(),
+                s.getBoardWidth(),
+                s.getBoardHeight() <= 0.0 ? "auto" : String.format("%.2f", s.getBoardHeight()),
+                s.getBoardOffsetBack()));
         sender.sendMessage("§7Lines:");
         List<HologramLine> lines = hologram.getLines();
         for (int i = 0; i < lines.size(); i++) {

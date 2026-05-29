@@ -193,8 +193,8 @@ public final class HologramCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage("§6§lSF-Core Holograms §8› §7subcommands");
-        sender.sendMessage("§8──────────────────────────────");
+        sender.sendMessage(dev.sergeantfuzzy.sfcore.hologram.HoloMessages.header("subcommands"));
+        sender.sendMessage(dev.sergeantfuzzy.sfcore.hologram.HoloMessages.DIVIDER);
         sender.sendMessage("§e/holo create §f<id> §7[text]   §8• new hologram");
         sender.sendMessage("§e/holo delete §f<id>            §8• remove a hologram");
         sender.sendMessage("§e/holo list                     §8• list all");

@@ -1,5 +1,6 @@
 package dev.sergeantfuzzy.sfcore.hologram.command.sub;
 
+import dev.sergeantfuzzy.sfcore.hologram.HoloMessages;
 import dev.sergeantfuzzy.sfcore.hologram.anim.AnimationConfig;
 import dev.sergeantfuzzy.sfcore.hologram.anim.AnimationRegistry;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloContext;
@@ -47,7 +48,7 @@ public final class AnimSub implements HoloSubCommand {
         String op = args[1].toLowerCase();
         switch (op) {
             case "list":
-                sender.sendMessage("§6§lAnimations §8› §f" + hologram.getId().value());
+                sender.sendMessage(HoloMessages.header(hologram.getId().value() + " §8· §7animations"));
                 if (hologram.getAnimationConfigs().isEmpty()) {
                     sender.sendMessage("§7  (none)");
                 } else {

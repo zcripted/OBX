@@ -1,5 +1,6 @@
 package dev.sergeantfuzzy.sfcore.hologram.command.sub;
 
+import dev.sergeantfuzzy.sfcore.hologram.HoloMessages;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloContext;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloSubCommand;
 import dev.sergeantfuzzy.sfcore.hologram.model.Hologram;
@@ -51,7 +52,7 @@ public final class AimGuiSub implements HoloSubCommand {
             ctx.msg(sender, "hologram.error.no_aim_target");
             return true;
         }
-        sender.sendMessage("§6§lAim §8› §7Closest hologram: §f" + target.getId().value());
+        sender.sendMessage(HoloMessages.inline("§7Closest hologram: §f" + target.getId().value()));
         return true;
     }
 
