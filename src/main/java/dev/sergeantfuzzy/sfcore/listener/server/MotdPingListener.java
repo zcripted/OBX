@@ -439,6 +439,8 @@ public class MotdPingListener implements Listener {
         /** GAME_PROFILE_WRAP only: how a raw GameProfile becomes a CraftPlayerProfile. */
         private final Constructor<?> wrapperCtor;
         private final Method wrapperMethod;
+        /** First failure captured from build(), so subsequent diagnostics carry the cause. */
+        private volatile String firstFailure;
 
         private ProfileFactory(Strategy strategy, Class<?> sampleType, Constructor<?> constructor, ProfileSource profileSource) {
             this(strategy, sampleType, constructor, profileSource, null, null);
@@ -456,11 +458,12 @@ public class MotdPingListener implements Listener {
 
         /** Compact description used by the one-time ping diagnostic. */
         String describe() {
-            return (strategy == null ? "NONE" : strategy.name())
+            String base = (strategy == null ? "NONE" : strategy.name())
                     + (constructor != null ? "+ctor" : "")
                     + (profileSource != null ? "+src" : "")
                     + (wrapperCtor != null ? "+wrapCtor" : "")
                     + (wrapperMethod != null ? "+wrapFn" : "");
+            return firstFailure == null ? base : base + "; first-fail=" + firstFailure;
         }
 
         static ProfileFactory resolve(Main plugin, Class<?> sampleType) {
@@ -608,11 +611,28 @@ public class MotdPingListener implements Listener {
                     case GAME_PROFILE:
                         return constructor.newInstance(uuid, value);
                     case GAME_PROFILE_WRAP: {
-                        Object gameProfile = constructor.newInstance(uuid, value);
+                        // Build the GameProfile with a name-safe stub so any
+                        // validation in either the authlib ctor or the
+                        // CraftPlayerProfile wrapper accepts it. The coloured
+                        // MOTD hover text is what newer Paper rejects in the
+                        // wrapper — that rejection is the "PlayerProfile:
+                        // no-build(GAME_PROFILE_WRAP+ctor+wrapCtor)" failure.
+                        // After wrapping, overwrite the underlying
+                        // GameProfile.name field directly so the rendered
+                        // sample carries the actual hover text. The wrapper
+                        // delegates getName() to the underlying profile, so
+                        // the post-construction write is what the client
+                        // ultimately sees.
+                        String stub = stubName(uuid);
+                        Object gameProfile = constructor.newInstance(uuid, stub);
+                        Object wrapped;
                         if (wrapperCtor != null) {
-                            return wrapperCtor.newInstance(gameProfile);
+                            wrapped = wrapperCtor.newInstance(gameProfile);
+                        } else {
+                            wrapped = wrapperMethod.invoke(null, gameProfile);
                         }
-                        return wrapperMethod.invoke(null, gameProfile);
+                        injectGameProfileName(gameProfile, value);
+                        return wrapped;
                     }
                     case PLAYER_PROFILE:
                         return profileSource.create(plugin, uuid, value);
@@ -621,9 +641,54 @@ public class MotdPingListener implements Listener {
                     default:
                         return null;
                 }
-            } catch (Throwable ignored) {
+            } catch (Throwable t) {
+                if (firstFailure == null) {
+                    Throwable root = t;
+                    while (root instanceof java.lang.reflect.InvocationTargetException && root.getCause() != null) {
+                        root = root.getCause();
+                    }
+                    String message = root.getMessage();
+                    firstFailure = root.getClass().getSimpleName()
+                            + (message == null ? "" : ":" + (message.length() > 80 ? message.substring(0, 80) + "…" : message));
+                }
                 return null;
             }
+        }
+
+        /**
+         * Returns a Minecraft-name-shaped stub (≤16 chars, {@code [A-Za-z0-9_]})
+         * derived from the synthesised UUID. Used as a placeholder when
+         * building the GameProfile before wrapping into a CraftPlayerProfile;
+         * the wrapper validates against this clean name and only the real
+         * hover text — written into the underlying GameProfile via
+         * {@link #injectGameProfileName} after the wrapper succeeds — is
+         * what gets rendered.
+         */
+        private static String stubName(UUID uuid) {
+            long n = (uuid.getLeastSignificantBits() ^ uuid.getMostSignificantBits()) & 0x7FFFFFFFL;
+            return "MOTD_" + n; // "MOTD_" (5) + up to 10 digits = up to 15 chars
+        }
+
+        /**
+         * Reflectively overwrites the {@code name} String field on the
+         * {@code com.mojang.authlib.GameProfile} (or any superclass) so the
+         * rendered hover sample shows the actual MOTD text rather than the
+         * stub used to satisfy validation at wrapper-construction time.
+         * Throws on failure so the outer build() catch records the cause.
+         */
+        private static void injectGameProfileName(Object gameProfile, String name) throws Exception {
+            Class<?> current = gameProfile.getClass();
+            while (current != null) {
+                for (Field field : current.getDeclaredFields()) {
+                    if (field.getType() == String.class && "name".equals(field.getName())) {
+                        field.setAccessible(true);
+                        field.set(gameProfile, name);
+                        return;
+                    }
+                }
+                current = current.getSuperclass();
+            }
+            throw new NoSuchFieldException("com.mojang.authlib.GameProfile.name");
         }
 
         private Object[] buildArguments(Main plugin, Class<?>[] paramTypes, UUID uuid, String value) {
