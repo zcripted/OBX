@@ -285,6 +285,11 @@ commands:
     description: Open your Satchel personal storage.
     usage: "/<command>"
     permission: sfcore.enchants.use
+  holo:
+    description: Manage SF-Core holograms.
+    aliases: [hg, hologram]
+    usage: "/<command> <subcommand> [args]"
+    permission: sfcore.holo.use
 permissions:
   sfcore.*:
     description: Grants access to all SF-Core permissions.
@@ -333,6 +338,7 @@ permissions:
       sfcore.admin.menu: true
       sfcore.version: true
       sfcore.language: true
+      sfcore.holo.*: true
   sfcore.help:
     description: Allows access to /sf help.
     default: true
@@ -787,6 +793,50 @@ permissions:
     default: true
   sfcore.enchants.book:
     description: Allows receiving and using the categorized Codex guide books (hover, click-to-learn, click-to-apply).
+    default: op
+  sfcore.holo.*:
+    description: Grants full access to the SF-Core holograms module.
+    default: op
+    children:
+      sfcore.holo.use: true
+      sfcore.holo.admin: true
+      sfcore.holo.create: true
+      sfcore.holo.delete: true
+      sfcore.holo.edit: true
+      sfcore.holo.list: true
+      sfcore.holo.info: true
+      sfcore.holo.tp: true
+      sfcore.holo.interact: true
+      sfcore.holo.gui: true
+  sfcore.holo.use:
+    description: Allows running /holo at all (base permission — subcommands are gated separately).
+    default: true
+  sfcore.holo.admin:
+    description: Allows administrative hologram subcommands (enable/disable/reload). Op-only.
+    default: op
+  sfcore.holo.create:
+    description: Allows creating new holograms via /holo create.
+    default: op
+  sfcore.holo.delete:
+    description: Allows deleting holograms via /holo delete.
+    default: op
+  sfcore.holo.edit:
+    description: Allows editing holograms (lines / settings / animations).
+    default: op
+  sfcore.holo.list:
+    description: Allows listing holograms via /holo list.
+    default: op
+  sfcore.holo.info:
+    description: Allows viewing hologram metadata via /holo info.
+    default: op
+  sfcore.holo.tp:
+    description: Allows teleporting to and from holograms via /holo tp.
+    default: op
+  sfcore.holo.interact:
+    description: Allows configuring hologram interaction (Phase 4).
+    default: op
+  sfcore.holo.gui:
+    description: Allows opening the hologram editor GUI (Phase 7).
     default: op
 #
 #

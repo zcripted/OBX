@@ -1,0 +1,64 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SF-Core Holograms
+# ────────────────────────────────────────────────────────────────────────────
+# Custom hologram system — no ProtocolLib / PacketEvents / external runtime
+# dependencies. Renders through real display entities on Paper / Spigot 1.19.4+
+# (TextDisplay / BlockDisplay / ItemDisplay) and through invisible marker
+# armor stands on 1.12 → 1.19.3. Optional custom Netty channel layer captures
+# inbound click packets when finer interaction than raycast is required.
+#
+# Toggle surfaces — all converge on the same runtime flag and write back here
+# when changed in-game:
+#   • Command : /holo enable | disable | toggle  (Phase 2+, sfcore.holo.admin)
+#   • Config  : edit `enabled` below and run /sf reload
+#
+# Holograms persist in a separate file (`holograms.yml` at the data-folder
+# root, created by the storage layer in Phase 2). This file holds the
+# subsystem's master flag + tunables, mirroring the systems/hub.yml pattern.
+# ════════════════════════════════════════════════════════════════════════════
+
+# Master toggle. When false the entire module is dormant — no backend is
+# selected, no listeners run, no tick loop is scheduled. Identical idiom to
+# systems/hub.yml.
+enabled: false
+
+# Viewer tracker tick interval. Smaller = snappier range/visibility updates,
+# larger = cheaper. Range 1–20. Default 5 ticks = 4 Hz, more than enough for
+# 50-block visibility ranges.
+view-update-ticks: 5
+
+# Soft cap on per-viewer entities for lines with per-player text. When a
+# hologram has more viewers than this number it falls back to shared text
+# mode (server-wide placeholder evaluation, one entity) and logs an info
+# notice. Raise on dedicated lobby hardware, lower for survival servers.
+per-viewer-soft-cap: 64
+
+# Default ranges applied to newly-created holograms. Operators may override
+# per-hologram via `/holo showrange <holo> <distance>` (Phase 2).
+defaults:
+  show-range: 48
+  update-range: 64
+  scale: 1.0
+  billboard: CENTER
+  double-sided: true
+
+# Interaction defaults — see plan §F / Phase 4 for the full feature set.
+interaction:
+  # Soft cooldown applied between successive clicks per player per hologram,
+  # in milliseconds. Keeps spam-clicked commands from running away.
+  default-cooldown-ms: 500
+  # Default look-direction raycast frequency when the custom packet layer is
+  # unavailable. 4 Hz balances feel with cost; lower for very large servers.
+  raycast-hz: 4
+  # Per-(player, hologram) wall-occlusion cache lifetime in ticks (Phase 6).
+  occlusion-cache-ticks: 5
+
+# Logging knobs. Turn on `debug-spawns` to print one line every time a viewer
+# is added/removed — useful when diagnosing visibility-cull bugs.
+logging:
+  debug-spawns: false
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

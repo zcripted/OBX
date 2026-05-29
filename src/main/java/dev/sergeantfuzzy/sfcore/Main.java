@@ -171,6 +171,8 @@ public class Main extends JavaPlugin {
     private dev.sergeantfuzzy.sfcore.enchant.service.HoloFXService holoFX;
     private dev.sergeantfuzzy.sfcore.enchant.service.ReactiveSpecialsService reactiveSpecials;
     private dev.sergeantfuzzy.sfcore.enchant.service.CombatHudService combatHud;
+    private dev.sergeantfuzzy.sfcore.hologram.service.HologramService hologramService;
+    private dev.sergeantfuzzy.sfcore.hologram.gui.HologramEditorMenu hologramEditorMenu;
     private String releaseDate = "Unknown";
     private long lastLoadDurationMs;
 
@@ -250,6 +252,12 @@ public class Main extends JavaPlugin {
         combatHud.start();
         enchantBoundMovement = new BoundMovement(enchantService.getStorage());
         enchantTickTask = new EnchantTickTask(this, enchantBoundMovement);
+
+        // Holograms module. Dormant when systems/holograms.yml master enabled=false.
+        // Renders via real display entities on 1.19.4+, armor-stand fallback below.
+        hologramService = new dev.sergeantfuzzy.sfcore.hologram.service.HologramService(this);
+        hologramService.load();
+        hologramEditorMenu = new dev.sergeantfuzzy.sfcore.hologram.gui.HologramEditorMenu(this);
 
         registerCommands();
         registerListeners();
@@ -340,6 +348,10 @@ public class Main extends JavaPlugin {
         }
         if (moderationService != null) {
             moderationService.save();
+        }
+        if (hologramService != null) {
+            hologramService.shutdown();
+            hologramService.save();
         }
         printBanner(false);
     }
@@ -472,6 +484,10 @@ public class Main extends JavaPlugin {
         return enchantAdminMenu;
     }
 
+    public dev.sergeantfuzzy.sfcore.hologram.service.HologramService getHologramService() {
+        return hologramService;
+    }
+
     /**
      * Reloads the world-loot generation listener. The loot subsystem (Phase 4)
      * registers itself here once wired in; until then this is a safe no-op so the
@@ -537,6 +553,9 @@ public class Main extends JavaPlugin {
         }
         if (enchantLoot != null) {
             s = System.nanoTime(); enchantLoot.reload(); times.put("enchant-loot", System.nanoTime() - s);
+        }
+        if (hologramService != null) {
+            s = System.nanoTime(); hologramService.reload(); times.put("holograms.yml", System.nanoTime() - s);
         }
         return times;
     }
@@ -605,6 +624,7 @@ public class Main extends JavaPlugin {
         bind("enchants", new EnchantsBrowseCommand(this));
         bind("recall", new RecallCommand(this, enchantState));
         bind("satchel", new SatchelCommand(this, enchantState));
+        bind("holo", new dev.sergeantfuzzy.sfcore.hologram.command.HologramCommand(this, hologramService));
     }
 
     private void registerListeners() {
@@ -668,6 +688,18 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.OnDeathListener(this), this);
         getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.RangedListener(this, combatState, combatParticles, reactiveSpecials, combatHud), this);
         getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.enchant.listener.ReactiveSpecialsListener(this, combatState, reactiveSpecials), this);
+
+        // Holograms module listeners — re-shows holograms on join / respawn / world-change / resource-pack reload.
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.hologram.listener.HologramJoinListener(this, hologramService), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.hologram.listener.HologramResourcePackListener(this, hologramService), this);
+        getServer().getPluginManager().registerEvents(new dev.sergeantfuzzy.sfcore.hologram.listener.HologramConnectionListener(this, hologramService), this);
+        if (hologramEditorMenu != null) {
+            getServer().getPluginManager().registerEvents(hologramEditorMenu, this);
+        }
+    }
+
+    public dev.sergeantfuzzy.sfcore.hologram.gui.HologramEditorMenu getHologramEditorMenu() {
+        return hologramEditorMenu;
     }
 
     private void bind(String name, CommandExecutor executor) {

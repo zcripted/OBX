@@ -247,4 +247,37 @@ not assigned to a `/help` filter and surface under **Other** in the GUI.
 | `/staff` | Command: /staffmenu, /sm | `/staff` | `/staff` | Wildcard for the staff overview menu and its actions. | op | `sfcore.staff.*` |
 | `/hub` | Command: /lobby | `/hub <subcommand>` | `/hub on` | Wildcard for every hub / lobby permission (use + all hotbar items + admin). | op | `sfcore.hub.*` |
 | `/sfench` | Command: /sfenchant, /sfe | `/sfench <subcommand>` | `/sfench admin` | Wildcard for the full Arcanum module (admin/give/apply/list/reload/loot/debug/use/browse/book). | op | `sfcore.enchants.*` |
+| `/holo` | Command: /hg, /hologram | `/holo <subcommand>` | `/holo create welcome` | Wildcard for the full hologram module (create/edit/delete/admin). | op | `sfcore.holo.*` |
 | `N/A` | `--` | `--` | `--` | Wildcard for all SF-Core permissions. | op | `sfcore.*` |
+| `--` | `--` | `--` | `--` | **Holograms — admin** | `--` | `--` |
+| `/holo` | Command: /hg, /hologram | `/holo <subcommand>` | `/holo list` | Root command for the SF-Core holograms module. The base command itself only requires `sfcore.holo.use`; each subcommand is gated by its own node below. | true | `sfcore.holo.use` |
+| `/holo create` | Command: /hg, /hologram | `/holo create <id> [text]` | `/holo create welcome &6Welcome` | Create a new hologram at the caller's location with an optional first line. Persists to `holograms.yml`. | op | `sfcore.holo.create` |
+| `/holo delete` | Command: /hg, /hologram | `/holo delete <id>` | `/holo delete welcome` | Despawn and remove a hologram from disk. | op | `sfcore.holo.delete` |
+| `/holo list` | Command: /hg, /hologram | `/holo list` | `/holo list` | List every registered hologram with its world / coordinates / line count. | op | `sfcore.holo.list` |
+| `/holo info` | Command: /hg, /hologram | `/holo info [id]` | `/holo info welcome` | Show module info (no id) or full settings + lines for a single hologram. | op | `sfcore.holo.info` |
+| `/holo tp` | Command: /hg, /hologram | `/holo tp <id>` | `/holo tp welcome` | Teleport to a hologram's stored location. | op | `sfcore.holo.tp` |
+| `/holo move` | Command: /hg, /hologram | `/holo move <id> <x> <y> <z> [yaw] [world]` | `/holo move welcome 0 65 0 0 world` | Reposition a hologram to explicit coordinates. | op | `sfcore.holo.edit` |
+| `/holo movehere` | Command: /hg, /hologram | `/holo movehere <id>` | `/holo movehere welcome` | Move a hologram to the caller's current location (+2y). | op | `sfcore.holo.edit` |
+| `/holo copy` | Command: /hg, /hologram | `/holo copy <src> <dest>` | `/holo copy welcome welcome2` | Duplicate a hologram with all lines and settings, placed at the caller. | op | `sfcore.holo.create` |
+| `/holo line add` | Command: /hg, /hologram | `/holo line add <id> <text…\|icon <mat>\|block <mat>>` | `/holo line add welcome &eHello` | Append a line. Use `icon <material>` or `block <material>` for non-text lines. | op | `sfcore.holo.edit` |
+| `/holo line set` | Command: /hg, /hologram | `/holo line set <id> <index> <value…>` | `/holo line set welcome 1 &fNew` | Replace the line at 1-based index. | op | `sfcore.holo.edit` |
+| `/holo line remove` | Command: /hg, /hologram | `/holo line remove <id> <index>` | `/holo line remove welcome 2` | Remove the line at 1-based index. Alias: `delete`. | op | `sfcore.holo.edit` |
+| `/holo line insertbefore` | Command: /hg, /hologram | `/holo line insertbefore <id> <index> <value…>` | `/holo line insertbefore welcome 2 &7Inserted` | Insert before the given line. Alias: `before`. | op | `sfcore.holo.edit` |
+| `/holo line insertafter` | Command: /hg, /hologram | `/holo line insertafter <id> <index> <value…>` | `/holo line insertafter welcome 1 &7Inserted` | Insert after the given line. Alias: `after`. | op | `sfcore.holo.edit` |
+| `/holo line swap` | Command: /hg, /hologram | `/holo line swap <id> <a> <b>` | `/holo line swap welcome 1 3` | Swap two lines. | op | `sfcore.holo.edit` |
+| `/holo scale` | Command: /hg, /hologram | `/holo scale <id> <factor>` | `/holo scale welcome 1.5` | Set the hologram scale factor (0.05–20.0). | op | `sfcore.holo.edit` |
+| `/holo billboard` | Command: /hg, /hologram | `/holo billboard <id> <FIXED\|VERTICAL\|HORIZONTAL\|CENTER>` | `/holo billboard welcome CENTER` | Set the billboard mode. | op | `sfcore.holo.edit` |
+| `/holo background` | Command: /hg, /hologram | `/holo background <id> <ARGB\|transparent\|none>` | `/holo background welcome 80FF0000` | Set the text background colour. | op | `sfcore.holo.edit` |
+| `/holo textalpha` | Command: /hg, /hologram | `/holo textalpha <id> <0-255>` | `/holo textalpha welcome 200` | Set text opacity. | op | `sfcore.holo.edit` |
+| `/holo shadow` | Command: /hg, /hologram | `/holo shadow <id> <true\|false>` | `/holo shadow welcome true` | Toggle drop shadow on text. | op | `sfcore.holo.edit` |
+| `/holo alignment` | Command: /hg, /hologram | `/holo alignment <id> <CENTER\|LEFT\|RIGHT>` | `/holo alignment welcome LEFT` | Set text alignment within the line. | op | `sfcore.holo.edit` |
+| `/holo seethrough` | Command: /hg, /hologram | `/holo seethrough <id> <true\|false>` | `/holo seethrough welcome true` | Toggle see-through-walls rendering. | op | `sfcore.holo.edit` |
+| `/holo doublesided` | Command: /hg, /hologram | `/holo doublesided <id> <true\|false>` | `/holo doublesided welcome false` | Toggle front/back culling (false → only the front is visible). | op | `sfcore.holo.edit` |
+| `/holo showrange` | Command: /hg, /hologram | `/holo showrange <id> <blocks>` | `/holo showrange welcome 32` | Visibility distance in blocks. | op | `sfcore.holo.edit` |
+| `/holo updaterange` | Command: /hg, /hologram | `/holo updaterange <id> <blocks>` | `/holo updaterange welcome 48` | Per-viewer text refresh distance (≥ showrange). | op | `sfcore.holo.edit` |
+| `/holo board` | Command: /hg, /hologram | `/holo board <id> <…>` | `/holo board welcome enable true` | Configure the block-display slab backing (Phase 5). | op | `sfcore.holo.edit` |
+| `/holo aim` | Command: /hg, /hologram | `/holo aim` | `/holo aim` | Resolve the hologram closest to the caller's look direction (within 12 blocks). | op | `sfcore.holo.edit` |
+| `/holo enable` | Command: /hg, /hologram | `/holo enable` | `/holo enable` | Flip the master flag in `systems/holograms.yml → enabled: true` and reload. | op | `sfcore.holo.admin` |
+| `/holo disable` | Command: /hg, /hologram | `/holo disable` | `/holo disable` | Flip the master flag to `false` and tear down live entities. | op | `sfcore.holo.admin` |
+| `/holo reload` | Command: /hg, /hologram | `/holo reload` | `/holo reload` | Reload `systems/holograms.yml` and re-spawn every hologram. | op | `sfcore.holo.admin` |
+| `/holo debug` | Command: /hg, /hologram | `/holo debug [id]` | `/holo debug` | Spawn / toggle a built-in test hologram showing backend identity. | op | `sfcore.holo.admin` |

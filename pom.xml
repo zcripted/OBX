@@ -54,6 +54,21 @@
             <version>${bungeecord.chat.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!--
+          Netty is part of every Paper / Spigot / Folia runtime — the holograms
+          module's custom packet layer (Phase 4 of planning/brainstorming.txt)
+          accesses ChannelPipeline / ChannelDuplexHandler to read inbound
+          ServerboundInteract packets. Scope is provided so nothing is bundled
+          in our jar — we only need the symbols at compile time. NOT a plugin
+          dependency; netty is a server library every supported MC version
+          (1.8 → 1.21+) ships transparently.
+        -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.97.Final</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

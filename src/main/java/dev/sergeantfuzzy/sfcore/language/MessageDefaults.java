@@ -33,6 +33,9 @@ public final class MessageDefaults {
         section("gamemode",
                 "Gamemode change feedback and errors.",
                 "Rückmeldungen zum Wechsel des Spielmodus.");
+        section("hologram",
+                "Hologram module feedback (creation, editing, errors, interaction).",
+                "Hologramm-Modul-Rückmeldungen (Erstellen, Bearbeiten, Fehler, Interaktion).");
         section("hub",
                 "Hub / lobby system messages.",
                 "Nachrichten des Hub- / Lobby-Systems.");
@@ -1645,6 +1648,136 @@ public final class MessageDefaults {
         add("enchant.recall.bound", "{prefix}&aRecall point bound to your current location.", "{prefix}&aRückrufpunkt auf deine aktuelle Position gesetzt.");
         add("enchant.recall.teleported", "{prefix}&aRecalled to your bound location.", "{prefix}&aZu deinem Rückrufpunkt teleportiert.");
         add("enchant.satchel.none", "{prefix}&cYou must be wearing a helmet or chestplate with &5Satchel&c.", "{prefix}&cDu musst einen Helm oder Brustpanzer mit &5Satchel&c tragen.");
+
+        // ── Holograms ────────────────────────────────────────────────────
+        // Module prefix — mirrors enchant.prefix / inbox.prefix styling so the
+        // module reads as its own surface. Math-bold HOLOGRAMS in cyan
+        // (&#22D3EE renders on 1.16+), holographic glyph ✦, ➠ arrow.
+        add("hologram.prefix",
+                "&#22D3EE✦ 𝗛𝗢𝗟𝗢𝗚𝗥𝗔𝗠𝗦 &8➠ &7",
+                "&#22D3EE✦ 𝗛𝗢𝗟𝗢𝗚𝗥𝗔𝗠𝗠𝗘 &8➠ &7");
+        add("hologram.module.dormant",
+                "{prefix}&7Hologram module is &edormant&7 — set &fenabled: true&7 in &fsystems/holograms.yml&7.",
+                "{prefix}&7Hologramm-Modul ist &einaktiv&7 — setze &fenabled: true&7 in &fsystems/holograms.yml&7.");
+        add("hologram.module.enabled",
+                "{prefix}&aHologram module enabled. Backend: &f{backend}&a.",
+                "{prefix}&aHologramm-Modul aktiviert. Backend: &f{backend}&a.");
+        add("hologram.module.disabled",
+                "{prefix}&eHologram module disabled.",
+                "{prefix}&eHologramm-Modul deaktiviert.");
+        add("hologram.error.module_disabled",
+                "{prefix}&cThe hologram module is disabled. Enable it in &fsystems/holograms.yml&c first.",
+                "{prefix}&cDas Hologramm-Modul ist deaktiviert. Aktiviere es zuerst in &fsystems/holograms.yml&c.");
+        add("hologram.error.backend_unavailable",
+                "{prefix}&cNo hologram backend is available on this server. Reason: &f{reason}&c.",
+                "{prefix}&cAuf diesem Server ist kein Hologramm-Backend verfügbar. Grund: &f{reason}&c.");
+        add("hologram.error.invalid_id",
+                "{prefix}&cInvalid hologram name. Use lowercase letters, digits, &7_&c or &7-&c (1–32 chars).",
+                "{prefix}&cUngültiger Hologramm-Name. Erlaubt: Kleinbuchstaben, Ziffern, &7_&c oder &7-&c (1–32 Zeichen).");
+        add("hologram.error.not_found",
+                "{prefix}&cNo hologram named &f{name}&c.",
+                "{prefix}&cKein Hologramm mit dem Namen &f{name}&c.");
+        add("hologram.error.already_exists",
+                "{prefix}&cA hologram named &f{name}&c already exists.",
+                "{prefix}&cEin Hologramm mit dem Namen &f{name}&c existiert bereits.");
+        add("hologram.debug.spawned",
+                "{prefix}&aDebug hologram &f{name}&a spawned at your location.",
+                "{prefix}&aDebug-Hologramm &f{name}&a an deiner Position erstellt.");
+        add("hologram.debug.removed",
+                "{prefix}&eDebug hologram &f{name}&e removed.",
+                "{prefix}&eDebug-Hologramm &f{name}&e entfernt.");
+        // Phase 2 — command feedback keys.
+        add("hologram.create.success",
+                "{prefix}&aCreated hologram &f{name}&a.",
+                "{prefix}&aHologramm &f{name}&a erstellt.");
+        add("hologram.delete.success",
+                "{prefix}&eRemoved hologram &f{name}&e.",
+                "{prefix}&eHologramm &f{name}&e entfernt.");
+        add("hologram.copy.success",
+                "{prefix}&aCopied to hologram &f{name}&a.",
+                "{prefix}&aZu Hologramm &f{name}&a kopiert.");
+        add("hologram.tp.success",
+                "{prefix}&aTeleported to hologram &f{name}&a.",
+                "{prefix}&aZu Hologramm &f{name}&a teleportiert.");
+        add("hologram.move.success",
+                "{prefix}&aMoved hologram &f{name}&a.",
+                "{prefix}&aHologramm &f{name}&a verschoben.");
+        add("hologram.line.added",
+                "{prefix}&aLine added to &f{name}&a.",
+                "{prefix}&aZeile zu &f{name}&a hinzugefügt.");
+        add("hologram.line.updated",
+                "{prefix}&aLine updated on &f{name}&a.",
+                "{prefix}&aZeile auf &f{name}&a aktualisiert.");
+        add("hologram.line.removed",
+                "{prefix}&eLine removed from &f{name}&e.",
+                "{prefix}&eZeile von &f{name}&e entfernt.");
+        add("hologram.line.inserted",
+                "{prefix}&aLine inserted on &f{name}&a.",
+                "{prefix}&aZeile auf &f{name}&a eingefügt.");
+        add("hologram.line.swapped",
+                "{prefix}&aLines swapped on &f{name}&a.",
+                "{prefix}&aZeilen auf &f{name}&a vertauscht.");
+        add("hologram.setting.updated",
+                "{prefix}&aSetting updated on &f{name}&a.",
+                "{prefix}&aEinstellung auf &f{name}&a aktualisiert.");
+        add("hologram.error.invalid_index",
+                "{prefix}&cInvalid line index. Use the number shown by &f/holo info&c.",
+                "{prefix}&cUngültiger Zeilenindex. Nutze die Nummer aus &f/holo info&c.");
+        add("hologram.error.invalid_material",
+                "{prefix}&cUnknown material. Use a Bukkit material name (e.g. &fDIAMOND&c).",
+                "{prefix}&cUnbekanntes Material. Nutze einen Bukkit-Materialnamen (z. B. &fDIAMOND&c).");
+        add("hologram.error.invalid_number",
+                "{prefix}&cInvalid number.",
+                "{prefix}&cUngültige Zahl.");
+        add("hologram.error.invalid_value",
+                "{prefix}&cInvalid value.",
+                "{prefix}&cUngültiger Wert.");
+        add("hologram.error.world_unknown",
+                "{prefix}&cUnknown world.",
+                "{prefix}&cUnbekannte Welt.");
+        add("hologram.error.no_aim_target",
+                "{prefix}&eNo hologram in your crosshairs (within 12 blocks).",
+                "{prefix}&eKein Hologramm im Fadenkreuz (innerhalb 12 Blöcken).");
+        // Phase 3 — pages + text-feature feedback.
+        add("hologram.page.changed",
+                "{prefix}&aPage set to &f{page}&a / &f{total}&a.",
+                "{prefix}&aSeite auf &f{page}&a / &f{total}&a gesetzt.");
+        add("hologram.page.unknown",
+                "{prefix}&cThat page does not exist for this hologram.",
+                "{prefix}&cDiese Seite existiert für dieses Hologramm nicht.");
+        add("hologram.page.first",
+                "{prefix}&eAlready on the first page.",
+                "{prefix}&eBereits auf der ersten Seite.");
+        add("hologram.page.last",
+                "{prefix}&eAlready on the last page.",
+                "{prefix}&eBereits auf der letzten Seite.");
+        add("hologram.error.player_not_found",
+                "{prefix}&cPlayer &f{name}&c is not online.",
+                "{prefix}&cSpieler &f{name}&c ist nicht online.");
+        // Phase 4 — interaction feedback.
+        add("hologram.interact.cooldown",
+                "{prefix}&eOn cooldown. &f{ms}&e ms remaining.",
+                "{prefix}&eCooldown aktiv. &f{ms}&e ms verbleibend.");
+        add("hologram.interact.no_permission",
+                "{prefix}&cYou don't have permission to interact with that hologram.",
+                "{prefix}&cKeine Berechtigung, mit diesem Hologramm zu interagieren.");
+        add("hologram.interact.disabled",
+                "{prefix}&7Interaction is disabled on that hologram.",
+                "{prefix}&7Interaktion ist auf diesem Hologramm deaktiviert.");
+        // Phase 5 — animations.
+        add("hologram.anim.added",
+                "{prefix}&aAnimation added to &f{name}&a.",
+                "{prefix}&aAnimation zu &f{name}&a hinzugefügt.");
+        add("hologram.anim.removed",
+                "{prefix}&eAnimation removed from &f{name}&e.",
+                "{prefix}&eAnimation von &f{name}&e entfernt.");
+        // Phase 6 — visibility refinements.
+        add("hologram.visibility.hidden",
+                "{prefix}&7Hologram &f{name}&7 hidden for you.",
+                "{prefix}&7Hologramm &f{name}&7 für dich ausgeblendet.");
+        add("hologram.visibility.shown",
+                "{prefix}&aHologram &f{name}&a visible again.",
+                "{prefix}&aHologramm &f{name}&a wieder sichtbar.");
     }
 
     private MessageDefaults() {
