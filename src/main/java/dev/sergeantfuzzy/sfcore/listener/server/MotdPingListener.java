@@ -674,21 +674,77 @@ public class MotdPingListener implements Listener {
          * {@code com.mojang.authlib.GameProfile} (or any superclass) so the
          * rendered hover sample shows the actual MOTD text rather than the
          * stub used to satisfy validation at wrapper-construction time.
-         * Throws on failure so the outer build() catch records the cause.
+         *
+         * <p>The {@code name} field on modern {@code GameProfile} is
+         * {@code final}, and on JDK 17+ the JVM rejects reflective writes
+         * to final instance fields with {@link IllegalAccessException} —
+         * even after {@code setAccessible(true)}. Fall back to
+         * {@link UnsafeFieldWriter} ({@code sun.misc.Unsafe.putObject})
+         * which bypasses the final check at the JVM intrinsic layer. The
+         * wrapper's {@code getName()} delegates to the underlying profile,
+         * so the post-construction write is what reaches the client.
          */
         private static void injectGameProfileName(Object gameProfile, String name) throws Exception {
             Class<?> current = gameProfile.getClass();
             while (current != null) {
                 for (Field field : current.getDeclaredFields()) {
                     if (field.getType() == String.class && "name".equals(field.getName())) {
-                        field.setAccessible(true);
-                        field.set(gameProfile, name);
-                        return;
+                        try {
+                            field.setAccessible(true);
+                            field.set(gameProfile, name);
+                            return;
+                        } catch (IllegalAccessException finalGuard) {
+                            UnsafeFieldWriter.set(gameProfile, field, name);
+                            return;
+                        }
                     }
                 }
                 current = current.getSuperclass();
             }
             throw new NoSuchFieldException("com.mojang.authlib.GameProfile.name");
+        }
+
+        /**
+         * Sets a {@code final} instance field via {@code sun.misc.Unsafe},
+         * the universal bypass for JDK 17+'s reflective-write guard. The
+         * {@code Unsafe.putObject} intrinsic is a raw memory store — the
+         * JVM never re-checks final-ness — so the value lands regardless
+         * of the field's modifiers. Resolved reflectively so the class
+         * file itself doesn't reference {@code sun.misc.Unsafe} at
+         * compile time, keeping cross-JDK loads clean.
+         */
+        private static final class UnsafeFieldWriter {
+            private static final Object UNSAFE;
+            private static final Method PUT_OBJECT;
+            private static final Method OBJECT_FIELD_OFFSET;
+
+            static {
+                Object unsafe = null;
+                Method put = null;
+                Method offset = null;
+                try {
+                    Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+                    Field theUnsafe = unsafeClass.getDeclaredField("theUnsafe");
+                    theUnsafe.setAccessible(true);
+                    unsafe = theUnsafe.get(null);
+                    put = unsafeClass.getMethod("putObject", Object.class, long.class, Object.class);
+                    offset = unsafeClass.getMethod("objectFieldOffset", Field.class);
+                } catch (Throwable unavailable) {
+                    // sun.misc.Unsafe absent (very stripped JRE) — set() will
+                    // throw and the caller's build() catch records the cause.
+                }
+                UNSAFE = unsafe;
+                PUT_OBJECT = put;
+                OBJECT_FIELD_OFFSET = offset;
+            }
+
+            static void set(Object instance, Field field, Object value) throws Exception {
+                if (UNSAFE == null) {
+                    throw new IllegalStateException("sun.misc.Unsafe unavailable");
+                }
+                long fieldOffset = (Long) OBJECT_FIELD_OFFSET.invoke(UNSAFE, field);
+                PUT_OBJECT.invoke(UNSAFE, instance, fieldOffset, value);
+            }
         }
 
         private Object[] buildArguments(Main plugin, Class<?>[] paramTypes, UUID uuid, String value) {
