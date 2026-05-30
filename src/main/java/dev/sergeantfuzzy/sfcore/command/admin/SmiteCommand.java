@@ -35,7 +35,7 @@ public class SmiteCommand implements CommandExecutor, TabCompleter {
         if (args.length >= 1) {
             Player target = Bukkit.getPlayerExact(args[0]);
             if (target == null || !target.isOnline()) {
-                languages.send(sender, "tpa.target-not-online", Placeholders.with("player", args[0]));
+                languages.send(sender, "teleport.tp.not-online", Placeholders.with("player", args[0]));
                 return true;
             }
             strikeLocation = target.getLocation();

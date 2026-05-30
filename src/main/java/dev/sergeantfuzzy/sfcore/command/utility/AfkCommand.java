@@ -34,7 +34,7 @@ public class AfkCommand implements CommandExecutor, TabCompleter {
             }
             Player target = Bukkit.getPlayerExact(args[0]);
             if (target == null || !target.isOnline()) {
-                languages.send(sender, "tpa.target-not-online", Placeholders.with("player", args[0]));
+                languages.send(sender, "teleport.tp.not-online", Placeholders.with("player", args[0]));
                 return true;
             }
             boolean nowAfk = !afkService.isAfk(target.getUniqueId());

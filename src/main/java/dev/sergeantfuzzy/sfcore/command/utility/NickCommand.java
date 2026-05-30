@@ -41,7 +41,7 @@ public class NickCommand implements CommandExecutor, TabCompleter {
             }
             target = Bukkit.getPlayerExact(args[1]);
             if (target == null || !target.isOnline()) {
-                languages.send(sender, "tpa.target-not-online", Placeholders.with("player", args[1]));
+                languages.send(sender, "teleport.tp.not-online", Placeholders.with("player", args[1]));
                 return true;
             }
         } else {
