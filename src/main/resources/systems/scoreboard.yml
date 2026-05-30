@@ -43,13 +43,18 @@ server-ip: "play.sf-core.com"
 server-website: "www.sf-core.com"
 
 # Sidebar lines, top to bottom.
+#
+# {divider} expands at render time to a dark-gray strikethrough sized to the
+# longest visible content line on the board (color codes don't count toward
+# width). So the divider always fits the widest line and never widens the
+# sidebar past it.
 lines:
-  - "&8&m                    "
+  - "{divider}"
   - "&7Player &8» &f{player}"
-  - "&7Health &8» &c{health_percent}%"
-  - "&8» {hearts}"
+  - "&7Health &8» {hearts}"
+  - "&c{health_percent}%"
   - "&7Online &8» &a{online}&7/&a{max}"
-  - "&8&m                    "
+  - "{divider}"
   - "&7IP &8» &e{ip}"
   - "&7Web &8» &b{website}"
-  - "&8&m                    "
+  - "{divider}"

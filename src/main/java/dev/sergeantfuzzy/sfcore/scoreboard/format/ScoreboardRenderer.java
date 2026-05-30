@@ -37,8 +37,17 @@ public final class ScoreboardRenderer {
     private static final int MAX_LINES = 15;
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
     private static final Pattern HEX = Pattern.compile("&#([0-9A-Fa-f]{6})");
-    private static final char FULL_HEART = (char) 0x2764; // ❤
-    private static final char EMPTY_HEART = (char) 0x2661; // ♡
+    private static final char FULL_HEART = (char) 0x2764; // heart
+    private static final char EMPTY_HEART = (char) 0x2661; // hollow heart
+    /**
+     * Sentinel left in a colorised line by {@link #applyPlaceholders} when the
+     * template contains {@code {divider}}. Substituted in a second pass once
+     * we know how wide the widest non-divider line is. The {@code SFDIV} token
+     * is bracketed by the {@code SFCORE_} prefix / suffix so it can't collide
+     * with anything a legitimate placeholder value or player name produces.
+     */
+    private static final String DIVIDER_SENTINEL = "SFCORE_SBDIV_SFCORE";
+    private static final int DIVIDER_MIN_SPACES = 1;
 
     private ScoreboardRenderer() {
     }
@@ -62,6 +71,11 @@ public final class ScoreboardRenderer {
         for (String template : raw) {
             lines.add(colorize(applyPlaceholders(template, placeholders)));
         }
+        // Resolve {divider} → strikethrough run sized to the widest content
+        // line currently on the board. Done after all other placeholders so
+        // live fields (heart bar, online count, etc.) are already in their
+        // final form when their visible width is measured.
+        substituteDividers(lines);
         renderLines(board, objective, lines);
         applyNameTeams(board);
         if (player.getScoreboard() != board) {
@@ -312,14 +326,88 @@ public final class ScoreboardRenderer {
         Matcher matcher = PLACEHOLDER.matcher(template);
         StringBuffer buffer = new StringBuffer(template.length());
         while (matcher.find()) {
-            String replacement = placeholders.get(matcher.group(1));
-            if (replacement == null) {
-                replacement = matcher.group(0);
+            String key = matcher.group(1);
+            String replacement;
+            if ("divider".equalsIgnoreCase(key)) {
+                // Leave a sentinel — substituteDividers() resolves it after
+                // every other line is in its final form.
+                replacement = DIVIDER_SENTINEL;
+            } else {
+                replacement = placeholders.get(key);
+                if (replacement == null) {
+                    replacement = matcher.group(0);
+                }
             }
             matcher.appendReplacement(buffer, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(buffer);
         return buffer.toString();
+    }
+
+    /**
+     * Replaces every {@link #DIVIDER_SENTINEL} occurrence with a dark-gray
+     * strikethrough run sized to the widest visible content line on the
+     * board. Color codes count as zero width.
+     */
+    private static void substituteDividers(List<String> lines) {
+        int maxWidth = 0;
+        for (String line : lines) {
+            if (line == null || line.contains(DIVIDER_SENTINEL)) {
+                continue;
+            }
+            int width = visibleLength(line);
+            if (width > maxWidth) {
+                maxWidth = width;
+            }
+        }
+        if (maxWidth < DIVIDER_MIN_SPACES) {
+            maxWidth = DIVIDER_MIN_SPACES;
+        }
+        String divider = buildDivider(maxWidth);
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line != null && line.contains(DIVIDER_SENTINEL)) {
+                lines.set(i, line.replace(DIVIDER_SENTINEL, divider));
+            }
+        }
+    }
+
+    /**
+     * Builds the strikethrough divider: {@code §8§m} followed by {@code width}
+     * spaces. Each color/format token contributes 0 visible chars, so the
+     * resulting line renders as a strikethrough bar exactly {@code width} wide.
+     */
+    private static String buildDivider(int width) {
+        StringBuilder builder = new StringBuilder(4 + width);
+        builder.append(ChatColor.DARK_GRAY).append(ChatColor.STRIKETHROUGH);
+        for (int i = 0; i < width; i++) {
+            builder.append(' ');
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Counts visible characters in a legacy-colored string. Every
+     * {@code §X} formatting pair is skipped (covers both single codes like
+     * {@code §c} and the {@code §x §R §R §G §G §B §B} hex sequence the same
+     * way — each pair contributes zero width).
+     */
+    private static int visibleLength(String s) {
+        if (s == null || s.isEmpty()) {
+            return 0;
+        }
+        int len = 0;
+        int i = 0;
+        while (i < s.length()) {
+            char c = s.charAt(i);
+            if (c == ChatColor.COLOR_CHAR && i + 1 < s.length()) {
+                i += 2; // skip the color/format pair
+                continue;
+            }
+            len++;
+            i++;
+        }
+        return len;
     }
 
     /** Legacy colorize: {@code &#RRGGBB} → §x sequence (1.16+), then {@code &} codes. */
