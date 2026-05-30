@@ -611,27 +611,38 @@ public class MotdPingListener implements Listener {
                     case GAME_PROFILE:
                         return constructor.newInstance(uuid, value);
                     case GAME_PROFILE_WRAP: {
-                        // Build the GameProfile with a name-safe stub so any
-                        // validation in either the authlib ctor or the
-                        // CraftPlayerProfile wrapper accepts it. The coloured
-                        // MOTD hover text is what newer Paper rejects in the
-                        // wrapper — that rejection is the "PlayerProfile:
-                        // no-build(GAME_PROFILE_WRAP+ctor+wrapCtor)" failure.
-                        // After wrapping, overwrite the underlying
-                        // GameProfile.name field directly so the rendered
-                        // sample carries the actual hover text. The wrapper
-                        // delegates getName() to the underlying profile, so
-                        // the post-construction write is what the client
-                        // ultimately sees.
+                        // Two-record strategy. Newer Paper's CraftPlayerProfile
+                        // validates the underlying GameProfile.name on wrap,
+                        // rejecting the coloured MOTD hover text directly. And
+                        // recent Mojang authlib reshaped GameProfile as a
+                        // record, so the JVM forbids both reflective Field.set
+                        // and Unsafe.objectFieldOffset on its fields — we
+                        // can't mutate the name post-construction.
+                        //
+                        // Workaround: build TWO GameProfile records.
+                        //   1. A "safe" one with a stub name so the wrapper
+                        //      ctor accepts it.
+                        //   2. A "coloured" one with the real hover text
+                        //      (the canonical ctor accepts arbitrary strings;
+                        //      proven by the earlier GameProfile:cce path
+                        //      which built it cleanly).
+                        // Wrap the safe one to satisfy validation, then swap
+                        // the wrapper's internal `profile` field reference
+                        // to point at the coloured record. CraftPlayerProfile
+                        // is a regular class (not a record), so its final
+                        // field accepts an Unsafe.putObject write. The
+                        // wrapper's getName() delegates to profile.getName(),
+                        // so the swap is what reaches the client.
                         String stub = stubName(uuid);
-                        Object gameProfile = constructor.newInstance(uuid, stub);
+                        Object safeGameProfile = constructor.newInstance(uuid, stub);
                         Object wrapped;
                         if (wrapperCtor != null) {
-                            wrapped = wrapperCtor.newInstance(gameProfile);
+                            wrapped = wrapperCtor.newInstance(safeGameProfile);
                         } else {
-                            wrapped = wrapperMethod.invoke(null, gameProfile);
+                            wrapped = wrapperMethod.invoke(null, safeGameProfile);
                         }
-                        injectGameProfileName(gameProfile, value);
+                        Object colouredGameProfile = constructor.newInstance(uuid, value);
+                        injectWrapperProfile(wrapped, colouredGameProfile);
                         return wrapped;
                     }
                     case PLAYER_PROFILE:
@@ -670,38 +681,49 @@ public class MotdPingListener implements Listener {
         }
 
         /**
-         * Reflectively overwrites the {@code name} String field on the
-         * {@code com.mojang.authlib.GameProfile} (or any superclass) so the
-         * rendered hover sample shows the actual MOTD text rather than the
-         * stub used to satisfy validation at wrapper-construction time.
+         * Swaps the {@code GameProfile}-typed field on a freshly-built
+         * {@code CraftPlayerProfile} wrapper to point at a different
+         * {@code GameProfile} instance — used so the wrapper carries the
+         * coloured-name record without ever exposing it to the wrapper's
+         * name validator.
          *
-         * <p>The {@code name} field on modern {@code GameProfile} is
-         * {@code final}, and on JDK 17+ the JVM rejects reflective writes
-         * to final instance fields with {@link IllegalAccessException} —
-         * even after {@code setAccessible(true)}. Fall back to
-         * {@link UnsafeFieldWriter} ({@code sun.misc.Unsafe.putObject})
-         * which bypasses the final check at the JVM intrinsic layer. The
-         * wrapper's {@code getName()} delegates to the underlying profile,
-         * so the post-construction write is what reaches the client.
+         * <p>Why this exists: on modern Mojang authlib, {@code GameProfile}
+         * is a {@code record}, and the JVM forbids both reflective
+         * {@code Field.set} and {@code Unsafe.objectFieldOffset} on record
+         * fields. We can't rewrite a {@code GameProfile.name} after
+         * construction. We can, however, rewrite the {@code profile} field
+         * on the wrapper class itself, because {@code CraftPlayerProfile}
+         * is a regular class (not a record). {@code Unsafe.putObject}
+         * accepts final-class fields fine; the record-class guard is what
+         * blocked the previous mutation approach.
+         *
+         * <p>The wrapper's {@code getName()} is a plain delegate
+         * ({@code return profile.getName()}) so the swap is immediately
+         * visible at the next read.
          */
-        private static void injectGameProfileName(Object gameProfile, String name) throws Exception {
-            Class<?> current = gameProfile.getClass();
+        private static void injectWrapperProfile(Object wrapped, Object replacementProfile) throws Exception {
+            Class<?> profileType = replacementProfile.getClass();
+            Class<?> current = wrapped.getClass();
             while (current != null) {
                 for (Field field : current.getDeclaredFields()) {
-                    if (field.getType() == String.class && "name".equals(field.getName())) {
-                        try {
-                            field.setAccessible(true);
-                            field.set(gameProfile, name);
-                            return;
-                        } catch (IllegalAccessException finalGuard) {
-                            UnsafeFieldWriter.set(gameProfile, field, name);
-                            return;
-                        }
+                    if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                        continue;
+                    }
+                    if (!field.getType().isAssignableFrom(profileType)) {
+                        continue;
+                    }
+                    try {
+                        field.setAccessible(true);
+                        field.set(wrapped, replacementProfile);
+                        return;
+                    } catch (IllegalAccessException finalGuard) {
+                        UnsafeFieldWriter.set(wrapped, field, replacementProfile);
+                        return;
                     }
                 }
                 current = current.getSuperclass();
             }
-            throw new NoSuchFieldException("com.mojang.authlib.GameProfile.name");
+            throw new NoSuchFieldException("CraftPlayerProfile profile field of type " + profileType.getName());
         }
 
         /**
