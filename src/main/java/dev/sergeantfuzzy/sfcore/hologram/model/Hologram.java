@@ -186,9 +186,11 @@ public final class Hologram {
             return;
         }
         animationConfigs.add(config);
-        Animation animation = AnimationRegistry.build(config);
-        if (animation != null) {
-            liveAnimations.add(animation);
+        if (config.isEnabled()) {
+            Animation animation = AnimationRegistry.build(config);
+            if (animation != null) {
+                liveAnimations.add(animation);
+            }
         }
         animationStartTick = 0L;
         dirty = true;
@@ -199,9 +201,10 @@ public final class Hologram {
             return false;
         }
         animationConfigs.remove(index);
-        if (index < liveAnimations.size()) {
-            liveAnimations.remove(index);
-        }
+        // Rebuild the live list so it stays consistent with the (possibly
+        // partially-disabled) config list — a 1:1 index removal would skew
+        // when some configs are disabled.
+        rebuildAnimations();
         dirty = true;
         return true;
     }
@@ -213,6 +216,9 @@ public final class Hologram {
     public void rebuildAnimations() {
         liveAnimations.clear();
         for (AnimationConfig cfg : animationConfigs) {
+            if (!cfg.isEnabled()) {
+                continue;
+            }
             Animation animation = AnimationRegistry.build(cfg);
             if (animation != null) {
                 liveAnimations.add(animation);

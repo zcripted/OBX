@@ -104,6 +104,7 @@ public final class HologramSerializer {
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("type", cfg.getType());
             entry.put("params", new LinkedHashMap<>(cfg.getParams()));
+            entry.put("enabled", cfg.isEnabled());
             animList.add(entry);
         }
         section.set("animations", animList);
@@ -211,7 +212,9 @@ public final class HologramSerializer {
                 Map<String, Object> params = paramsObj instanceof Map
                         ? new LinkedHashMap<>((Map<String, Object>) paramsObj)
                         : new LinkedHashMap<>();
-                hologram.addAnimation(new AnimationConfig(type, params));
+                Object enabledObj = entry.get("enabled");
+                boolean enabled = !(enabledObj instanceof Boolean) || ((Boolean) enabledObj);
+                hologram.addAnimation(new AnimationConfig(type, params, enabled));
             }
         }
         hologram.clearDirty();

@@ -16,10 +16,22 @@ public final class AnimationConfig {
 
     private final String type;
     private final Map<String, Object> params;
+    /**
+     * Whether this animation is currently active. A disabled config stays in
+     * the hologram's persisted list (so the operator can toggle it back on
+     * without re-entering parameters) but is skipped when building the live
+     * animation list — see {@code Hologram#rebuildAnimations}.
+     */
+    private volatile boolean enabled = true;
 
     public AnimationConfig(String type, Map<String, Object> params) {
         this.type = type == null ? "" : type;
         this.params = params == null ? new LinkedHashMap<String, Object>() : new LinkedHashMap<>(params);
+    }
+
+    public AnimationConfig(String type, Map<String, Object> params, boolean enabled) {
+        this(type, params);
+        this.enabled = enabled;
     }
 
     public String getType() {
@@ -28,6 +40,14 @@ public final class AnimationConfig {
 
     public Map<String, Object> getParams() {
         return params;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public double getDouble(String key, double fallback) {
