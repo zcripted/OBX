@@ -6,11 +6,14 @@ import dev.sergeantfuzzy.sfcore.hologram.anim.AnimationRegistry;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloContext;
 import dev.sergeantfuzzy.sfcore.hologram.command.HoloSubCommand;
 import dev.sergeantfuzzy.sfcore.hologram.model.Hologram;
+import dev.sergeantfuzzy.sfcore.hologram.model.HologramId;
 import org.bukkit.command.CommandSender;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -87,10 +90,16 @@ public final class AnimSub implements HoloSubCommand {
             }
             case "remove": {
                 if (args.length < 3) {
-                    sender.sendMessage("§6/holo anim §f<id> remove §7<index>");
+                    sender.sendMessage("§6/holo anim §f<id> remove §7<index|type>");
                     return true;
                 }
                 int index = ctx.parseLineIndex(args[2]);
+                // Fall back to type-name lookup when the arg isn't a number — lets
+                // operators type the tab-completed name (e.g. "bob") instead of
+                // having to look up the index first.
+                if (index < 0) {
+                    index = findFirstAnimationOfType(hologram, args[2]);
+                }
                 if (!hologram.removeAnimation(index)) {
                     ctx.msg(sender, "hologram.error.invalid_index");
                     return true;
@@ -116,6 +125,73 @@ public final class AnimSub implements HoloSubCommand {
         if (args.length == 3 && args[1].equalsIgnoreCase("add")) {
             return Arrays.asList("fade", "rotate", "bob");
         }
+        if (args.length == 3 && args[1].equalsIgnoreCase("remove")) {
+            // Suggest both 1-based indices and unique type names of every
+            // animation currently attached to the hologram — typed name or
+            // numeric index both work in execute().
+            return suggestActiveAnimations(args[0], args[2]);
+        }
         return java.util.Collections.emptyList();
+    }
+
+    /**
+     * Returns the 0-based position of the first {@link AnimationConfig} whose
+     * type case-insensitively matches {@code typeName}, or {@code -1} when no
+     * such animation is configured.
+     */
+    private int findFirstAnimationOfType(Hologram hologram, String typeName) {
+        if (hologram == null || typeName == null) {
+            return -1;
+        }
+        String normalised = typeName.toLowerCase(Locale.ENGLISH);
+        List<AnimationConfig> configs = hologram.getAnimationConfigs();
+        for (int i = 0; i < configs.size(); i++) {
+            if (normalised.equals(configs.get(i).getType().toLowerCase(Locale.ENGLISH))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Builds the tab-completion list for {@code /holo anim <id> remove …}.
+     * Resolves the hologram silently (no error messages on a partial id),
+     * then emits each currently-configured animation's 1-based index plus its
+     * type name (deduplicated). The user can type either form.
+     */
+    private List<String> suggestActiveAnimations(String rawId, String partial) {
+        HologramId id = HologramId.parse(rawId);
+        if (id == null) {
+            return java.util.Collections.emptyList();
+        }
+        Hologram hologram = ctx.service().getRegistry().get(id);
+        if (hologram == null) {
+            return java.util.Collections.emptyList();
+        }
+        List<AnimationConfig> configs = hologram.getAnimationConfigs();
+        if (configs.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        List<String> suggestions = new ArrayList<>(configs.size() * 2);
+        java.util.LinkedHashSet<String> seenTypes = new java.util.LinkedHashSet<>();
+        for (int i = 0; i < configs.size(); i++) {
+            suggestions.add(String.valueOf(i + 1));
+            String type = configs.get(i).getType();
+            if (type != null && !type.isEmpty()) {
+                seenTypes.add(type.toLowerCase(Locale.ENGLISH));
+            }
+        }
+        suggestions.addAll(seenTypes);
+        if (partial == null || partial.isEmpty()) {
+            return suggestions;
+        }
+        String prefix = partial.toLowerCase(Locale.ENGLISH);
+        List<String> filtered = new ArrayList<>(suggestions.size());
+        for (String suggestion : suggestions) {
+            if (suggestion.toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
+                filtered.add(suggestion);
+            }
+        }
+        return filtered;
     }
 }
