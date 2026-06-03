@@ -8,15 +8,14 @@ import dev.zcripted.obx.feature.jail.command.JailTimeCommand;
 import dev.zcripted.obx.feature.jail.command.JailsCommand;
 import dev.zcripted.obx.feature.jail.command.SetJailCommand;
 import dev.zcripted.obx.feature.jail.command.UnjailCommand;
+import dev.zcripted.obx.feature.jail.listener.JailListener;
 import dev.zcripted.obx.feature.jail.service.JailService;
 
 /**
  * Jail feature: {@code /jail}, {@code /unjail}, {@code /jails}, {@code /setjail},
- * {@code /deljail}, {@code /jailtime} backed by {@link JailService}.
- *
- * <p>Note: the legacy {@code JailListener} (jail confinement) was never registered
- * by the previous bootstrap, so it is intentionally left unwired here to preserve
- * existing behavior.
+ * {@code /deljail}, {@code /jailtime} backed by {@link JailService}, plus the
+ * {@link JailListener} that confines jailed players (re-jail on join, block
+ * teleports, restrict commands).
  */
 public final class JailModule extends AbstractModule {
 
@@ -35,5 +34,8 @@ public final class JailModule extends AbstractModule {
         command("setjail", new SetJailCommand(plugin));
         command("deljail", new DelJailCommand(plugin));
         command("jailtime", new JailTimeCommand(plugin));
+        // Confinement listener — resolves JailService via plugin.getJailService(),
+        // so it must be constructed after the service is registered above.
+        listener(new JailListener(plugin));
     }
 }

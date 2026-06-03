@@ -2,7 +2,7 @@
 
 ■ **Created:** 2026-06-03 2:52 am (America/Detroit)
 
-■ **Last Updated:** 2026-06-03 2:52 am (America/Detroit)
+■ **Last Updated:** 2026-06-03 3:10 am (America/Detroit)
 
 Converts OBX from package-by-layer to a professional package-by-feature layout
 on top of a thin shared core, introduces a real feature-module lifecycle, renames
@@ -70,9 +70,15 @@ buildable waves.
   preserved (registration order = historical order; teardown hooks registered in
   reverse so they execute in the original sequence). A server smoke test of
   enable → reload → disable is recommended before release.
-- **Two pre-existing unregistered listeners** (`jail/JailListener`,
-  `nickname/NicknameApplyListener`) were never wired by the old bootstrap; left
-  unwired to avoid changing behavior. Flagged as possible latent bugs.
+- **Two pre-existing unregistered listeners now wired (latent bug fix).**
+  `jail/JailListener` (re-jail on join, block teleports, restrict commands) and
+  `nickname/NicknameApplyListener` (re-apply nickname on join) were complete but
+  never registered by the old bootstrap — so jail did not actually confine and
+  nicknames did not persist across rejoins. Both are now registered in
+  `JailModule`/`NicknameModule`, and the three missing `jail.on-join` /
+  `jail.blocked-teleport` / `jail.blocked-command` language keys were added
+  (EN+DE) in `MessageDefaults`. This is a deliberate behavior change to close
+  real feature gaps for release; verify on a live server.
 - **Removed a dead double-bind of `/list`** (core ListCommand was always overwritten
   by the playerinfo one) and `/nick` (was bound both inline and via the module).
 - **"Module Toggles" GUI kept as-is.** It toggles per-system *dormancy*
