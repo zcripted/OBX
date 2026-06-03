@@ -4,7 +4,6 @@ import dev.zcripted.obx.core.command.AbstractObxCommand;
 
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.api.playerstate.AfkService;
-import dev.zcripted.obx.feature.staff.service.VanishManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

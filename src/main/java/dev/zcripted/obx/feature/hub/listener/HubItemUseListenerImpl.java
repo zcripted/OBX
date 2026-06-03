@@ -4,7 +4,6 @@ import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.gui.ServerSelectorMenu;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import dev.zcripted.obx.feature.hub.item.HubItems;
-import dev.zcripted.obx.feature.staff.service.VanishManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -282,7 +281,7 @@ public final class HubItemUseListenerImpl implements Listener, dev.zcripted.obx.
      * Cross-version hide. The 1.13+ {@code hidePlayer(Plugin, Player)} overload
      * isn't on the 1.12 compile baseline; the deprecated single-arg overload
      * exists from 1.8.8 → modern (just emits a deprecation warning), so we
-     * call that directly. {@link VanishManager} uses reflection for the
+     * call that directly. the vanish system uses reflection for the
      * plugin-aware overload because it cares about per-plugin state — here
      * we don't.
      */

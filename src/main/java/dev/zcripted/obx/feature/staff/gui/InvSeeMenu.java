@@ -1,7 +1,7 @@
 package dev.zcripted.obx.feature.staff.gui;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.feature.warp.gui.WarpMenuStyling;
+import dev.zcripted.obx.core.gui.WarpMenuStyling;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;

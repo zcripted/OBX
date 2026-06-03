@@ -1,7 +1,7 @@
 package dev.zcripted.obx.core.gui.main;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.feature.warp.gui.WarpMenuStyling;
+import dev.zcripted.obx.core.gui.WarpMenuStyling;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

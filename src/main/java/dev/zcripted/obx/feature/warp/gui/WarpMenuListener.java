@@ -6,7 +6,7 @@ import dev.zcripted.obx.feature.staff.gui.AdminMenu;
 import dev.zcripted.obx.core.gui.main.MainMenu;
 import dev.zcripted.obx.feature.warp.gui.WarpMenu;
 import dev.zcripted.obx.feature.warp.gui.WarpMenuHolder;
-import dev.zcripted.obx.feature.warp.gui.WarpMenuStyling;
+import dev.zcripted.obx.core.gui.WarpMenuStyling;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.feature.warp.service.WarpService;
 import dev.zcripted.obx.util.teleport.WarpAccess;

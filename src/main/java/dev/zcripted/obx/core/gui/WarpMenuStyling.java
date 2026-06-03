@@ -1,4 +1,4 @@
-package dev.zcripted.obx.feature.warp.gui;
+package dev.zcripted.obx.core.gui;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
