@@ -9,7 +9,7 @@ import dev.zcripted.obx.feature.hub.launchpad.LaunchpadCooldownManager;
 import dev.zcripted.obx.feature.hub.listener.HubFallDamageListener;
 import dev.zcripted.obx.feature.hub.listener.HubFishingListener;
 import dev.zcripted.obx.feature.hub.listener.HubItemProtectionListener;
-import dev.zcripted.obx.feature.hub.listener.HubItemUseListener;
+import dev.zcripted.obx.api.hub.HubItemUseListener;
 import dev.zcripted.obx.feature.hub.listener.HubJoinListener;
 import dev.zcripted.obx.feature.hub.listener.HubLaunchpadListener;
 import dev.zcripted.obx.feature.hub.messaging.BungeeMessenger;
@@ -38,7 +38,9 @@ public final class HubModule extends AbstractModule {
         command("hub", new HubCommand(plugin, hub, kitApplier));
 
         listener(new HubJoinListener(plugin, hub, kitApplier));
-        HubItemUseListener itemUse = service(HubItemUseListener.class, new HubItemUseListener(plugin, hub));
+        dev.zcripted.obx.feature.hub.listener.HubItemUseListenerImpl itemUse =
+                new dev.zcripted.obx.feature.hub.listener.HubItemUseListenerImpl(plugin, hub);
+        service(HubItemUseListener.class, itemUse);
         listener(itemUse);
         listener(new HubItemProtectionListener(plugin, hub));
         listener(new HubFishingListener(plugin, hub));

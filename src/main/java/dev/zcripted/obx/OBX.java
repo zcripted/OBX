@@ -45,7 +45,7 @@ import dev.zcripted.obx.feature.enchant.service.EnchantService;
 import dev.zcripted.obx.feature.hub.listener.HubFallDamageListener;
 import dev.zcripted.obx.feature.hub.listener.HubFishingListener;
 import dev.zcripted.obx.feature.hub.listener.HubItemProtectionListener;
-import dev.zcripted.obx.feature.hub.listener.HubItemUseListener;
+import dev.zcripted.obx.api.hub.HubItemUseListener;
 import dev.zcripted.obx.feature.hub.listener.HubJoinListener;
 import dev.zcripted.obx.feature.hub.listener.HubLaunchpadListener;
 import dev.zcripted.obx.feature.hub.gui.ServerSelectorListener;
@@ -105,7 +105,7 @@ import dev.zcripted.obx.feature.playerstate.service.GodModeManager;
 import dev.zcripted.obx.feature.playerstate.service.KillModeManager;
 import dev.zcripted.obx.feature.staff.service.VanishManager;
 import dev.zcripted.obx.core.diagnostics.TpsService;
-import dev.zcripted.obx.feature.teleport.service.TeleportManager;
+import dev.zcripted.obx.api.teleport.TeleportManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
@@ -291,8 +291,8 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         return serviceRegistry.get(dev.zcripted.obx.feature.mail.mail.MailService.class);
     }
 
-    public dev.zcripted.obx.feature.playerstate.service.AfkService getAfkService() {
-        return serviceRegistry.get(dev.zcripted.obx.feature.playerstate.service.AfkService.class);
+    public dev.zcripted.obx.api.playerstate.AfkService getAfkService() {
+        return serviceRegistry.get(dev.zcripted.obx.api.playerstate.AfkService.class);
     }
 
     public dev.zcripted.obx.feature.kit.service.KitService getKitService() {

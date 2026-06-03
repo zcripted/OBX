@@ -17,7 +17,7 @@ import dev.zcripted.obx.feature.playerstate.command.SpawnerCommand;
 import dev.zcripted.obx.feature.playerstate.command.TreeCommand;
 import dev.zcripted.obx.feature.playerstate.command.VitalCommand;
 import dev.zcripted.obx.feature.playerstate.command.WalkSpeedCommand;
-import dev.zcripted.obx.feature.playerstate.service.AfkService;
+import dev.zcripted.obx.api.playerstate.AfkService;
 import dev.zcripted.obx.feature.playerstate.service.FlightStateService;
 import dev.zcripted.obx.feature.playerstate.service.GodModeManager;
 import dev.zcripted.obx.feature.playerstate.service.KillModeManager;
@@ -38,7 +38,9 @@ public final class PlayerStateModule extends AbstractModule {
     protected void onEnable(ObxPlugin plugin) {
         GodModeManager god = service(GodModeManager.class, new GodModeManager());
         KillModeManager kill = service(KillModeManager.class, new KillModeManager(plugin));
-        AfkService afk = service(AfkService.class, new AfkService(plugin));
+        dev.zcripted.obx.feature.playerstate.service.AfkServiceImpl afk =
+                new dev.zcripted.obx.feature.playerstate.service.AfkServiceImpl(plugin);
+        service(AfkService.class, afk);
         FlightStateService flight = service(FlightStateService.class, new FlightStateService(plugin));
         flight.load();
 

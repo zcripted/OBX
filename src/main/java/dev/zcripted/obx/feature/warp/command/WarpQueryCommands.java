@@ -6,7 +6,7 @@ import dev.zcripted.obx.feature.warp.gui.WarpMenuHolder;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.core.storage.DataService;
 import dev.zcripted.obx.feature.warp.service.WarpService;
-import dev.zcripted.obx.feature.teleport.service.TeleportManager;
+import dev.zcripted.obx.api.teleport.TeleportManager;
 import dev.zcripted.obx.util.teleport.WarpAccess;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;

@@ -19,14 +19,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class AfkService implements Listener {
+public class AfkServiceImpl implements Listener, dev.zcripted.obx.api.playerstate.AfkService {
 
     private final ObxPlugin plugin;
     private final Map<UUID, Long> lastActivity = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> afkState = new ConcurrentHashMap<>();
     private SchedulerAdapter.CancellableTask ticker;
 
-    public AfkService(ObxPlugin plugin) {
+    public AfkServiceImpl(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

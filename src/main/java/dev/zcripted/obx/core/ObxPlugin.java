@@ -48,9 +48,9 @@ public interface ObxPlugin extends Plugin {
     // ── cross-feature / public-API services (narrowed to :api interfaces in Phase 2b) ──
     dev.zcripted.obx.api.economy.EconomyService getEconomyService();
 
-    dev.zcripted.obx.feature.teleport.service.TeleportManager getTeleportManager();
+    dev.zcripted.obx.api.teleport.TeleportManager getTeleportManager();
 
-    dev.zcripted.obx.feature.playerstate.service.AfkService getAfkService();
+    dev.zcripted.obx.api.playerstate.AfkService getAfkService();
 
     dev.zcripted.obx.feature.staff.service.VanishManager getVanishManager();
 
@@ -70,7 +70,7 @@ public interface ObxPlugin extends Plugin {
 
     dev.zcripted.obx.api.hub.HubKitApplier getHubKitApplier();
 
-    dev.zcripted.obx.feature.hub.listener.HubItemUseListener getHubItemUseListener();
+    dev.zcripted.obx.api.hub.HubItemUseListener getHubItemUseListener();
 
     dev.zcripted.obx.feature.hologram.service.HologramService getHologramService();
 

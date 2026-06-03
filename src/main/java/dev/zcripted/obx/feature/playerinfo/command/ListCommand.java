@@ -3,7 +3,7 @@ package dev.zcripted.obx.feature.playerinfo.command;
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.feature.playerstate.service.AfkService;
+import dev.zcripted.obx.api.playerstate.AfkService;
 import dev.zcripted.obx.feature.staff.service.VanishManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

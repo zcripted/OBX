@@ -17,7 +17,7 @@ import dev.zcripted.obx.feature.teleport.command.TpPosCommand;
 import dev.zcripted.obx.feature.teleport.command.TpToggleCommand;
 import dev.zcripted.obx.feature.teleport.command.TpaCommand;
 import dev.zcripted.obx.feature.teleport.listener.BackListener;
-import dev.zcripted.obx.feature.teleport.service.TeleportManager;
+import dev.zcripted.obx.api.teleport.TeleportManager;
 import dev.zcripted.obx.feature.teleport.service.TeleportRequestService;
 import dev.zcripted.obx.feature.teleport.service.TpaService;
 
@@ -34,8 +34,9 @@ public final class TeleportModule extends AbstractModule {
 
     @Override
     protected void onEnable(ObxPlugin plugin) {
-        TeleportManager teleportManager = service(TeleportManager.class,
-                new TeleportManager(plugin, plugin.getLanguageManager()));
+        dev.zcripted.obx.feature.teleport.service.TeleportManagerImpl teleportManager =
+                new dev.zcripted.obx.feature.teleport.service.TeleportManagerImpl(plugin, plugin.getLanguageManager());
+        service(TeleportManager.class, teleportManager);
         service(TeleportRequestService.class, new TeleportRequestService(plugin));
         TpaService tpaService = service(TpaService.class, new TpaService(plugin));
 

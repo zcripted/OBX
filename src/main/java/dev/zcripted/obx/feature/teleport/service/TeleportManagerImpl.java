@@ -14,13 +14,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TeleportManager implements Listener {
+public class TeleportManagerImpl implements Listener, dev.zcripted.obx.api.teleport.TeleportManager {
 
     private final ObxPlugin plugin;
     private final LanguageManager languages;
     private final Map<UUID, SchedulerAdapter.CancellableTask> pendingTeleports = new ConcurrentHashMap<>();
 
-    public TeleportManager(ObxPlugin plugin, LanguageManager languages) {
+    public TeleportManagerImpl(ObxPlugin plugin, LanguageManager languages) {
         this.plugin = plugin;
         this.languages = languages;
     }

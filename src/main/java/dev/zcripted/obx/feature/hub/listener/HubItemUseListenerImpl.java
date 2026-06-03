@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * the jump-rod's right-click, which is left through so the vanilla fishing cast
  * (which powers the teleport) can run.
  */
-public final class HubItemUseListener implements Listener {
+public final class HubItemUseListenerImpl implements Listener, dev.zcripted.obx.api.hub.HubItemUseListener {
 
     /**
      * Cached {@code PlayerInteractEvent.getHand()} — added in 1.9. On 1.9+ a
@@ -66,7 +66,7 @@ public final class HubItemUseListener implements Listener {
     /** Last action time per {@code uuid|itemId} — debounces duplicate interact fires. */
     private final Map<String, Long> lastActionAt = new ConcurrentHashMap<>();
 
-    public HubItemUseListener(ObxPlugin plugin, HubService hub) {
+    public HubItemUseListenerImpl(ObxPlugin plugin, HubService hub) {
         this.plugin = plugin;
         this.hub = hub;
     }
