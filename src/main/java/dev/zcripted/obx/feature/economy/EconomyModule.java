@@ -27,7 +27,8 @@ public final class EconomyModule extends AbstractModule {
 
     @Override
     protected void onEnable(ObxPlugin plugin) {
-        EconomyService economy = service(EconomyService.class, new EconomyService(plugin));
+        EconomyService economy = service(EconomyService.class,
+                new dev.zcripted.obx.feature.economy.service.EconomyServiceImpl(plugin));
         economy.load();
         WorthService worth = service(WorthService.class, new WorthService(plugin));
         worth.load();
