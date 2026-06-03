@@ -63,11 +63,11 @@ Mending              ● I MAX
     unchanged, so scrolls/books look the same and still parse.
   - Glyphs verified as UTF-8 on disk; round-trip (render→parse) validated with a
     standalone test (11/11 cases incl. legacy + two-word names + curses).
-  - `src/main/java/dev/sergeantfuzzy/sfcore/enchant/storage/EnchantStorage.java`
+  - `src/main/java/dev/zcripted/obx/enchant/storage/EnchantStorage.java`
 - New cross-version vanilla friendly-name resolver (e.g. `DAMAGE_ALL`/`sharpness`
   → "Sharpness", `binding_curse` → "Curse of Binding"): `getKey()` reflection on
   1.13+, legacy `getName()` map fallback for 1.8–1.12.
-  - `src/main/java/dev/sergeantfuzzy/sfcore/enchant/storage/VanillaEnchantNames.java`
+  - `src/main/java/dev/zcripted/obx/enchant/storage/VanillaEnchantNames.java`
 
 ### Internal — Vanilla restyle hooks
 - New `EnchantLoreListener` restyles vanilla enchant tooltips:
@@ -77,8 +77,8 @@ Mending              ● I MAX
     `HIDE_ENCHANTS`).
   - `PrepareAnvilEvent` — clones and restyles the result preview. Skips the
     Arcanum scroll/book anvil path and plain renames/repairs.
-  - `src/main/java/dev/sergeantfuzzy/sfcore/enchant/listener/EnchantLoreListener.java`
-  - Registered in `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
+  - `src/main/java/dev/zcripted/obx/enchant/listener/EnchantLoreListener.java`
+  - Registered in `src/main/java/dev/zcripted/obx/Main.java`
 
 ### Config
 - `enchants/config.yml` gains `lore.style_vanilla_enchants` (default `true`).

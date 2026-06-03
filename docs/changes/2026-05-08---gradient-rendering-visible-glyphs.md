@@ -44,11 +44,11 @@ Fix:
     - `join-motd.first-join.lines[1]` — same treatment for
       "A Brand New Adventure!".
 - `src/main/resources/systems/tablist.yml`
-    - `header[1]` — same treatment for "SF-Core Network".
+    - `header[1]` — same treatment for "OBX Network".
 
 ### Internal
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
     - `emitGradient(...)` — count and step the gradient ratio over visible
       glyphs only; whitespace chars inside the gradient are emitted with the
       span's inherited style and no per-character color override.
@@ -104,7 +104,7 @@ Fix:
       per-handle try/catch, makes the direct path resolve correctly on
       modern Adventure builds.
     - Static init now logs one diagnostic line via
-      `Logger.getLogger("SF-Core")`:
+      `Logger.getLogger("OBX")`:
       `[gradient] Adventure paths — direct=…, minimessage=…, available=…`
       so it's visible at server start which paths actually wired up.
     - **Runtime path-trace log** — first gradient-bearing message also logs
@@ -150,7 +150,7 @@ Fix:
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
 - `src/main/resources/config.yml`
 - `src/main/resources/systems/tablist.yml`
 

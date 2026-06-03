@@ -11,23 +11,23 @@ holograms.
 
 ### Internal — anim package
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/anim/Animation.java`
+* `src/main/java/dev/zcripted/obx/hologram/anim/Animation.java`
   — interface. `tick(hologram, backend, ticksSinceStart)` + `name()`.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/anim/AnimationConfig.java`
+* `src/main/java/dev/zcripted/obx/hologram/anim/AnimationConfig.java`
   — serializable type + params map. Typed `getDouble` / `getLong` helpers.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/anim/FadeAnimation.java`
+* `src/main/java/dev/zcripted/obx/hologram/anim/FadeAnimation.java`
   — linear opacity ramp 0 → 255 over `fade-in-ticks`; optional
   `visible-ticks` + `fade-out-ticks` reverse ramp. Mutates
   `HologramSettings.textOpacity` and marks dirty. No-op on the armor-stand
   backend (no opacity control there).
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/anim/RotateAnimation.java`
+* `src/main/java/dev/zcripted/obx/hologram/anim/RotateAnimation.java`
   — yaw delta per `period-ticks` ticks, default 4.5° per tick.
   Display-entity backend renders it via setLocation's yaw and the
   transformation rebuild on re-spawn. Armor-stand backend emulates by
   teleport — visible but less smooth.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/anim/IconBobAnimation.java`
+* `src/main/java/dev/zcripted/obx/hologram/anim/IconBobAnimation.java`
   — sinusoidal Y offset, `amplitude` blocks, `cycle-ticks` per cycle.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/anim/AnimationRegistry.java`
+* `src/main/java/dev/zcripted/obx/hologram/anim/AnimationRegistry.java`
   — type name → factory map. Stores `fade`, `rotate`, `bob`/`iconbob`.
 
 ### Model
@@ -55,7 +55,7 @@ holograms.
 
 ### Commands
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/command/sub/AnimSub.java`
+* `src/main/java/dev/zcripted/obx/hologram/command/sub/AnimSub.java`
   — `/sfholo anim <id> <add <type> [k=v …]|remove <index>|list>`. Numeric
   values are parsed as doubles; strings are kept as strings.
 
@@ -82,5 +82,5 @@ holograms.
 ## Suggested Commit Message
 
 ```
-SF-Core Holograms: Phase 5 — animations (fade, rotate, icon bob)
+OBX Holograms: Phase 5 — animations (fade, rotate, icon bob)
 ```

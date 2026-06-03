@@ -78,11 +78,11 @@ identifies who is operating it.
 
 ## Files modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenu.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenuHolder.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenuInputManager.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/menu/StaffMenuListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffMenu.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffMenuHolder.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffMenuInputManager.java`
+- `src/main/java/dev/zcripted/obx/listener/menu/StaffMenuListener.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
 
 ## Files added
 
@@ -91,7 +91,7 @@ identifies who is operating it.
 ## Verification
 
 - `& ".\maven\bin\mvn.cmd" -DskipTests package` produced a fresh
-  obfuscated `target/SF-Core-1.0.0-SNAPSHOT.jar` with no `[ERROR]` or
+  obfuscated `target/OBX-1.0.0-SNAPSHOT.jar` with no `[ERROR]` or
   `BUILD FAILURE` lines. Only ProGuard `Note:` lines for reflective
   accesses (informational per CLAUDE.md).
 - Pagination math is symmetric: `totalPages = max(1, ceil(n/45))`

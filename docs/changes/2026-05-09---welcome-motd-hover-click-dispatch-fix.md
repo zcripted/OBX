@@ -7,7 +7,7 @@
 ## Summary
 
 Hover tooltips and click events on the welcome MOTD lines (the gradient
-"Welcome to the Server" header, the `/sf help` line, the Discord URL
+"Welcome to the Server" header, the `/obx help` line, the Discord URL
 line, and the GitHub / Spigot / BuiltByBit credits row) were rendering
 plain — gradient color was correct but no tooltip on hover and the
 clickable URLs/commands didn't fire on click.
@@ -68,12 +68,12 @@ parser produces correct spans pre-fix:
 ```
 === sfhelp ===
 hasInteractiveMarkup: true
-  [/sf help] color=55FFFF hover=YES click=RUN_COMMAND//sf help
+  [/obx help] color=55FFFF hover=YES click=RUN_COMMAND//obx help
 Spans=4 hover=1 click=1
 
 === credits ===
 hasInteractiveMarkup: true
-  [[GitHub]] color=... hover=YES click=OPEN_URL/https://github.com/SergeantFuzzy/SF-Core
+  [[GitHub]] color=... hover=YES click=OPEN_URL/https://github.com/zcripted/OBX
 Spans=7 hover=3 click=3
 ```
 
@@ -84,7 +84,7 @@ which transport carried the spans to the wire.
 
 ### Internal — message dispatch
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
     - `send(...)` — fallback chain reordered. New
       `containsInteractive` flag gates the
       `trySendLegacyHexText` short-circuit; when the input has hover
@@ -100,12 +100,12 @@ which transport carried the spans to the wire.
         - Logs whether the hover and click reflection handles are
           wired.
         - Triggers on interactive-only messages (no gradient required)
-          so the URL / `/sf help` lines also produce a runtime-path
+          so the URL / `/obx help` lines also produce a runtime-path
           log we can read.
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
 
 ## Suggested Commit Message
 

@@ -10,29 +10,29 @@
 - Added `/ban`, `/unban`, `/kick`, `/mute`, `/unmute`, `/tempban` (`/tban`), `/warn`, and `/banlist` (`/blist`) with dedicated permission nodes and tab completion.
 - Added `/status <player>` to show a localized moderation profile card with active punishments, totals, and recent action history for live, stored, fake, and actively banned profiles.
 - Added active-ban output for `/banlist`, plus mute/warn persistence for offline or configured fake test profiles.
-- Updated SF-Core config diagnostics to include `moderation.yml` and moderation-service reload coverage.
+- Updated OBX config diagnostics to include `moderation.yml` and moderation-service reload coverage.
 - Added duplicate-state safeguards so repeated `ban`, `tempban`, `mute`, `unban`, and `unmute` actions are blocked instead of being re-applied.
 - Fixed `/kick` so configured fake test profiles can be processed for moderation testing, while real non-fake targets still require an online player session.
 
 Files:
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/moderation/ModerationCommand.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/moderation/BanListCommand.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/core/SFCoreCommand.java`
+- `src/main/java/dev/zcripted/obx/Main.java`
+- `src/main/java/dev/zcripted/obx/command/moderation/ModerationCommand.java`
+- `src/main/java/dev/zcripted/obx/command/moderation/BanListCommand.java`
+- `src/main/java/dev/zcripted/obx/command/core/ObxCommand.java`
 - `src/main/resources/plugin.yml`
 
 ### Discord
 - Added `discord.moderation` settings in `config.yml` with the requested server ID `1431483426267205785` and moderation channel ID `1490820884976500877`.
 - Added webhook-based Discord moderation posting with console fallback logging and a one-time warning when IDs are configured but `webhook-url` is still empty.
 - Logged ban, unban, tempban, kick, mute, unmute, and warn actions through the moderation service.
-- Reworked console moderation logs to use past-tense action phrasing and ANSI-colored professional formatting such as `Moderation: Unbanned HotPotato | By: SergeantFuzzy | reason=...`.
-- Refactored moderation console logging to use SF-Core's shared console formatting pipeline in `Main.java` instead of maintaining separate ANSI escape handling inside the moderation service.
+- Reworked console moderation logs to use past-tense action phrasing and ANSI-colored professional formatting such as `Moderation: Unbanned HotPotato | By: zcripted | reason=...`.
+- Refactored moderation console logging to use OBX's shared console formatting pipeline in `Main.java` instead of maintaining separate ANSI escape handling inside the moderation service.
 - Replaced plain Discord webhook text posts with structured moderation embeds using action-specific colors, standardized audit fields, footer branding, and ISO timestamps.
-- Added configurable webhook avatar/footer icon URL support so the Discord webhook profile avatar and embed footer icon can both use the SF-Core branding image once it is hosted at a public URL.
+- Added configurable webhook avatar/footer icon URL support so the Discord webhook profile avatar and embed footer icon can both use the OBX branding image once it is hosted at a public URL.
 - Updated the Discord embed title to `Moderation | Action: <ACTION> <player>` and wrapped Action, Target, By, Duration, and Server ID field values in inline code formatting for clearer audit readability.
 
 Files:
-- `src/main/java/dev/sergeantfuzzy/sfcore/moderation/ModerationService.java`
+- `src/main/java/dev/zcripted/obx/moderation/ModerationService.java`
 - `src/main/resources/config.yml`
 
 ### Moderation Data
@@ -42,8 +42,8 @@ Files:
 - Blocked muted players from chatting through the chat listener.
 
 Files:
-- `src/main/java/dev/sergeantfuzzy/sfcore/moderation/ModerationService.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/chat/ChatListener.java`
+- `src/main/java/dev/zcripted/obx/moderation/ModerationService.java`
+- `src/main/java/dev/zcripted/obx/listener/chat/ChatListener.java`
 - `src/main/resources/moderation.yml`
 
 ### Testing
@@ -52,8 +52,8 @@ Files:
 
 Files:
 - `src/main/resources/config.yml`
-- `src/main/java/dev/sergeantfuzzy/sfcore/storage/MotdService.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
+- `src/main/java/dev/zcripted/obx/storage/MotdService.java`
+- `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
 - `src/main/resources/motd.yml`
 
 ### GUI, Localization, and Docs
@@ -62,8 +62,8 @@ Files:
 - Updated command and permission documentation tables.
 
 Files:
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/AdminMenu.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/AdminMenu.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
 - `src/main/resources/languages/language_en.yml`
 - `src/main/resources/languages/sprache_de.yml`
 - `docs/information/about.md`

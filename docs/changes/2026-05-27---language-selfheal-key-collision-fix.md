@@ -10,18 +10,18 @@
 
 Every reload printed:
 ```
-[SF-Core] Added 1 missing keys to language_en.yml
-[SF-Core] Added 1 missing keys to sprache_de.yml
+[OBX] Added 1 missing keys to language_en.yml
+[OBX] Added 1 missing keys to sprache_de.yml
 ```
 The language self-heal is meant to add new message keys to the on-disk YAML **once**
 (when the plugin introduces new messages), then stay quiet — not fire every reload.
 
 ## Root cause
 
-`commands.sf.config.validation` was registered as a message (the `/sf config validate`
-report list) **and** was also the parent of `commands.sf.config.validation.data-missing`.
+`commands.obx.config.validation` was registered as a message (the `/obx config validate`
+report list) **and** was also the parent of `commands.obx.config.validation.data-missing`.
 A YAML node can't be both a value and a section, so writing both collapsed
-`commands.sf.config.validation` into a section (dropping the list value).
+`commands.obx.config.validation` into a section (dropping the list value).
 `LanguageFile.readValue` returns `null` for a configuration section, so `syncDefaults`
 saw the default as "missing" and re-added it on **every** reload (one per language file).
 Side effect: the validation report value never actually persisted to disk (the command
@@ -29,27 +29,27 @@ still worked via the in-jar default fallback).
 
 ## Fix
 
-- `language/MessageDefaults.java` — renamed the child `commands.sf.config.validation.data-missing`
-  → `commands.sf.config.data-missing` (a sibling, not a child), so `commands.sf.config.validation`
+- `language/MessageDefaults.java` — renamed the child `commands.obx.config.validation.data-missing`
+  → `commands.obx.config.data-missing` (a sibling, not a child), so `commands.obx.config.validation`
   is a pure leaf and round-trips correctly.
-- `command/core/SFCoreCommand.java` — updated the validate handler to read the new key.
+- `command/core/ObxCommand.java` — updated the validate handler to read the new key.
 - Verified there are **no remaining keys that are both a leaf value and a parent** in
   `MessageDefaults` (scanned all 656 keys).
 
 ## Notes
-- Pre-existing (came in with `/sf config validate`), not from recent changes.
-- The `[SF-Core][Arcanum] Loaded 100 custom enchantments across 7 categories.` line is
+- Pre-existing (came in with `/obx config validate`), not from recent changes.
+- The `[OBX][Arcanum] Loaded 100 custom enchantments across 7 categories.` line is
   normal informational output on enchant (re)load.
 - After this build + one reload, the missing-key sync settles and the message stops
-  recurring. (The orphaned `commands.sf.config.validation` section already on disk is
+  recurring. (The orphaned `commands.obx.config.validation` section already on disk is
   harmless and simply ignored.)
 
 ## Testing
 - Maven build: exit 0, both jars (obf ~629 KB, unobf ~914 KB). ProGuard `Note:` lines only.
   Compile-verified. In-game: reload twice — the second reload should no longer log
-  "Added 1 missing keys"; `/sf config validate` still renders correctly.
+  "Added 1 missing keys"; `/obx config validate` still renders correctly.
 
 ## Suggested Commit Message
 ```
-Fix (lang): resolve leaf/section key collision (commands.sf.config.validation) that re-added a key every reload
+Fix (lang): resolve leaf/section key collision (commands.obx.config.validation) that re-added a key every reload
 ```

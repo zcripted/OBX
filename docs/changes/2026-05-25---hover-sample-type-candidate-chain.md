@@ -33,7 +33,7 @@ list accepts wins (modern Paper → `PlayerProfile`).
 The one-time-per-event-class diagnostic is back (INFO on success, WARNING on
 failure) so the outcome is visible:
 ```
-[SF-Core][MOTD] ping handled: event=...StandardPaperServerListPingEventImpl, hoverLines=4, sample=ok:mutate x4 type=PlayerProfile
+[OBX][MOTD] ping handled: event=...StandardPaperServerListPingEventImpl, hoverLines=4, sample=ok:mutate x4 type=PlayerProfile
 ```
 
 ## Verification
@@ -44,7 +44,7 @@ failure) so the outcome is visible:
 The console line tells us where it stands:
 - `sample=ok:...` → the sample reached the wire; any remaining "no hover" is then
   client-side ping cache (refresh the multiplayer list / restart the client) or a
-  proxy/ViaVersion stripping the sample — not SF-Core. Note that some clients only
+  proxy/ViaVersion stripping the sample — not OBX. Note that some clients only
   render the sample tooltip when the shown player count is > 0, so testing with a
   player online (or `player-count.online.mode: fake`) is a useful check.
 - `sample=fail:no-candidate-accepted [...]` → none of the known types fit; paste

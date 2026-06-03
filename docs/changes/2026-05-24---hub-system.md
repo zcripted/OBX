@@ -5,9 +5,9 @@
 
 ## Summary
 
-Introduces a per-world hub / lobby system to SF-Core. When enabled in the
+Introduces a per-world hub / lobby system to OBX. When enabled in the
 hub-tagged worlds, players join with a configurable hotbar kit (Server
-Selector, Jump-To Rod, Vanish-All toggle, Launchpad), and SF-Core handles
+Selector, Jump-To Rod, Vanish-All toggle, Launchpad), and OBX handles
 BungeeCord / Velocity Connect messaging, live player-count caching, fall
 damage suppression on launches, and per-player launchpad cooldown with a
 live action-bar countdown above the hotbar. Outside hub worlds (or when
@@ -23,39 +23,39 @@ to a single boolean read per event.
   list + ping cache TTL, launchpad cooldown / forward-power / up-power).
 
 ### Service Layer
-- `src/main/java/dev/sergeantfuzzy/sfcore/hub/HubService.java` — loads and
+- `src/main/java/dev/zcripted/obx/hub/HubService.java` — loads and
   persists `systems/hub.yml`; exposes typed getters with safe defaults and
   setters that save live; per-world whitelist with case-insensitive lookup.
 
 ### Items (Hotbar Kit)
-- `src/main/java/dev/sergeantfuzzy/sfcore/hub/item/HubItems.java` — central
+- `src/main/java/dev/zcripted/obx/hub/item/HubItems.java` — central
   registry. Identifies items via Bukkit's `PersistentDataContainer` (1.14+,
   reflective) with an invisible color-code sentinel lore line as the
   1.8 – 1.13 fallback. Builders for all four default items.
-- `src/main/java/dev/sergeantfuzzy/sfcore/hub/kit/HubKitApplier.java` —
+- `src/main/java/dev/zcripted/obx/hub/kit/HubKitApplier.java` —
   applies the kit on join / respawn / world-change / mode-enable, gated
-  per-item by `sfcore.hub.<itemId>` permissions.
+  per-item by `obx.hub.<itemId>` permissions.
 
 ### Launchpad
-- `src/main/java/dev/sergeantfuzzy/sfcore/hub/launchpad/LaunchpadCooldownManager.java`
+- `src/main/java/dev/zcripted/obx/hub/launchpad/LaunchpadCooldownManager.java`
   — per-player cooldown with a live action-bar countdown rendered above
   the hotbar (refreshes every 4 ticks; bar visible only while cooldown
   is active, then overwritten with empty string to avoid the vanilla
   fade-tail).
 
 ### Multi-server Messaging
-- `src/main/java/dev/sergeantfuzzy/sfcore/hub/messaging/BungeeMessenger.java`
+- `src/main/java/dev/zcripted/obx/hub/messaging/BungeeMessenger.java`
   — registers the `BungeeCord` plugin-message channel (Velocity-compatible
   via the proxy's `bungee-plugin-message-channel: true` flag). Handles the
   `Connect` and `PlayerCount` subchannels with a TTL cache keyed by lower-
   case server id.
 
 ### GUIs
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/player/ServerSelectorMenu.java`
+- `src/main/java/dev/zcripted/obx/gui/player/ServerSelectorMenu.java`
   — server selector inventory, dynamic rows from config, optional outline,
   per-server icon with auto-injected "Online: N" line populated from the
   live ping cache.
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/player/ServerSelectorHolder.java`
+- `src/main/java/dev/zcripted/obx/gui/player/ServerSelectorHolder.java`
   — marker holder + slot→serverId binding for the click listener.
 
 ### Listeners (`listener/player/`)
@@ -79,10 +79,10 @@ to a single boolean read per event.
 
 ### Commands (`command/teleportation/`)
 - `HubCommand.java` — handles `/hub` and `/lobby` (alias).
-  - Default players (perm `sfcore.hub.use`): bare command only, tab
+  - Default players (perm `obx.hub.use`): bare command only, tab
     completion returns empty list, subcommand input is silently dropped
     so the admin surface is never exposed.
-  - Admins (perm `sfcore.hub.admin`): full subcommand set
+  - Admins (perm `obx.hub.admin`): full subcommand set
     `on | off | toggle | reload | give | selector | menu | world add|remove|list|here`
     + tab completion of every branch.
 
@@ -104,11 +104,11 @@ to a single boolean read per event.
 ### Permissions
 - `plugin.yml`:
   - New command `/hub` (alias `/lobby`).
-  - New nodes: `sfcore.hub.*` (op), `sfcore.hub.use` (true),
-    `sfcore.hub.admin` (op), `sfcore.hub.selector` (true),
-    `sfcore.hub.jumprod` (true), `sfcore.hub.vanishall` (true),
-    `sfcore.hub.launchpad` (true).
-  - `sfcore.*` updated to include `sfcore.hub.*: true`.
+  - New nodes: `obx.hub.*` (op), `obx.hub.use` (true),
+    `obx.hub.admin` (op), `obx.hub.selector` (true),
+    `obx.hub.jumprod` (true), `obx.hub.vanishall` (true),
+    `obx.hub.launchpad` (true).
+  - `obx.*` updated to include `obx.hub.*: true`.
 
 ### Language
 - `language/MessageDefaults.java`:
@@ -130,7 +130,7 @@ jump rod / "teleporting"; launchpad double-jump not working) and a sweep for
 slot edge-cases and flight exploits.
 
 ### Slots — collision-proof kit assignment
-- `src/main/java/dev/sergeantfuzzy/sfcore/hub/kit/HubKitApplier.java`
+- `src/main/java/dev/zcripted/obx/hub/kit/HubKitApplier.java`
   - Root cause of the "server selector teleports" report: the kit placed each
     item directly at its configured slot with **no uniqueness check**, so two
     items resolving to the same hotbar slot (a duplicate `items.*.slot`, or two
@@ -144,7 +144,7 @@ slot edge-cases and flight exploits.
     vanish-all, launchpad), so the server selector always keeps its slot.
 
 ### Launchpad — reliability + free-fly exploit fix
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/player/HubLaunchpadListener.java`
+- `src/main/java/dev/zcripted/obx/listener/player/HubLaunchpadListener.java`
   - Previously, a launchpad-eligible player who double-tapped space while **not**
     holding the launchpad fell through without the flight request being
     cancelled — granting them real creative-style flight (free-fly exploit) and
@@ -154,7 +154,7 @@ slot edge-cases and flight exploits.
     launchpad is actually held (matches the lore "Hold and double-tap SPACE").
   - After cancelling we re-affirm `setAllowFlight(true)` + `setFlying(false)` so
     the client resyncs and the next double-tap reliably fires another event.
-- `src/main/java/dev/sergeantfuzzy/sfcore/hub/kit/HubKitApplier.java`
+- `src/main/java/dev/zcripted/obx/hub/kit/HubKitApplier.java`
   - Flight is granted only to launchpad-eligible players and set **after** the
     gamemode change (which resets ability flags); flight is only managed for
     survival/adventure players so creative/spectator flight is never clobbered.
@@ -166,14 +166,14 @@ slot edge-cases and flight exploits.
   the vanish-all toggle (respecting staff vanish) so disabling doesn't strand
   players invisible.
 - Wired into both disable surfaces:
-  - `src/main/java/dev/sergeantfuzzy/sfcore/command/teleportation/HubCommand.java`
+  - `src/main/java/dev/zcripted/obx/command/teleportation/HubCommand.java`
     (`/hub off`, `/hub toggle`).
-  - `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/AdminSubMenu.java`
+  - `src/main/java/dev/zcripted/obx/gui/admin/AdminSubMenu.java`
     (Admin GUI → Hub controls toggle slot).
 
 ### Verification
 - Maven build (`./maven/bin/mvn -DskipTests package`) completes with no errors;
-  both `SF-Core-1.0.0-SNAPSHOT.jar` (obfuscated) and `-unobf.jar` produced.
+  both `OBX-1.0.0-SNAPSHOT.jar` (obfuscated) and `-unobf.jar` produced.
 
 ## Suggested Commit Message
 

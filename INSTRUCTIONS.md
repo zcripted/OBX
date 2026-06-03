@@ -17,7 +17,7 @@ Create a `/languages/` directory under the plugin data folder.
 ## Smart key sync (critical)
 On:
 - startup (onEnable) AND
-- `/sfcore reload`
+- `/obx reload`
 
 Run a "message key sync" that:
 - Loads both YAML files.
@@ -144,7 +144,7 @@ Replace direct hardcoded message strings with:
   If a console-specific variant exists, `msgConsole` must prefer it; otherwise fall back to the normal key.
 
 ### Reload
-Ensure `/sfcore reload` triggers:
+Ensure `/obx reload` triggers:
 - language files reload
 - key sync
 - message provider refresh

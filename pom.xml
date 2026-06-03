@@ -3,11 +3,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>dev.sergeantfuzzy.sfcore</groupId>
-    <artifactId>sf-core</artifactId>
+    <groupId>dev.zcripted.obx</groupId>
+    <artifactId>obx</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>SF-Core</name>
-    <description>Essentials-style core utilities. Single JAR that runtime-detects Paper, Spigot, PurPur, or Folia and adapts to Minecraft 1.8.8 through 26.1.x.</description>
+    <name>OBX</name>
+    <description>Obsidian eXtended (OBX) — Forged from Obsidian. Essentials-style core utilities. Single JAR that runtime-detects Paper, Spigot, PurPur, or Folia and adapts to Minecraft 1.8.8 through 26.1.x.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,6 +18,21 @@
         <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
         <release.date>${maven.build.timestamp}</release.date>
         <proguard.version>7.5.0</proguard.version>
+
+        <!-- ── Build / naming — single source of truth ─────────────────────────
+             Edit these four to control BOTH the built jar filenames and the
+             plugin.yml / in-game version. Every build (yours or the agent's) uses
+             them automatically. Jars are named:
+               ${plugin.name}-${plugin.version}-${release.tag}-b${build.number}
+             →  OBX-1.0.0-beta-b1.jar   and   OBX-1.0.0-beta-b1-obfuscated.jar
+             release.tag is a free tag (alpha | beta | rc | release | …). The
+             Maven <version> coordinate above is internal plumbing only and no
+             longer drives the artifact name or plugin version. -->
+        <plugin.name>OBX</plugin.name>
+        <plugin.version>1.0.0</plugin.version>
+        <release.tag>beta</release.tag>
+        <build.number>1</build.number>
+        <plugin.fullversion>${plugin.version}-${release.tag}-b${build.number}</plugin.fullversion>
     </properties>
 
     <repositories>
@@ -69,6 +84,19 @@
             <version>4.1.97.Final</version>
             <scope>provided</scope>
         </dependency>
+        <!--
+          JUnit 5 (Jupiter) for the unit-test suite under src/test/java. Test scope
+          only — nothing here is bundled into the plugin jar or seen by ProGuard.
+          The suite targets the plugin's pure-logic units (message defaults parity,
+          language input parsing, placeholder substitution) that need no running
+          server, so `mvn test` runs fully offline-of-Bukkit.
+        -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -86,8 +114,15 @@
                 <targetPath>bundled-resourcepack</targetPath>
             </resource>
         </resources>
-        <finalName>SF-Core-${project.version}</finalName>
+        <finalName>${plugin.name}-${plugin.fullversion}</finalName>
         <plugins>
+            <!-- Runs the JUnit 5 suite in the test phase. Skipped by the documented
+                 `-DskipTests` package build; run explicitly with `mvn test`. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -103,19 +138,19 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.4.1</version>
                 <configuration>
+                    <!-- The plain (unobfuscated) build is emitted with the `-unobf`
+                         classifier — ${finalName}-unobf.jar — so the clean base name
+                         ${finalName}.jar is reserved for ProGuard's obfuscated output
+                         (it reads this -unobf jar as input). -->
+                    <classifier>unobf</classifier>
                     <!-- Strip Maven's pom.xml + pom.properties from META-INF; nothing
                          at runtime reads them and they add ~8 KB compressed weight. -->
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                     </archive>
                     <!-- ALWAYS regenerate the (plain) jar, even on an incremental
-                         build where the classes look unchanged. Without this, a
-                         non-clean rebuild skips jar:jar and leaves the PREVIOUS run's
-                         obfuscated jar in place; the antrun step below then copies that
-                         obfuscated jar to *-unobf.jar and ProGuard re-obfuscates it, so
-                         both jars come out obfuscated and identically sized. Forcing
-                         creation guarantees the unobfuscated jar is freshly built before
-                         the copy + ProGuard steps run. -->
+                         build where the classes look unchanged, so ProGuard always
+                         obfuscates a freshly-built unobf jar. -->
                     <forceCreation>true</forceCreation>
                 </configuration>
             </plugin>
@@ -125,20 +160,6 @@
                 <version>3.2.0</version>
                 <executions>
                     <execution>
-                        <id>prepare-unobfuscated-copy</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                      tofile="${project.build.directory}/${project.build.finalName}-unobf.jar"
-                                      overwrite="true"/>
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>obfuscation-finished-message</id>
                         <phase>verify</phase>
                         <goals>
@@ -146,10 +167,9 @@
                         </goals>
                         <configuration>
                             <target>
-                                <!-- ProGuard's scratch input (if any) is cleaned up, but the
-                                     *-unobf.jar is a deliverable (the full, unobfuscated build)
-                                     and must NOT be deleted — it is kept alongside the
-                                     obfuscated ${finalName}.jar. -->
+                                <!-- The two deliverables are ${finalName}.jar (the
+                                     obfuscated build) and ${finalName}-unobf.jar (the
+                                     plain build ProGuard read as input). -->
                                 <delete file="${project.build.directory}/original-${project.build.finalName}.${project.packaging}" failonerror="false"/>
                                 <echo message="ProGuard obfuscation finished. Artifacts: ${project.build.finalName}.jar (obfuscated), ${project.build.finalName}-unobf.jar (unobfuscated)."/>
                             </target>
@@ -170,10 +190,10 @@
                 </dependencies>
                 <executions>
                     <!-- ProGuard runs after maven-jar-plugin (declared above) and
-                         consumes the unobfuscated `${finalName}.jar` as input. It
-                         writes a SECOND artefact, `${finalName}-obfuscated.jar`, and
-                         leaves the original unobfuscated jar untouched so both
-                         artefacts ship from a single `mvn package`. -->
+                         consumes the unobfuscated `${finalName}-unobf.jar` as input.
+                         It writes the obfuscated deliverable under the clean base
+                         name `${finalName}.jar`, leaving the -unobf jar untouched so
+                         both artefacts ship from a single `mvn package`. -->
                     <execution>
                         <id>run-proguard</id>
                         <phase>package</phase>
@@ -185,9 +205,9 @@
                             <includePluginDependencies>true</includePluginDependencies>
                             <arguments>
                                 <argument>-injars</argument>
-                                <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
+                                <argument>${project.build.directory}/${project.build.finalName}-unobf.jar</argument>
                                 <argument>-outjars</argument>
-                                <argument>${project.build.directory}/${project.build.finalName}-obfuscated.jar</argument>
+                                <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
                                 <argument>-libraryjars</argument>
                                 <argument>${settings.localRepository}/org/spigotmc/spigot-api/${spigot.version}/spigot-api-${spigot.version}.jar</argument>
                                 <argument>-libraryjars</argument>
@@ -224,9 +244,9 @@
                         <configuration>
                             <target>
                                 <delete file="${project.build.directory}/original-${project.build.finalName}.${project.packaging}" failonerror="false"/>
-                                <echo message="SF-Core build finished:"/>
-                                <echo message="  unobfuscated : ${project.build.finalName}.jar"/>
-                                <echo message="  obfuscated   : ${project.build.finalName}-obfuscated.jar"/>
+                                <echo message="OBX build finished:"/>
+                                <echo message="  obfuscated   : ${project.build.finalName}.jar"/>
+                                <echo message="  unobfuscated : ${project.build.finalName}-unobf.jar"/>
                             </target>
                         </configuration>
                     </execution>

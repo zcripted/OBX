@@ -45,7 +45,7 @@ every 4 ticks for as long as the player stayed online. (Same class of bug noted 
 
 ## Player remediation
 Already-leaked tasks from before the fix are cleared by a server **restart** or
-`/sf reload` (plugin disable cancels all of its scheduler tasks), or by **relogging**
+`/obx reload` (plugin disable cancels all of its scheduler tasks), or by **relogging**
 (the aura body is guarded by `player.isOnline()`, so it stops emitting once the player
 leaves). After this build, the auras self-terminate on schedule.
 

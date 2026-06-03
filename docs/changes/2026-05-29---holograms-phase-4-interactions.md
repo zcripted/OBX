@@ -20,13 +20,13 @@ interaction surface.
 
 ### Internal — packet layer
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/packet/PacketAvailability.java`
+* `src/main/java/dev/zcripted/obx/hologram/packet/PacketAvailability.java`
   — promoted from Phase 0 stub to a real probe. Checks for `CraftPlayer`
   via the server package, `io.netty.channel.Channel`, and
   `ChannelDuplexHandler`. Caches the result. Includes a 60-second
   rate-limited `noteFailure` logger so packet storms can't flood the log.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/packet/PacketChannelInjector.java`
-  — installs / removes the SF-Core handler in each player's Netty
+* `src/main/java/dev/zcripted/obx/hologram/packet/PacketChannelInjector.java`
+  — installs / removes the OBX handler in each player's Netty
   pipeline. Walks the reflection chain
   `CraftPlayer → getHandle → ServerPlayer → connection → ServerGame
   PacketListenerImpl → connection → Connection → channel` with
@@ -35,14 +35,14 @@ interaction surface.
   First success per class is cached so subsequent installs are
   reflection-light. Insert and remove run on the channel's event loop to
   avoid CME.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/packet/HologramPacketHandler.java`
+* `src/main/java/dev/zcripted/obx/hologram/packet/HologramPacketHandler.java`
   — inbound-only `ChannelDuplexHandler`. Checks each packet's
   `getSimpleName()` (no NMS imports) for `ServerboundInteractPacket` or
   `PacketPlayInUseEntity`; on match, decodes and dispatches via
   `SchedulerAdapter.runNow` so the click runs on the main thread.
   **Always calls `super.channelRead`** so vanilla behavior is 100%
   preserved.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/packet/InteractDecoder.java`
+* `src/main/java/dev/zcripted/obx/hologram/packet/InteractDecoder.java`
   — version-tolerant reflection-based decoder. Walks the packet class's
   declared fields once, caches the field handles, extracts the entity id,
   the action enum value, and the sneaking flag. Returns a small
@@ -50,28 +50,28 @@ interaction surface.
 
 ### Internal — interaction layer
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/interact/CTextParser.java`
+* `src/main/java/dev/zcripted/obx/hologram/interact/CTextParser.java`
   — hand-rolled parser for the `<T>label</T><C>command</C><H>hover</H>`
   syntax. Returns a list of `Segment{label, command, hover}` so the
   renderer can re-assemble label text and the dispatcher can pick the
   click action.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/interact/InteractionDispatcher.java`
+* `src/main/java/dev/zcripted/obx/hologram/interact/InteractionDispatcher.java`
   — main-thread entry. Enforces per-(player, hologram) cooldowns sourced
   from `HologramSettings.interactionCooldownMs`. Runs commands either
   as the player (default) or as console (prefix the command with `!`).
   Supports `{player}` / `{uuid}` token substitution.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/interact/RaycastTargeter.java`
+* `src/main/java/dev/zcripted/obx/hologram/interact/RaycastTargeter.java`
   — fallback when the packet layer is unavailable. Ticks at the
   configured rate (`interaction.raycast-hz`, default 4 Hz), raycasts
   every player's look direction against every interactable hologram,
   requires a 250 ms sustained hover before firing an `INTERACT` action.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/interact/ParticleFx.java`
+* `src/main/java/dev/zcripted/obx/hologram/interact/ParticleFx.java`
   — `Player#spawnParticle` wrapper. Used by future polish for click /
   hover particles.
 
 ### Listeners + service wiring
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/listener/HologramConnectionListener.java`
+* `src/main/java/dev/zcripted/obx/hologram/listener/HologramConnectionListener.java`
   — Netty injector lifecycle. `PlayerJoinEvent` schedules an inject
   2 ticks later (Paper finishes handshake mid-event). `PlayerQuitEvent`
   ejects immediately.
@@ -84,9 +84,9 @@ interaction surface.
 
 ### Commands
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/command/sub/InteractSub.java`
+* `src/main/java/dev/zcripted/obx/hologram/command/sub/InteractSub.java`
   — `/sfholo interact <id> <enable|disable|cooldown|width|height> [arg]`.
-  Permission `sfcore.holo.interact`. Registered in `HologramCommand`.
+  Permission `obx.holo.interact`. Registered in `HologramCommand`.
 
 ### Language
 
@@ -96,8 +96,8 @@ interaction surface.
 ### Docs
 
 * `docs/information/COMMANDS+PERMISSIONS.md` — covered by the Phase 2
-  block (the `sfcore.holo.interact` permission was already documented
-  with `sfcore.holo.*`).
+  block (the `obx.holo.interact` permission was already documented
+  with `obx.holo.*`).
 
 ## Verification
 
@@ -120,5 +120,5 @@ interaction surface.
 ## Suggested Commit Message
 
 ```
-SF-Core Holograms: Phase 4 — custom Netty packet layer + raycast + CText
+OBX Holograms: Phase 4 — custom Netty packet layer + raycast + CText
 ```

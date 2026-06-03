@@ -9,7 +9,7 @@ Second batch of CMI-style essentials, plus a foundational move of all player dat
 ## SQLite foundation
 
 - **Driver:** `org.xerial:sqlite-jdbc 3.45.3.0`, declared via Paper's `libraries:` field in `plugin.yml` (auto-downloaded on Paper/Folia 1.16.5+). For Spigot/PurPur where `libraries:` is ignored, the driver must be present on the server classpath (drop the jar into `plugins/` or the server `libraries/` folder). The plugin logs a clear error and refuses to enable if the driver is missing.
-- **File:** `plugins/SF-Core/sf-core.db` — single SQLite file.
+- **File:** `plugins/OBX/obx-core.db` — single SQLite file.
 - **Threading:** all writes go through `SchedulerAdapter#runAsync`. Reads from command handlers run synchronously (SQLite is in-process and fast). Frequently-read state (nicknames, fly flags, jail flags) is cached in memory on join and write-through on mutation.
 - **Schema bootstrap:** each service creates its own tables via `CREATE TABLE IF NOT EXISTS` on `load()`. Schema migrations are additive (`ALTER TABLE … ADD COLUMN`) when needed.
 - **Migration:** services with legacy YAML files (`playtime.yml`, `economy.yml`, `messaging.yml`, `kits-data.yml`) read the YAML once on first SQLite boot, bulk-insert into SQLite, then rename the YAML file to `<name>.migrated` so the migration never repeats.
@@ -19,75 +19,75 @@ Second batch of CMI-style essentials, plus a foundational move of all player dat
 ### 1. Flight & movement (`command/utility/`, `command/admin/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/fly [player]` | `flight` | `sfcore.fly` / `sfcore.fly.others` | op |
-| `/flyspeed <0-10>` | `fspeed` | `sfcore.flyspeed` | op |
-| `/walkspeed <0-10>` | `wspeed` | `sfcore.walkspeed` | op |
-| `/freeze <player>` | `frz` | `sfcore.freeze` | op |
+| `/fly [player]` | `flight` | `obx.fly` / `obx.fly.others` | op |
+| `/flyspeed <0-10>` | `fspeed` | `obx.flyspeed` | op |
+| `/walkspeed <0-10>` | `wspeed` | `obx.walkspeed` | op |
+| `/freeze <player>` | `frz` | `obx.freeze` | op |
 
 `FlightStateService` persists fly/fly-speed/walk-speed per player to SQLite so toggling carries across reconnects. `FreezeService` is in-memory only (transient state, intentionally not persisted).
 
 ### 2. Inventory utilities (`command/utility/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/enderchest [player]` | `ec` | `sfcore.enderchest` / `sfcore.enderchest.others` | op |
-| `/disposal` | `trash` | `sfcore.disposal` | op |
-| `/hat` | `head-on` | `sfcore.hat` | op |
-| `/clearinv [player]` | `ci`, `clearinventory` | `sfcore.clearinv` / `sfcore.clearinv.others` | op |
-| `/repair [all]` | `fix` | `sfcore.repair` / `sfcore.repair.all` | op |
-| `/more` | `stack`, `max` | `sfcore.more` | op |
-| `/skull <player>` | `head` | `sfcore.skull` | op |
+| `/enderchest [player]` | `ec` | `obx.enderchest` / `obx.enderchest.others` | op |
+| `/disposal` | `trash` | `obx.disposal` | op |
+| `/hat` | `head-on` | `obx.hat` | op |
+| `/clearinv [player]` | `ci`, `clearinventory` | `obx.clearinv` / `obx.clearinv.others` | op |
+| `/repair [all]` | `fix` | `obx.repair` / `obx.repair.all` | op |
+| `/more` | `stack`, `max` | `obx.more` | op |
+| `/skull <player>` | `head` | `obx.skull` | op |
 
 ### 3. Item editing (`command/utility/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/itemname <name>` | `rename` | `sfcore.itemname` | op |
-| `/itemlore <line>` | `lore` | `sfcore.itemlore` | op |
-| `/unbreakable` | `unb` | `sfcore.unbreakable` | op |
-| `/give <player> <material> [amount]` | — | `sfcore.give` | op |
-| `/i <material> [amount]` | `item` | `sfcore.item` | op |
-| `/book [unsign\|copy\|new]` | — | `sfcore.book` | op |
+| `/itemname <name>` | `rename` | `obx.itemname` | op |
+| `/itemlore <line>` | `lore` | `obx.itemlore` | op |
+| `/unbreakable` | `unb` | `obx.unbreakable` | op |
+| `/give <player> <material> [amount]` | — | `obx.give` | op |
+| `/i <material> [amount]` | `item` | `obx.item` | op |
+| `/book [unsign\|copy\|new]` | — | `obx.book` | op |
 
 ### 4. Nicknames (`nickname/`, `command/utility/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/nick <name\|off> [player]` | `nickname` | `sfcore.nick` / `sfcore.nick.others` | op |
-| `/nick color` (perm gate) | — | `sfcore.nick.color` | op |
+| `/nick <name\|off> [player]` | `nickname` | `obx.nick` / `obx.nick.others` | op |
+| `/nick color` (perm gate) | — | `obx.nick.color` | op |
 
-`NicknameService` is SQLite-backed and writes to `Player#setDisplayName` + `setPlayerListName` on join (`NicknameApplyListener`). Colors require `sfcore.nick.color`.
+`NicknameService` is SQLite-backed and writes to `Player#setDisplayName` + `setPlayerListName` on join (`NicknameApplyListener`). Colors require `obx.nick.color`.
 
 ### 5. World, time, weather (`command/world/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/time <set\|add> <value>` | — | `sfcore.time` | op |
-| `/day` | — | `sfcore.time` | op |
-| `/night` | — | `sfcore.time` | op |
-| `/sun` | — | `sfcore.weather` | op |
-| `/weather <clear\|rain\|thunder>` | — | `sfcore.weather` | op |
-| `/ptime <time\|reset>` | — | `sfcore.ptime` | op |
-| `/pweather <clear\|rain\|thunder\|reset>` | — | `sfcore.pweather` | op |
+| `/time <set\|add> <value>` | — | `obx.time` | op |
+| `/day` | — | `obx.time` | op |
+| `/night` | — | `obx.time` | op |
+| `/sun` | — | `obx.weather` | op |
+| `/weather <clear\|rain\|thunder>` | — | `obx.weather` | op |
+| `/ptime <time\|reset>` | — | `obx.ptime` | op |
+| `/pweather <clear\|rain\|thunder\|reset>` | — | `obx.pweather` | op |
 
 `PerPlayerTimeService` persists ptime overrides per player to SQLite and applies them on join.
 
 ### 6. Jail (`jail/`, `command/admin/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/jail <player> <jail> [duration] [reason]` | — | `sfcore.jail` | op |
-| `/unjail <player>` | — | `sfcore.unjail` | op |
-| `/jails` | `jaillist` | `sfcore.jails` | op |
-| `/setjail <name>` | `jailset` | `sfcore.setjail` | op |
-| `/deljail <name>` | `jaildel` | `sfcore.deljail` | op |
-| `/jailtime [player]` | — | `sfcore.jailtime` | op |
+| `/jail <player> <jail> [duration] [reason]` | — | `obx.jail` | op |
+| `/unjail <player>` | — | `obx.unjail` | op |
+| `/jails` | `jaillist` | `obx.jails` | op |
+| `/setjail <name>` | `jailset` | `obx.setjail` | op |
+| `/deljail <name>` | `jaildel` | `obx.deljail` | op |
+| `/jailtime [player]` | — | `obx.jailtime` | op |
 
 `JailService` persists jail state to SQLite (`jail_state` table) and jail location definitions to `jails.yml` (admin config). `JailListener` re-teleports jailed players to their jail on join, blocks teleport-out, and clears state when the sentence expires.
 
 ### 7. Mob & world tools (`command/admin/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/butcher [radius] [type]` | `killmobs` | `sfcore.butcher` | op |
-| `/spawnmob <type> [count]` | `mob` | `sfcore.spawnmob` | op |
-| `/spawner <type>` | `setspawner` | `sfcore.spawner` | op |
-| `/smite [player]` | `lightning` | `sfcore.smite` | op |
-| `/tree [type]` | — | `sfcore.tree` | op |
+| `/butcher [radius] [type]` | `killmobs` | `obx.butcher` | op |
+| `/spawnmob <type> [count]` | `mob` | `obx.spawnmob` | op |
+| `/spawner <type>` | `setspawner` | `obx.spawner` | op |
+| `/smite [player]` | `lightning` | `obx.smite` | op |
+| `/tree [type]` | — | `obx.tree` | op |
 
 ## Adventure-driven prompts
 

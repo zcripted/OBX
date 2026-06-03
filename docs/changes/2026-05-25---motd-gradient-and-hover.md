@@ -23,7 +23,7 @@ in both the obfuscated and unobfuscated JARs:
 ## Categories
 
 ### Internal — gradient rendering (the "two solid colors" fix)
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
   - New `public static String renderLegacy(String raw)` — renders MiniMessage /
     legacy / `<gradient>` / hex markup to a legacy section-coded string. The 16
     standard colors emit their plain `§`-code (universal, incl. pre-1.16); every
@@ -31,7 +31,7 @@ in both the obfuscated and unobfuscated JARs:
     → smooth gradient on 1.16+). Gradients are expanded to explicit per-glyph
     colors first, so the result never depends on a downstream MiniMessage pass.
   - New private `hexToStandardCode(String)` helper backing the above.
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/MotdMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/MotdMessageUtil.java`
   - `colorize(...)` now routes lines containing a `<…>` tag or `&#RRGGBB` hex
     through `AdventureMessageUtil.renderLegacy(...)`; pure `&`-code lines (incl.
     the `&x§R…` legacy-hex form) still use `translateAlternateColorCodes` so
@@ -40,7 +40,7 @@ in both the obfuscated and unobfuscated JARs:
     the custom hover lines (both flow through `colorize`).
 
 ### Listeners — server-list hover on Paper
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
+- `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
   - New `registerPaperPingListener()` dynamically registers the existing handler
     for `com.destroystokyo.paper.event.server.PaperServerListPingEvent` (resolved
     reflectively; absent on base Spigot → no-op). That event declares its own
@@ -49,16 +49,16 @@ in both the obfuscated and unobfuscated JARs:
     handler dispatches against the Paper event, whose class exposes
     `getPlayerSample()` / `setHidePlayers()`, so the cached reflection populates
     the hover.
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
+- `src/main/java/dev/zcripted/obx/Main.java`
   - Stores the `MotdPingListener` instance and calls `registerPaperPingListener()`
     right after the normal `registerEvents(...)`.
 
 ### Internal — obfuscation hardening
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
+- `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
   - `sentinelField()` now resolves `Integer.class.getDeclaredField("MAX_VALUE")`
     (a JDK field, never obfuscated) instead of reflecting on its own renamed
     field. Purely a unique non-null sentinel; never read.
-- `src/main/java/dev/sergeantfuzzy/sfcore/tablist/format/TablistRenderer.java`
+- `src/main/java/dev/zcripted/obx/tablist/format/TablistRenderer.java`
   - Same hardening for its `sentinelField()` (`MISSING` → `Integer.MAX_VALUE`).
 
 ## Behavior Notes / Assumptions
@@ -72,7 +72,7 @@ in both the obfuscated and unobfuscated JARs:
 
 ## Verification
 - `./maven/bin/mvn -DskipTests package` completes with no errors.
-- Both `SF-Core-1.0.0-SNAPSHOT.jar` (obfuscated) and `-unobf.jar` produced.
+- Both `OBX-1.0.0-SNAPSHOT.jar` (obfuscated) and `-unobf.jar` produced.
 - Verified in the obfuscated JAR: `sentinelField` resolves `Integer.MAX_VALUE`
   (JDK string preserved), and the `PaperServerListPingEvent` registration via
   `PluginManager.registerEvent(..., EventExecutor, ...)` is present.

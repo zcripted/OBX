@@ -1,5 +1,5 @@
 # ════════════════════════════════════════════════════════════════════════════
-# SF-Core — Arcanum Enchantment Module (master config)
+# OBX — Arcanum Enchantment Module (master config)
 # ────────────────────────────────────────────────────────────────────────────
 # This module adds custom "Arcanum" enchantments delivered via scrolls, world
 # loot, and an admin GUI. Per-enchant definitions live in enchants/*.yml
@@ -14,11 +14,11 @@
 # commands report "module disabled", and no effects fire.
 enabled: true
 
-# Logs every enchantment proc for admins who ran /sfench debug on. Off globally
+# Logs every enchantment proc for admins who ran /obxench debug on. Off globally
 # by default; the per-admin toggle is independent of this flag.
 debug: false
 
-# Item enchantment tooltips. SF-Core restyles enchanted items into themed
+# Item enchantment tooltips. OBX restyles enchanted items into themed
 # Enchantments / Curses / Vanilla sections, each with a tiered dot bar
 # (●●●●○) and roman level. Custom Arcanum enchants are always styled.
 lore:

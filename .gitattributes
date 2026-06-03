@@ -1,0 +1,12 @@
+# Normalize line endings: let Git store text with LF and check out native EOL.
+# Stops the CRLF/LF churn that otherwise marks every touched file as modified.
+* text=auto
+
+# Treat binary assets as binary (never normalize / diff as text).
+*.zip   binary
+*.jar   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary

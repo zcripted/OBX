@@ -1,4 +1,4 @@
-# Bloodletter bleed-out, Treecapitator warning, styled /status, /sf config pagination, click-to-message, scoreboard module
+# Bloodletter bleed-out, Treecapitator warning, styled /status, /obx config pagination, click-to-message, scoreboard module
 
 ■ **Created:** 2026-05-27 11:30 pm (America/Detroit)
 
@@ -9,7 +9,7 @@
 ## Summary
 
 Adds a Bloodletter bleed-out HUD + death/gravestone, a Treecapitator creative warning,
-restyles `/status` to the boxed report look, makes `/sf config` a dynamic paginated list with
+restyles `/status` to the boxed report look, makes `/obx config` a dynamic paginated list with
 no links, adds click-a-name-to-message in `/list` and public chat, and introduces a new
 FeatherBoard-style **Scoreboard** module configured in `systems/scoreboard.yml`.
 
@@ -35,14 +35,14 @@ FeatherBoard-style **Scoreboard** module configured in `systems/scoreboard.yml`.
 - **`/gamemode <mode> <player>`** (`MessageDefaults`): success line reworded to
   "Set {player}'s gamemode to {mode}." (`gamemode.changed-other` + `-console`).
 - **`/status <player>`** (`command/moderation/ModerationStatusCommand.java` + `MessageDefaults`):
-  restyled to match `/pl` and `/sf info` — boxed `▍ 𝗦𝗙-𝗖𝗢𝗥𝗘 › Player Status · <name>` header,
+  restyled to match `/pl` and `/obx info` — boxed `▍ 𝗢𝗕𝗫 › Player Status · <name>` header,
   `─` divider, indented `Label › value` rows (the old `&8│` left-bar prefixes removed); closes
   with the slim `core.divider-line`.
-- **`/sf config`** (`command/core/SFCoreCommand.java` + `MessageDefaults`): now **dynamically
+- **`/obx config`** (`command/core/ObxCommand.java` + `MessageDefaults`): now **dynamically
   lists every `.yml`** under the data folder (recursively, sorted), as plain text with **no
-  clickable links**, **paginated** (`/sf config <page>`, 10 per page) so output never exceeds
-  15 lines. `/sf config validate` gained `tablist.yml` + `scoreboard.yml` rows. Old static
-  `commands.sf.config.list` replaced by `list-header` / `list-entry` / `list-footer` /
+  clickable links**, **paginated** (`/obx config <page>`, 10 per page) so output never exceeds
+  15 lines. `/obx config validate` gained `tablist.yml` + `scoreboard.yml` rows. Old static
+  `commands.obx.config.list` replaced by `list-header` / `list-entry` / `list-footer` /
   `list-empty`.
 
 ### Click-to-message
@@ -54,9 +54,9 @@ FeatherBoard-style **Scoreboard** module configured in `systems/scoreboard.yml`.
   `/msg <sender> ` + hover, MiniMessage `chat.message-hover`); the sender themselves and the
   console see the plain line. `ChatFormatter.compose` gained a clickable-name overload.
 
-### Scoreboard module (new — `dev.sergeantfuzzy.sfcore.scoreboard`)
+### Scoreboard module (new — `dev.zcripted.obx.scoreboard`)
 - `service/ScoreboardService.java` — loads `systems/scoreboard.yml` (enabled, refresh
-  interval, title, server-ip, server-website, lines); `reload()` re-reads on `/sf reload`.
+  interval, title, server-ip, server-website, lines); `reload()` re-reads on `/obx reload`.
 - `format/ScoreboardRenderer.java` — per-player sidebar via scoreboard teams (line text in
   team prefix/suffix, unique color-token entries; works 1.8→1.21). Placeholders: `{plugin}`
   (title = plugin name), `{player}`, `{online}`/`{max}` (live), `{health}`/`{health_percent}`
@@ -71,14 +71,14 @@ FeatherBoard-style **Scoreboard** module configured in `systems/scoreboard.yml`.
   player/health+hearts/online/IP/website lines, separators).
 - `Main.java` — constructs/loads/starts/cancels the service+task, registers the join listener,
   reloads it in `reloadPlugin()` (logged as `scoreboard.yml`), and exposes
-  `getScoreboardService()`. The dynamic `/sf config` list automatically includes
+  `getScoreboardService()`. The dynamic `/obx config` list automatically includes
   `systems/scoreboard.yml`.
 
 ## Notes / assumptions
 - "Light red / light yellow" nametags = `RED` / `YELLOW`; the scoreboard's per-player board
   replicates those teams so the earlier nameplate feature isn't lost when the sidebar is on.
 - The gravestone is a per-player particle marker (true per-player block/entity visibility
-  needs packets, which SF-Core avoids); it renders only while the victim is in that world and
+  needs packets, which OBX avoids); it renders only while the victim is in that world and
   near enough for the client to draw particles. A chat line gives the exact coordinates.
 - Scoreboard lines use legacy `&`/`&#hex` codes (team prefix/suffix are legacy text, not the
   MiniMessage set used by tablist/chat); hex renders on 1.16+ and degrades gracefully.
@@ -92,12 +92,12 @@ FeatherBoard-style **Scoreboard** module configured in `systems/scoreboard.yml`.
   (obf ~673 KB, unobf ~973 KB). ProGuard `Note:` lines only. Compile-verified.
 - In-game checks to run: Bloodletter hit → victim bleed-out action bar; bleed-out death →
   victim title/message + private gravestone for 35s; Treecapitator in creative → warning;
-  `/gamemode creative <player>` wording; `/status <player>` boxed layout; `/sf config` (+
-  `/sf config 2`) plain paginated list incl. all yml; clicking a name in `/list` and in chat
+  `/gamemode creative <player>` wording; `/status <player>` boxed layout; `/obx config` (+
+  `/obx config 2`) plain paginated list incl. all yml; clicking a name in `/list` and in chat
   opens `/msg`; the sidebar shows title/player/health%+hearts/online/IP/website and updates
-  live; `/sf reload` re-applies scoreboard changes.
+  live; `/obx reload` re-applies scoreboard changes.
 
 ## Suggested Commit Message
 ```
-Feature: Bloodletter bleed-out HUD + gravestone, Treecapitator creative warning, styled /status, dynamic paginated /sf config, click-to-message (/list + chat), and a configurable sidebar scoreboard module
+Feature: Bloodletter bleed-out HUD + gravestone, Treecapitator creative warning, styled /status, dynamic paginated /obx config, click-to-message (/list + chat), and a configurable sidebar scoreboard module
 ```

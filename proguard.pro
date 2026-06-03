@@ -1,5 +1,5 @@
 # =============================================================================
-# SF-Core ProGuard configuration
+# OBX ProGuard configuration
 # -----------------------------------------------------------------------------
 # Optimizes and obfuscates the plugin while preserving the entry points Bukkit
 # / Spigot / Paper / Folia look up reflectively (the Main class, Listener
@@ -22,16 +22,22 @@
 # notably class merging (which can change the public class name a plugin user
 # would see in stack traces) and aggressive overloading (which makes legacy
 # decompilers produce nonsense).
--optimizations !class/merging/*,!code/allocation/variable
+-optimizations !code/allocation/variable
+
+# Collapse all renamable classes into the root package. Class names are already
+# obfuscated to single letters; flattening the package path removes the repeated
+# `dev/zcripted/obx/<pkg>/...` strings from every constant pool and directory
+# entry. Kept classes (see -keepclassmembers below) retain their real names.
+-repackageclasses ''
 
 # --- Notes / warnings -------------------------------------------------------
 -ignorewarnings
 -dontnote net.md_5.**
 -dontnote jdk.internal.jimage.**
 -dontnote jdk.internal.jrtfs.**
--dontnote dev.sergeantfuzzy.sfcore.gui.admin.AdminSubMenu
--dontnote dev.sergeantfuzzy.sfcore.gui.shared.WarpMenuStyling
--dontnote dev.sergeantfuzzy.sfcore.util.text.ComponentMessenger
+-dontnote dev.zcripted.obx.gui.admin.AdminSubMenu
+-dontnote dev.zcripted.obx.gui.shared.WarpMenuStyling
+-dontnote dev.zcripted.obx.util.text.ComponentMessenger
 -dontnote org.bukkit.scheduler.**
 -dontwarn java.**
 -dontwarn javax.**
@@ -40,17 +46,17 @@
 -dontwarn org.apache.commons.**
 -dontwarn sun.**
 -dontwarn com.sun.net.httpserver.**
--dontwarn dev.sergeantfuzzy.sfcore.gui.admin.AdminSubMenu$SubMenuType
--dontwarn dev.sergeantfuzzy.sfcore.gui.admin.AdminSubMenu$ClearMode
+-dontwarn dev.zcripted.obx.gui.admin.AdminSubMenu$SubMenuType
+-dontwarn dev.zcripted.obx.gui.admin.AdminSubMenu$ClearMode
 
 # --- Keep attributes useful for reflection ---------------------------------
--keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,Exceptions
+-keepattributes *Annotation*,Signature,InnerClasses
 
 # --- Plugin entry point -----------------------------------------------------
 # Bukkit reads plugin.yml, then loads our Main class by name and invokes its
 # public lifecycle methods. Keep both the class and every public member so
 # nothing gets renamed underneath the platform.
--keep public class dev.sergeantfuzzy.sfcore.Main {
+-keep public class dev.zcripted.obx.Main {
     public *;
 }
 
@@ -59,7 +65,10 @@
 # and invokes them reflectively. Keep every Listener subclass with its public
 # constructor and EventHandler methods. Allow non-EventHandler private members
 # to be obfuscated.
--keep class * implements org.bukkit.event.Listener
+# Listeners are instantiated directly (new XxxListener(...)) and registered by
+# INSTANCE, so their class names need not survive — only the public constructor
+# and @EventHandler methods (which PluginManager invokes reflectively by name).
+# Allowing the class name to be obfuscated/merged is what shrinks the jar.
 -keepclassmembers class * implements org.bukkit.event.Listener {
     public <init>(...);
     @org.bukkit.event.EventHandler <methods>;
@@ -69,7 +78,12 @@
 # Main.bind() instantiates these directly, but Bukkit also calls onCommand()
 # and onTabComplete() reflectively. Keep the public surface so the command
 # dispatcher can find them on every fork.
--keep class * implements org.bukkit.command.CommandExecutor
+# Command executors are instantiated directly by Main.bind(); Bukkit calls
+# onCommand()/onTabComplete() on that instance (it never looks the class up by
+# name). Keeping the methods is enough — the class name can be obfuscated.
+# HelpGuiMenu already treats its command-category MAP as authoritative precisely
+# because the package path is renamed under obfuscation (its getPackage() probe
+# is a tolerated fallback), so renaming these is safe.
 -keepclassmembers class * implements org.bukkit.command.CommandExecutor {
     public <init>(...);
     public boolean onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command, java.lang.String, java.lang.String[]);
@@ -80,11 +94,14 @@
 }
 
 # --- Inventory holders ------------------------------------------------------
-# When a player clicks a SF-Core GUI, Bukkit hands the click event to the
+# When a player clicks a OBX GUI, Bukkit hands the click event to the
 # corresponding listener which calls inventory.getHolder() to recover our
 # wrapper object. The holder's class identity must survive obfuscation
 # (instanceof checks would otherwise miss).
--keep class * implements org.bukkit.inventory.InventoryHolder
+# Holders are matched with instanceof in our own listeners. ProGuard renames the
+# class and every instanceof reference CONSISTENTLY, so the checks still pass —
+# the class name need not be preserved. getInventory() overrides the library
+# interface so it is kept regardless; keep the public constructor too.
 -keepclassmembers class * implements org.bukkit.inventory.InventoryHolder {
     public <init>(...);
     public *** getInventory();
@@ -113,6 +130,6 @@
 # its public fields hold the embedded default strings. The class itself is
 # fine to obfuscate — only its `defaults(...)` and `sectionComments(...)`
 # entry points need a stable public surface.
--keepclassmembers class dev.sergeantfuzzy.sfcore.language.MessageDefaults {
+-keepclassmembers class dev.zcripted.obx.language.MessageDefaults {
     public static *;
 }

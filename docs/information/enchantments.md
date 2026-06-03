@@ -1,6 +1,6 @@
-# SF-Core — Arcanum Enchantment Reference
+# OBX — Arcanum Enchantment Reference
 
-A complete catalogue of every **Arcane** and **Cursed** enchantment in the SF-Core
+A complete catalogue of every **Arcane** and **Cursed** enchantment in the OBX
 "Arcanum" module. Enchantments are grouped by **category (A–Z)**, and within each
 category listed **alphabetically (A–Z)**. Each entry lists its description, effects,
 applicable items, available levels, and a short in-game test.
@@ -13,15 +13,15 @@ applicable items, available levels, and a short in-game test.
 
 ## How to obtain & apply (for testing)
 
-- **Direct apply (op):** hold the target item and run `/sfench apply <id> <level>`
-  (aliases `/sfenchant`, `/sfe`). For armor/boots/elytra, apply while holding it, then
+- **Direct apply (op):** hold the target item and run `/obxench apply <id> <level>`
+  (aliases `/obxenchant`, `/obxe`). For armor/boots/elytra, apply while holding it, then
   equip it.
-- **As a scroll:** `/sfench give <player> <id> <level> [amount]` — then drag the scroll
+- **As a scroll:** `/obxench give <player> <id> <level> [amount]` — then drag the scroll
   onto the item (or combine in an anvil).
-- **Admin GUI:** `/sfench admin` to browse, give, and apply with full access.
+- **Admin GUI:** `/obxench admin` to browse, give, and apply with full access.
 - **Browse (players):** `/enchants` (read-only). `/enchants settings` toggles your own
   combat effects (kill banners + combat action-bar feedback).
-- **Inspect:** `/sfench info <id>` and `/sfench list [category]`.
+- **Inspect:** `/obxench info <id>` and `/obxench list [category]`.
 
 Use the `id` shown in each entry's header for commands.
 

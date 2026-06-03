@@ -10,7 +10,7 @@ toggle surface needed for players to opt out of clutter.
 
 ### Internal — visibility
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/render/WallOcclusionCheck.java`
+* `src/main/java/dev/zcripted/obx/hologram/render/WallOcclusionCheck.java`
   — bounded line-of-sight raycast with a TTL-keyed cache (default 5
   ticks). Steps the ray at 0.5-block resolution, returns false on the
   first occluding block. Falls through to `isSolid()` on older API
@@ -24,11 +24,11 @@ toggle surface needed for players to opt out of clutter.
 
 ### Commands
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/command/sub/ViewSub.java`
+* `src/main/java/dev/zcripted/obx/hologram/command/sub/ViewSub.java`
   — `/sfholo view <id> <permission <node>|hide-behind-walls <true|false>|reset>`
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/command/sub/HideSub.java`
+* `src/main/java/dev/zcripted/obx/hologram/command/sub/HideSub.java`
   — `/sfholo hide <id>` (per-player hide via `personallyHidden` set).
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/command/sub/ShowSub.java`
+* `src/main/java/dev/zcripted/obx/hologram/command/sub/ShowSub.java`
   — `/sfholo show <id>` reveals a previously hidden hologram.
 * All three registered in `HologramCommand`.
 
@@ -41,7 +41,7 @@ toggle surface needed for players to opt out of clutter.
 
 * `mvn -DskipTests compile` — green.
 * Manual:
-  * `/sfholo view test permission sfcore.test.view` — players without
+  * `/sfholo view test permission obx.test.view` — players without
     the perm no longer see the hologram on next tick.
   * `/sfholo view test hide-behind-walls true` — walking behind a wall
     triggers a hide; stepping out reveals it within 5 ticks (cache TTL).
@@ -57,5 +57,5 @@ share the same UI surface — Phase 7 wires both at once).
 ## Suggested Commit Message
 
 ```
-SF-Core Holograms: Phase 6 — hide-behind-walls + per-player toggles
+OBX Holograms: Phase 6 — hide-behind-walls + per-player toggles
 ```

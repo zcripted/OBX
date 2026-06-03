@@ -1,4 +1,4 @@
-# SF-Core — Bug Tracker
+# OBX — Bug Tracker
 
 A running log of bug reports, investigations, and patches, organized by the plugin
 **feature/system** each one touches. Entries are ordered **most recent at the top,
@@ -22,17 +22,17 @@ descending to oldest at the bottom**.
 **🕒 2026-05-27 · 4:02 PM ET**
 - **Status:** ✅ Fixed
 - **Severity:** Low (repeating console noise; one validate message never persisted)
-- **Symptom:** Every plugin reload logged `[SF-Core] Added 1 missing keys to language_en.yml`
+- **Symptom:** Every plugin reload logged `[OBX] Added 1 missing keys to language_en.yml`
   and `… sprache_de.yml`, instead of only once when new messages are introduced.
-- **Cause:** `commands.sf.config.validation` was defined as both a message **and** the
-  parent of `commands.sf.config.validation.data-missing`. YAML can't store a value and
+- **Cause:** `commands.obx.config.validation` was defined as both a message **and** the
+  parent of `commands.obx.config.validation.data-missing`. YAML can't store a value and
   child keys at the same path, so the report value was dropped on disk; `LanguageFile.readValue`
   then returns null for a configuration section, so the language self-heal counted it as
   "missing" and re-added it on **every** reload (1 per language file).
-- **Fix:** Moved the child to `commands.sf.config.data-missing` (a sibling, not a child),
-  so `commands.sf.config.validation` is a pure leaf and persists. Verified no remaining
+- **Fix:** Moved the child to `commands.obx.config.data-missing` (a sibling, not a child),
+  so `commands.obx.config.validation` is a pure leaf and persists. Verified no remaining
   leaf/parent key collisions exist in `MessageDefaults`.
-- **Note:** The `[SF-Core][Arcanum] Loaded 100 custom enchantments…` line is normal
+- **Note:** The `[OBX][Arcanum] Loaded 100 custom enchantments…` line is normal
   informational load output, not an error.
 - **Ref:** `docs/changes/2026-05-27---language-selfheal-key-collision-fix.md`
 
@@ -61,12 +61,12 @@ descending to oldest at the bottom**.
   fall, on the initial hit and each bleed tick, plus a blood splatter on death.
 - **Ref:** `docs/changes/2026-05-27---combat-hud-and-feedback.md`
 
-### ✅ [Enchantments / Commands] /sfench give & givebook chat name had no hover tooltip
+### ✅ [Enchantments / Commands] /obxench give & givebook chat name had no hover tooltip
 **🕒 2026-05-27 · 1:15 PM ET**
 - **Status:** ✅ Fixed
 - **Severity:** Low (missing convenience tooltip)
-- **Symptom:** The `/sfench give` / `givebook` confirmation message showed the enchant name
-  without the hover tooltip that `/sfench info`, `list`, and the apply feedback use.
+- **Symptom:** The `/obxench give` / `givebook` confirmation message showed the enchant name
+  without the hover tooltip that `/obxench info`, `list`, and the apply feedback use.
 - **Cause:** The confirmation used plain `languages.send`, not the hover-aware path.
 - **Fix:** Now renders the line and attaches the enchant tooltip to the name via
   `EnchantHover.send`, matching the "Applied &lt;enchant&gt;" feedback.
@@ -91,7 +91,7 @@ descending to oldest at the bottom**.
   every self-cancelling repeating task. (2) Defense-in-depth in `CombatParticleService`:
   `spawnAura`/`spawnShockwave` check expiry **before** spawning, wrap the body in try/catch,
   and are tracked + cancelled on disable (`clear()`, called from `Main.onDisable`).
-- **Player remediation for stuck tasks:** server restart, `/sf reload`, or relog.
+- **Player remediation for stuck tasks:** server restart, `/obx reload`, or relog.
 - **Ref:** `docs/changes/2026-05-27---folia-task-cancel-particle-leak-fix.md`
 
 ### 🔵 [Combat Enchantments / Apex Predator] No Rare/Epic scroll drop after ~20 kills
@@ -138,11 +138,11 @@ descending to oldest at the bottom**.
   `HIDE_ENCHANTS` whenever it manages the vanilla display.
 - **Ref:** `docs/changes/2026-05-26---glow-unbreaking-leak-fix.md`
 
-### ✅ [Core / Logging] Doubled console prefix `[SF-Core] [SF-Core]`
+### ✅ [Core / Logging] Doubled console prefix `[OBX] [OBX]`
 **🕒 2026-05-26 · 10:57 AM ET**
 - **Status:** ✅ Fixed
 - **Severity:** Low (cosmetic console noise)
-- **Symptom:** Plugin log lines were printed with a duplicated `[SF-Core] [SF-Core]` prefix.
+- **Symptom:** Plugin log lines were printed with a duplicated `[OBX] [OBX]` prefix.
 - **Cause:** The plugin's logger output combined Bukkit's auto-prefix with a manually-added
   one.
 - **Fix:** Console logging pass — de-duplicated the prefix and added the ANSI color theme;

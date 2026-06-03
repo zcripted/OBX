@@ -26,12 +26,12 @@ instead of a plain `Level: 3/10`.
 
 ## Scope
 Because everything routes through `EnchantHover.tooltip`, this updates the tooltip
-**everywhere** it appears: `/sfench give` & `givebook` confirmations, `/sfench info`,
-`/sfench list`, `/enchants`, the Codex books, and the apply/remove feedback.
+**everywhere** it appears: `/obxench give` & `givebook` confirmations, `/obxench info`,
+`/obxench list`, `/enchants`, the Codex books, and the apply/remove feedback.
 
 ## Testing
 - Maven build: exit 0, both jars (obf ~621 KB, unobf ~903 KB). ProGuard `Note:` lines only.
-  Compile-verified — hover an enchant name in chat (e.g. from `/sfench givebook ... apex_predator 1`)
+  Compile-verified — hover an enchant name in chat (e.g. from `/obxench givebook ... apex_predator 1`)
   and confirm the dot bar + `Lvl N` render.
 
 ## Suggested Commit Message

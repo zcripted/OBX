@@ -12,7 +12,7 @@ e.g., `Dafür` rendered as `DafÃ¼r`, `ausführen` as `ausfÃ¼hren`, `Menüs` 
 `MenÃ¼s`.
 
 Confirmed by byte analysis of the file: 56 broken characters — `Ã¼`→ü (31),
-`Ã¤`→ä (13), `Ã¶`→ö (10), `ÃŸ`→ß (2). (The `𝗦𝗙-𝗖𝗢𝗥𝗘` math-bold prefix and the
+`Ã¤`→ä (13), `Ã¶`→ö (10), `ÃŸ`→ß (2). (The `𝗢𝗕𝗫` math-bold prefix and the
 box/arrow decoration characters were fine.)
 
 ## Fixes
@@ -29,7 +29,7 @@ New `repairMojibake()` runs when an existing language file is loaded
 (`ensureExists`). It rewrites the file (UTF-8) only if a known mojibake sequence
 is present, converting `Ã¤/Ã¶/Ã¼/ÃŸ/Ã„/Ã–/Ãœ` back to `ä/ö/ü/ß/Ä/Ö/Ü`. This is
 needed because `syncDefaults` never overwrites existing keys, so a server that
-already generated `plugins/SF-Core/languages/sprache_de.yml` from an older build
+already generated `plugins/OBX/languages/sprache_de.yml` from an older build
 would otherwise keep the broken values. The repair only touches these sequences
 (never valid in real text), so server-owner customizations are preserved, and it
 is a no-op on a clean file.

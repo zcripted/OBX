@@ -15,14 +15,14 @@ feedback) and a custom red-X close button.
 
 ## Permission gating
 
-- Command is gated by **`sfcore.staff.menu`** (default: `op`). Non-permitted
+- Command is gated by **`obx.staff.menu`** (default: `op`). Non-permitted
   players cannot run, see, or tab-complete the command — the
   `onTabComplete` returns an empty list whenever the sender lacks the
   permission, and the executor sends `core.no-permission` and exits.
-- New `sfcore.staff.*` umbrella (default: `op`) carries
-  `sfcore.staff.menu` so a single grant covers the whole feature.
-- Both the umbrella and `sfcore.staff.menu` are linked into the
-  existing `sfcore.*` and `sfcore.admin.*` umbrella permissions so an
+- New `obx.staff.*` umbrella (default: `op`) carries
+  `obx.staff.menu` so a single grant covers the whole feature.
+- Both the umbrella and `obx.staff.menu` are linked into the
+  existing `obx.*` and `obx.admin.*` umbrella permissions so an
   `*`-grant continues to work.
 
 ## Main GUI (`StaffMenu`)
@@ -158,50 +158,50 @@ New `util/control/StaffSessionTracker.java`:
 
 ### Commands
 
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/StaffCommand.java`
+- **NEW** `src/main/java/dev/zcripted/obx/command/admin/StaffCommand.java`
   — `/staff` executor + tab-completer. Permission-gated by
-  `sfcore.staff.menu`. Tab-completer returns empty for non-permitted
+  `obx.staff.menu`. Tab-completer returns empty for non-permitted
   senders so the command stays hidden.
 
 ### GUIs
 
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenu.java`
+- **NEW** `src/main/java/dev/zcripted/obx/gui/admin/StaffMenu.java`
   — main 54-slot GUI builder: alphabetical online-player heads,
   hover profile cards, search head, custom red-X close head, and
   cross-version statistic / locale resolution.
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenuHolder.java`
+- **NEW** `src/main/java/dev/zcripted/obx/gui/admin/StaffMenuHolder.java`
   — `InventoryHolder` carrying the slot-to-UUID mapping, search slot,
   and close slot so the click handler can route by raw slot without
   re-walking the GUI.
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffActionMenu.java`
+- **NEW** `src/main/java/dev/zcripted/obx/gui/admin/StaffActionMenu.java`
   — 27-slot per-player action sub-menu (Warn / Mute / Kick / Tempban
   / Ban placeholders) with back arrow and reused close head.
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffActionMenuHolder.java`
+- **NEW** `src/main/java/dev/zcripted/obx/gui/admin/StaffActionMenuHolder.java`
   — `InventoryHolder` carrying the target UUID + cached display name.
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenuInputManager.java`
+- **NEW** `src/main/java/dev/zcripted/obx/gui/admin/StaffMenuInputManager.java`
   — chat-prompt manager for the search flow.
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/gui/shared/CustomHeadUtil.java`
+- **NEW** `src/main/java/dev/zcripted/obx/gui/shared/CustomHeadUtil.java`
   — cross-version player-skull and custom-textured-head builder.
 
 ### Listeners
 
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/listener/menu/StaffMenuListener.java`
+- **NEW** `src/main/java/dev/zcripted/obx/listener/menu/StaffMenuListener.java`
   — handles clicks and drags on both staff GUI types. All clicks are
   cancelled (no item movement); drags too. Routes by raw slot to
   open the action menu, prompt the search input, run the close, or
   fire the placeholder action callback.
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/listener/chat/StaffMenuInputListener.java`
+- **NEW** `src/main/java/dev/zcripted/obx/listener/chat/StaffMenuInputListener.java`
   — cancels `AsyncPlayerChatEvent` for pending staff members and
   forwards the message body to the input manager.
 
 ### Internal
 
-- **NEW** `src/main/java/dev/sergeantfuzzy/sfcore/util/control/StaffSessionTracker.java`
+- **NEW** `src/main/java/dev/zcripted/obx/util/control/StaffSessionTracker.java`
   — in-memory session-start tracker (UUID → ms timestamp).
 
 ### Wiring
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
+- `src/main/java/dev/zcripted/obx/Main.java`
   — new `staffMenuInputManager` and `staffSessionTracker` fields,
   initialized in `onEnable()` next to `warpMenuInputManager`. New
   public getters `getStaffMenuInputManager()` and
@@ -213,15 +213,15 @@ New `util/control/StaffSessionTracker.java`:
 ### plugin.yml
 
 - New `staff` command entry with aliases `staffmenu` and `sm`,
-  permission `sfcore.staff.menu`.
-- New `sfcore.staff.*` (default: op, with `sfcore.staff.menu` as a
-  child) and `sfcore.staff.menu` (default: op) permission entries.
-- Both linked into the existing `sfcore.*` and `sfcore.admin.*`
+  permission `obx.staff.menu`.
+- New `obx.staff.*` (default: op, with `obx.staff.menu` as a
+  child) and `obx.staff.menu` (default: op) permission entries.
+- Both linked into the existing `obx.*` and `obx.admin.*`
   umbrellas so a single grant carries them.
 
 ### Language strings (English + German)
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
   — added all `admin.staff.*` keys covering the menu title, the
   per-player head display name and lore, the search head and close
   head display names and lore, the search prompt / success /
@@ -242,8 +242,8 @@ Maven build (`./maven/bin/mvn.cmd -DskipTests package`) completes
 cleanly — only the standard ProGuard `Note:` lines for reflective
 accesses remain, which are informational per `CLAUDE.md`. Output JARs:
 
-- `target/SF-Core-1.0.0-SNAPSHOT.jar` (328 KB obfuscated)
-- `target/SF-Core-1.0.0-SNAPSHOT-unobf.jar` (483 KB unobfuscated)
+- `target/OBX-1.0.0-SNAPSHOT.jar` (328 KB obfuscated)
+- `target/OBX-1.0.0-SNAPSHOT-unobf.jar` (483 KB unobfuscated)
 
 The reflection paths in `CustomHeadUtil` and `StaffMenu.activePlayMillis`
 go through `Class.forName` and `Statistic.valueOf(String)`, so neither
@@ -252,23 +252,23 @@ breaks them — both jars exercise the same code paths.
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/Main.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
 - `src/main/resources/plugin.yml`
 - `docs/information/about.md`
 
 ## Files Added
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/StaffCommand.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenu.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenuHolder.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffActionMenu.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffActionMenuHolder.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenuInputManager.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/shared/CustomHeadUtil.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/menu/StaffMenuListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/chat/StaffMenuInputListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/control/StaffSessionTracker.java`
+- `src/main/java/dev/zcripted/obx/command/admin/StaffCommand.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffMenu.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffMenuHolder.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffActionMenu.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffActionMenuHolder.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffMenuInputManager.java`
+- `src/main/java/dev/zcripted/obx/gui/shared/CustomHeadUtil.java`
+- `src/main/java/dev/zcripted/obx/listener/menu/StaffMenuListener.java`
+- `src/main/java/dev/zcripted/obx/listener/chat/StaffMenuInputListener.java`
+- `src/main/java/dev/zcripted/obx/util/control/StaffSessionTracker.java`
 
 ## Assumptions
 

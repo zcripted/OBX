@@ -12,7 +12,7 @@
   duplicate copy of a dual-fire arrives in the same tick, so it's dropped while a
   genuine later click still registers. The jump rod is exempt (it acts via
   `PlayerFishEvent`, not here). One click = one toggle, guaranteed.
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/player/HubItemUseListener.java`
+- `src/main/java/dev/zcripted/obx/listener/player/HubItemUseListener.java`
 
 ### Launchpad cooldown showing in chat instead of the action bar
 - **Cause:** `ComponentMessenger.sendActionBar` only tried the Spigot
@@ -22,7 +22,7 @@
   modern Paper path), then the Spigot reflection, and — crucially — **no chat
   fallback** (the countdown is sent several times per second; a chat fallback
   would flood chat). The launchpad countdown/timer now renders in the action bar.
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/text/ComponentMessenger.java`
+- `src/main/java/dev/zcripted/obx/util/text/ComponentMessenger.java`
 
 ### Server selector — instant open, no teleport on that path
 - `ServerSelectorMenu.open` now opens the inventory **immediately** on the click
@@ -36,18 +36,18 @@
   occurs, it is coming from another plugin reacting to the compass right-click
   (navigator / spawn-compass / second selector plugin) or from clicking the jump
   rod by mistake — see "Testing notes".
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/player/ServerSelectorMenu.java`
+- `src/main/java/dev/zcripted/obx/gui/player/ServerSelectorMenu.java`
 
 ### Server-list player-count hover not appearing
 - Replaced the lambda `EventExecutor` used to bridge `PaperServerListPingEvent`
   with a **named class** (`PaperPingExecutor`) so the dispatch can't depend on a
   lambda surviving obfuscation, and added a startup log
-  (`[SF-Core][MOTD] Registered Paper ping listener …`) so registration is visible.
+  (`[OBX][MOTD] Registered Paper ping listener …`) so registration is visible.
 - The existing per-event-class ping diagnostic still logs the outcome on the
-  first ping (`[SF-Core][MOTD] ping handled: event=…, sample=…`). On Paper this
+  first ping (`[OBX][MOTD] ping handled: event=…, sample=…`). On Paper this
   prints two lines — the base event (`fail:no-sample-api`) and the Paper event
   (`ok:mutate getPlayerSample …`). The Paper line confirms the hover was applied.
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
+- `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
 
 ## Testing Notes
 - Server-list pings are **client-cached** — after updating the jar and restarting
@@ -58,7 +58,7 @@
   on the first ping. If that line shows `ok:…`, the sample is set server-side.
 - Server-selector teleport: confirm the compass is in the slot you expect
   (`items.server-selector.slot` in `systems/hub.yml`) and that no other
-  compass/navigator plugin is installed; SF-Core's compass handler has no
+  compass/navigator plugin is installed; OBX's compass handler has no
   teleport.
 
 ## Verification

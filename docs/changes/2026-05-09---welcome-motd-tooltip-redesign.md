@@ -67,8 +67,8 @@ Choices and rationale:
    line. Uses MiniMessage now so the labels render in the same gray
    the other tooltips use.
 3. **Online count** — unchanged (no hover).
-4. **`/sf help`** — title `Help Menu`, body `Browse all available /
-   SF-Core commands.`, action hint `› Click to execute`.
+4. **`/obx help`** — title `Help Menu`, body `Browse all available /
+   OBX commands.`, action hint `› Click to execute`.
 5. **Discord** — title `Discord`, body `Join our community / and
    stay connected.`, action hint `› Click to open`.
 6. **Credits row** — three side-by-side buttons (`[GitHub]`,
@@ -85,8 +85,8 @@ Maven build (`./maven/bin/mvn.cmd -DskipTests package`) completes
 clean — only the standard ProGuard `Note:` lines for reflective
 access remain. Output JARs:
 
-- `target/SF-Core-1.0.0-SNAPSHOT.jar`
-- `target/SF-Core-1.0.0-SNAPSHOT-unobf.jar`
+- `target/OBX-1.0.0-SNAPSHOT.jar`
+- `target/OBX-1.0.0-SNAPSHOT-unobf.jar`
 
 Bold-leak check on the BungeeCord transport (the legacy-mode hover
 path patched in
@@ -109,7 +109,7 @@ path patched in
     - `join-motd.lines[1]` — welcome banner hover redesigned.
     - `join-motd.lines[2]` — greeting line; player-name hover
       converted from legacy `&codes` to MiniMessage card style.
-    - `join-motd.lines[4]` — `/sf help` hover redesigned.
+    - `join-motd.lines[4]` — `/obx help` hover redesigned.
     - `join-motd.lines[5]` — Discord hover redesigned.
     - `join-motd.lines[6]` — GitHub / Spigot / BuiltByBit hovers
       redesigned with brand-accent titles.

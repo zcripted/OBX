@@ -31,7 +31,7 @@ Fixes the reported hub hotbar item behavior and updates the Admin Panel tooltip.
   every reel/resolved state (`IN_GROUND`, `CAUGHT_*`, `FAILED_ATTEMPT`, `REEL_IN`)
   teleports to the hook. Range is bounded by `items.jump-rod.max-distance`
   (default 60, beyond the rod's ~33-block reach), so casts up to the rod's max
-  distance now work. `src/main/java/dev/sergeantfuzzy/sfcore/listener/player/HubFishingListener.java`.
+  distance now work. `src/main/java/dev/zcripted/obx/listener/player/HubFishingListener.java`.
 
 ### 4 — Launchpad did nothing on double-jump or click
 - **Cause:** The launch only fired from `PlayerToggleFlightEvent` (double-tap
@@ -46,15 +46,15 @@ Fixes the reported hub hotbar item behavior and updates the Admin Panel tooltip.
 
 ### 5 — Admin Panel placeholder tooltip
 - `gui/admin/AdminMenu.java` — replaced the vague "Central management hub for
-  future SF-Core administrative features." with a short, plain-language
+  future OBX administrative features." with a short, plain-language
   description:
-  - "Your control center for SF-Core."
+  - "Your control center for OBX."
   - "Manage your server's tools and"
   - "settings from the options here."
 
 ## Verification
 - `./maven/bin/mvn -DskipTests clean package` builds clean; both obfuscated
-  (`SF-Core-1.0.0-SNAPSHOT.jar`) and `-unobf.jar` produced, correctly distinct
+  (`OBX-1.0.0-SNAPSHOT.jar`) and `-unobf.jar` produced, correctly distinct
   in size.
 
 ## Suggested Commit Message

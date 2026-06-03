@@ -8,7 +8,7 @@
 ## Internal
 - Added `MotdService` to load and reload `motd.yml` with placeholder-aware MOTD rendering.
 - Added `MotdPingListener` to apply MOTD text, displayed player counts, and hover sample overrides during server list pings.
-- Added `MotdMessageUtil` under `dev.sergeantfuzzy.sfcore.util.message` to support `<center>...</center>` tags with pixel-based MOTD centering.
+- Added `MotdMessageUtil` under `dev.zcripted.obx.util.message` to support `<center>...</center>` tags with pixel-based MOTD centering.
 - Used reflective profile/sample hooks so custom hover text can work across mixed legacy and modern server implementations without changing the 1.12.2 compile target.
 - Followed up with a centering fix by correcting the effective MOTD center width and upgrading the original `123` default to the intended width in code.
 - Followed up with an additional centering fix by moving MOTD padding behind leading color/format codes so the server-list line no longer begins with raw spaces.
@@ -17,8 +17,8 @@
 - Followed up with a Paper 1.21.11 crash fix by detecting `PaperServerListPingEvent$ListedPlayerInfo` explicitly and constructing the expected sample-wrapper type instead of falling back to raw `GameProfile` entries.
 
 ## Admin Output
-- Updated `/sf reload config` and `/sf reload` internals to reload `motd.yml`.
-- Updated `/sf config` and `/sf config validate` output to include `motd.yml`.
+- Updated `/obx reload config` and `/obx reload` internals to reload `motd.yml`.
+- Updated `/obx config` and `/obx config validate` output to include `motd.yml`.
 - Synced the related English/German language entries and Java message defaults.
 
 ## Compatibility
@@ -28,12 +28,12 @@
 - Updated the README to document `motd.yml`, centering tags, player-count customization, and the extended version-support range.
 
 ## Files
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/core/SFCoreCommand.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/storage/MotdService.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/MotdMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/Main.java`
+- `src/main/java/dev/zcripted/obx/command/core/ObxCommand.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
+- `src/main/java/dev/zcripted/obx/storage/MotdService.java`
+- `src/main/java/dev/zcripted/obx/util/message/MotdMessageUtil.java`
 - `src/main/resources/languages/language_en.yml`
 - `src/main/resources/languages/sprache_de.yml`
 - `src/main/resources/motd.yml`

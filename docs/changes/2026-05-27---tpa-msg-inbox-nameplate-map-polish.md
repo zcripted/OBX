@@ -46,7 +46,7 @@ and `/map` now opens in the player's hand.
 
 ### Inbox prefix + read/unread/bookmark/delete/clear
 - `language/MessageDefaults.java` — new `inbox.prefix`: a `✉ 𝗜𝗡𝗕𝗢𝗫 ➠` wordmark in custom
-  gold `#FFD93D` (same math-bold style as the SF-CORE prefix). `message.stored` and
+  gold `#FFD93D` (same math-bold style as the OBX prefix). `message.stored` and
   `inbox.join-notify` lost their inline `✉` (the prefix now carries it).
 - `language/LanguageManager.java` — routes `{prefix}` for `message.stored` and all `inbox.*`
   keys to `inbox.prefix`.
@@ -75,12 +75,12 @@ and `/map` now opens in the player's hand.
 ## Notes / assumptions
 - Nametag coloring rides the existing tab sort teams (the standard Minecraft mechanism). Op
   status changes apply on rejoin or the next tablist refresh. Setting team color affects the
-  name wherever vanilla draws it (nametag/tab); the SF-Core tablist name is still applied
+  name wherever vanilla draws it (nametag/tab); the OBX tablist name is still applied
   separately via `setPlayerListName`.
 - "Light red/light yellow" map to the standard `RED` (`§c`) / `YELLOW` (`§e`) chat colors —
   the only nametag colors Minecraft teams support.
 - The `INBOX` and tp coordinate prefixes use `#FFD93D` / math-bold glyphs (1.16+ for the hex;
-  the wordmark glyphs match the existing SF-CORE/SYSTEM prefixes).
+  the wordmark glyphs match the existing OBX/SYSTEM prefixes).
 - `/map` tiles render client-side as the held map loads surrounding chunks (a fresh map fills
   in over the first moment), same as vanilla maps.
 

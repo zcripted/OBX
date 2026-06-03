@@ -6,7 +6,7 @@
 
 ## Summary
 
-SF-Core now ships as a **single JAR** that runtime-detects the host server and
+OBX now ships as a **single JAR** that runtime-detects the host server and
 adapts its API usage accordingly. Supported targets:
 
 - Paper 1.8.8 → 26.1.x
@@ -24,13 +24,13 @@ gracefully when the class isn't present.
 
 ### Internal
 
-- New `dev.sergeantfuzzy.sfcore.platform.PlatformInfo` — singleton that detects
+- New `dev.zcripted.obx.platform.PlatformInfo` — singleton that detects
   the server fork (Folia → PurPur → Paper → Spigot → CraftBukkit, in that
   priority), parses `Bukkit.getBukkitVersion()` into major/minor/patch, and
   flags the presence of the Folia scheduler, the Adventure API, and the new
   Paper plugin loader API.
-- New `dev.sergeantfuzzy.sfcore.platform.scheduler.SchedulerAdapter` — single
-  scheduler entry point used by every SF-Core component:
+- New `dev.zcripted.obx.platform.scheduler.SchedulerAdapter` — single
+  scheduler entry point used by every OBX component:
     - `runNow`, `runLater`, `runRepeating` route to `BukkitScheduler` on
       Bukkit / Spigot / Paper / PurPur; on Folia they route to
       `GlobalRegionScheduler` via reflection.
@@ -67,7 +67,7 @@ gracefully when the class isn't present.
 ### Config / plugin metadata
 
 - `plugin.yml`:
-    - `api-version: 1.13` removed so SF-Core loads on 1.8 → 1.12 servers (which
+    - `api-version: 1.13` removed so OBX loads on 1.8 → 1.12 servers (which
       reject the field). Modern Paper still loads plugins without
       `api-version`; it just emits an informational warning.
     - `folia-supported: true` added so Folia recognizes the plugin and does not
@@ -80,7 +80,7 @@ gracefully when the class isn't present.
 - `Main#getSchedulerAdapter()` exposes the new scheduler so future modules can
   schedule work without ever importing `BukkitScheduler` or `BukkitRunnable`.
 - `Main#getPlatformInfo()` exposes the cached platform detection result so
-  diagnostics, the `/sf` info subcommands, and feature gates can branch on
+  diagnostics, the `/obx` info subcommands, and feature gates can branch on
   fork / version without re-detecting.
 
 ### How the single-JAR adaptation works
@@ -106,19 +106,19 @@ gracefully when the class isn't present.
 
 ## Modified / Added Files
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/platform/PlatformInfo.java` *(new)*
-- `src/main/java/dev/sergeantfuzzy/sfcore/platform/scheduler/SchedulerAdapter.java` *(new)*
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/perf/TpsService.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/teleport/TeleportManager.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/control/DaylightCycleFallback.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/tablist/scheduler/TablistRefreshTask.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/tablist/listener/TablistJoinListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/platform/bukkit/resourcepack/ResourcePackListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/moderation/ModerationService.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/player/JoinLeaveListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/AdminSubMenu.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/player/WarpMenuInputManager.java`
+- `src/main/java/dev/zcripted/obx/platform/PlatformInfo.java` *(new)*
+- `src/main/java/dev/zcripted/obx/platform/scheduler/SchedulerAdapter.java` *(new)*
+- `src/main/java/dev/zcripted/obx/Main.java`
+- `src/main/java/dev/zcripted/obx/util/perf/TpsService.java`
+- `src/main/java/dev/zcripted/obx/util/teleport/TeleportManager.java`
+- `src/main/java/dev/zcripted/obx/util/control/DaylightCycleFallback.java`
+- `src/main/java/dev/zcripted/obx/tablist/scheduler/TablistRefreshTask.java`
+- `src/main/java/dev/zcripted/obx/tablist/listener/TablistJoinListener.java`
+- `src/main/java/dev/zcripted/obx/platform/bukkit/resourcepack/ResourcePackListener.java`
+- `src/main/java/dev/zcripted/obx/moderation/ModerationService.java`
+- `src/main/java/dev/zcripted/obx/listener/player/JoinLeaveListener.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/AdminSubMenu.java`
+- `src/main/java/dev/zcripted/obx/gui/player/WarpMenuInputManager.java`
 - `src/main/resources/plugin.yml`
 - `pom.xml`
 

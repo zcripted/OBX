@@ -10,7 +10,7 @@ Four follow-up adjustments after the welcome MOTD / staff-tool drop:
 
 1. **Welcome MOTD hover tooltips and click events were rendering as raw text
    in chat** — the MiniMessage parser used a naive `indexOf('>')` to locate the
-   close of an opening tag, but the new welcome / `/sf help` / discord lines
+   close of an opening tag, but the new welcome / `/obx help` / discord lines
    wrap their click targets in hover tags whose args contain `>` characters
    inside single-quoted MiniMessage markup (e.g.
    `<hover:show_text:'<gold><bold>X</bold></gold>'>`). The parser stopped at
@@ -19,7 +19,7 @@ Four follow-up adjustments after the welcome MOTD / staff-tool drop:
 2. **Discord URL no longer underlined** — removed the leading `&n` from the
    visible URL text in the welcome MOTD's discord line.
 3. **`/invsee` usage line drops the `[STAFF]` badge** — usage hints are
-   styled the same across SF-Core commands; re-flagging the staff origin in
+   styled the same across OBX commands; re-flagging the staff origin in
    the usage line was redundant noise.
 4. **`/vanish` toggle output now spans two lines** — the descriptive trailer
    ("You are now invisible to other players.", etc.) is its own chat line
@@ -30,7 +30,7 @@ Four follow-up adjustments after the welcome MOTD / staff-tool drop:
 
 ### Internal — parser
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
     - **`findTagEnd(text, from)` already added in the prior change** —
       quote-aware close-bracket finder. Skips `>` chars that lie inside
       single- or double-quoted argument strings. This change confirms
@@ -41,12 +41,12 @@ Four follow-up adjustments after the welcome MOTD / staff-tool drop:
 
 - `src/main/resources/config.yml`
     - `join-motd.lines[4]` (Discord line) — removed `&n` from
-      `&b&nhttps://discord.gg/sergeantfuzzy` so the URL is aqua but no
+      `&b&nhttps://discord.gg/zcripted` so the URL is aqua but no
       longer underlined.
 
 ### Language strings
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
     - `player.invsee.usage` — leading `&8[&dSTAFF&8] ` removed; it now
       starts with `{prefix}&eUsage: …` matching every other usage line in
       the plugin.
@@ -62,8 +62,8 @@ Four follow-up adjustments after the welcome MOTD / staff-tool drop:
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
 - `src/main/resources/config.yml`
 
 ## Suggested Commit Message

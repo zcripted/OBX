@@ -1,18 +1,18 @@
 # ════════════════════════════════════════════════════════════════════════════
-# SF-Core Hub / Lobby
+# OBX Hub / Lobby
 # ────────────────────────────────────────────────────────────────────────────
 # Multi-server style hub / lobby toolkit. When a player is in one of the
-# configured hub worlds (`worlds:` below) AND `enabled: true`, SF-Core
+# configured hub worlds (`worlds:` below) AND `enabled: true`, OBX
 # applies the hub kit on join / respawn / world-change and processes the
 # hotbar items (server selector, jump rod, vanish-all toggle, launchpad).
 #
 # Toggle surfaces — all three converge on the same runtime flag and write
 # back to this file when changed in-game:
-#   • Command : /hub on|off|toggle|reload  (admins only, sfcore.hub.admin)
-#   • GUI     : /sf → Admin Menu → "Hub / Lobby Controls" slot
-#   • Config  : edit `enabled` below and run /sf reload (or save in panel)
+#   • Command : /hub on|off|toggle|reload  (admins only, obx.hub.admin)
+#   • GUI     : /obx → Admin Menu → "Hub / Lobby Controls" slot
+#   • Config  : edit `enabled` below and run /obx reload (or save in panel)
 #
-# Hub-mode is per-world by design — multi-world setups can use SF-Core both
+# Hub-mode is per-world by design — multi-world setups can use OBX both
 # as a hub plugin (on `hub`, `lobby`, etc.) and as essentials on game worlds.
 # ════════════════════════════════════════════════════════════════════════════
 
@@ -21,7 +21,7 @@
 # ServerControlState idiom for clean off-state.
 enabled: false
 
-# Worlds where hub-mode is active. Outside these worlds SF-Core behaves
+# Worlds where hub-mode is active. Outside these worlds OBX behaves
 # exactly like before (essentials-style core). Case-sensitive world names
 # as reported by Bukkit.getWorld().getName().
 worlds:
@@ -58,7 +58,7 @@ items:
     # crosshairs in addition to opening this menu. NETHER_STAR has no such clash.
     material: "NETHER_STAR"
     material-fallback: ["NETHER_STAR", "COMPASS"]
-    name: "&6&lServer Selector &7(Right-Click)"
+    name: "&5&lServer Selector &7(Right-Click)"
     lore:
       - "&8&m─────────────────────"
       - "&7Open the server selector"
@@ -72,7 +72,7 @@ items:
     slot: 1
     material: "FISHING_ROD"
     material-fallback: ["FISHING_ROD"]
-    name: "&b&lJump-To Rod &7(Cast)"
+    name: "&d&lJump-To Rod &7(Cast)"
     lore:
       - "&8&m─────────────────────"
       - "&7Cast the rod to teleport"
@@ -141,7 +141,7 @@ items:
 #   material-fallback: ordered alternates
 #   lore         : static lore (live online-count is appended automatically)
 selector:
-  title: "&6&lServer Selector"
+  title: "&5&lServer Selector"
   rows: 3
   # Live online-player count subchannel ("PlayerCount" on BungeeCord) is
   # queried for each server when the menu opens, then cached for this many
@@ -174,7 +174,7 @@ selector:
         - "&8&m─────────────────────"
     creative:
       id: "creative"
-      display-name: "&b&lCreative"
+      display-name: "&d&lCreative"
       slot: 13
       material: "DIAMOND_BLOCK"
       material-fallback: ["DIAMOND_BLOCK"]

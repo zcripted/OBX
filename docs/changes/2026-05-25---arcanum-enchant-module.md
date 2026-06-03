@@ -3,7 +3,7 @@
 ■ **Created:** 2026-05-25 7:25 pm
 ■ **Last Updated:** 2026-05-25 11:25 pm
 
-A custom enchantment system ("Arcanum") added under `dev.sergeantfuzzy.sfcore.enchant`.
+A custom enchantment system ("Arcanum") added under `dev.zcripted.obx.enchant`.
 Built in the design doc's 6 phases; this file tracks status and is updated as the
 remaining phases land.
 
@@ -17,7 +17,7 @@ remaining phases land.
 - **No post-1.12.2 enum references.** Materials, sounds, and potion types are
   resolved by name (`Material.matchMaterial`, `Sounds`, `Potions`), and
   `setCustomModelData` is reflective — so the single jar stays correct cross-version.
-- **Messages use SF-Core's existing `MessageDefaults`/`LanguageManager` (EN+DE)**,
+- **Messages use OBX's existing `MessageDefaults`/`LanguageManager` (EN+DE)**,
   not a separate `messages.yml` — consistent with the rest of the plugin and
   CLAUDE.md's i18n rule.
 - **Open questions (§14) resolved to the doc's recommendations**: stack with vanilla;
@@ -50,7 +50,7 @@ remaining phases land.
 - Read-only browse mode powering `/enchants`.
 
 ### ✅ Commands (complete for non-anvil flow)
-- `/sfench` (`/sfenchant`, `/sfe`): `admin`, `give`, `givebook`, `apply`, `remove`,
+- `/obxench` (`/obxenchant`, `/obxe`): `admin`, `give`, `givebook`, `apply`, `remove`,
   `list`, `info`, `reload`, `loot toggle|reload`, `protect`, `success`, `debug` —
   all functional, with tab-completion and per-command permissions (§12).
 - `/enchants` (`/scrolls`): read-only browser.
@@ -77,7 +77,7 @@ remaining phases land.
   (incl. renames: `simple_dungeon`→dungeon, `nether_bridge`→nether_fortress,
   `bastion*`→bastion_remnant, trial-chamber/ominous, etc.), honors per-chest
   enable/weight/cap, rarity distribution, and category filter. Master switch ships
-  **off**; `/sfench loot toggle|reload` works live.
+  **off**; `/obxench loot toggle|reload` works live.
 
 ### ✅ Phase 5 — Roster effects (complete for event-tractable enchants)
 Live effect listeners now cover every category:
@@ -133,14 +133,14 @@ Live effect listeners now cover every category:
 
 ### New player commands
 - `/recall` — teleport to the Beacon's Memory point. `/satchel` — open Satchel
-  storage. Both `sfcore.enchants.use` (default true). Registered in `Main` /
+  storage. Both `obx.enchants.use` (default true). Registered in `Main` /
   `plugin.yml`.
 
 ## Wiring
 - `Main`: constructs `EnchantService`/`EnchantItems`/`EnchantFeedback`/
-  `EnchantAdminMenu`; binds `sfench`/`enchants`; registers `CombatEnchantListener`
+  `EnchantAdminMenu`; binds `obxench`/`enchants`; registers `CombatEnchantListener`
   + `EnchantMenuListener`; reloads the service in `reloadPlugin()`.
-- `plugin.yml`: `sfench` + `enchants` commands; `sfcore.enchants.*` permission tree.
+- `plugin.yml`: `obxench` + `enchants` commands; `obx.enchants.*` permission tree.
 
 ## Verification
 - `mvn -DskipTests clean package` → exit 0, no errors / unmappable warnings, at
@@ -190,14 +190,14 @@ Live effect listeners now cover every category:
   hoverable (splits the resolved line on the colored name; whole-line hover
   fallback; `ComponentMessenger` downgrades to plain text for console).
 - Wired in: apply/upgrade/rejection feedback (`EnchantFeedback` — shows applied
-  level + the item applied to on success), `/sfench list` entries, `/sfench info`
-  header, and the `/sfench remove` confirmation. Works for all custom enchants.
+  level + the item applied to on success), `/obxench list` entries, `/obxench info`
+  header, and the `/obxench remove` confirmation. Works for all custom enchants.
 - Build: exit 0; 60 enchant classes; `EnchantHover` present.
 
 ## Tab completion + cleaner usage
-- `/sfench apply <enchant> <level>` now tab-completes the **level** (1..maxLevel of
+- `/obxench apply <enchant> <level>` now tab-completes the **level** (1..maxLevel of
   the named enchant); same for `give`/`givebook` at the `<level>` arg
-  (`SfEnchantCommand.levelsFor`, wired at arg 3 for apply and arg 4 for give).
+  (`ObxEnchantCommand.levelsFor`, wired at arg 3 for apply and arg 4 for give).
 - `enchant.usage` rewritten from a dense one-liner into a clean, grouped boxed help
   (Browse / Apply / Give / Manage sections, each command with a short description),
   EN + DE, matching the `▍ 𝗔𝗥𝗖𝗔𝗡𝗨𝗠 ›` styled-report format.

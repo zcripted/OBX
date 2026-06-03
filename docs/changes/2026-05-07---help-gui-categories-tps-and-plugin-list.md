@@ -13,7 +13,7 @@
   Other.
 - Implemented a custom `/tps` command that reports rolling 1m / 5m / 15m TPS and
   current MSPT alongside player count and JVM uptime. The console variant uses
-  SF-Core's existing `&` → ANSI translation pipeline so the in-game palette is
+  OBX's existing `&` → ANSI translation pipeline so the in-game palette is
   preserved in terminals.
 - Implemented a custom `/pl` (alias `/plugins`) command that lists every loaded
   plugin grouped by detected platform (Bukkit / Paper / Purpur / Folia). Empty
@@ -23,7 +23,7 @@
   `paper-plugin.yml` is not present in the loaded plugin set.
 - Added `PlayerCommandPreprocessEvent` overrides for `/tps`, `/pl`, `/plugins`,
   and the `bukkit:` / `paper:` / `purpur:` / `spigot:` namespaced variants, so
-  the SF-Core implementations are used regardless of plugin load order.
+  the OBX implementations are used regardless of plugin load order.
 
 ## Categories
 
@@ -35,9 +35,9 @@
 - `/help [page] [category]` — args may now include a category name (e.g.,
   `/help 2 Moderation`).
 - `/tps` *(new)* — server performance report. Aliases: `lag`, `mspt`,
-  `performance`. Permission: `sfcore.tps` (default `op`). Console-safe.
+  `performance`. Permission: `obx.tps` (default `op`). Console-safe.
 - `/pl` *(new)* — grouped plugin list. Aliases: `plugins`. Permission:
-  `sfcore.pl` (default `op`). Console-safe.
+  `obx.pl` (default `op`). Console-safe.
 
 ### GUIs
 
@@ -47,9 +47,9 @@
 
 ### Permissions
 
-- `sfcore.tps` *(new)* — default `op`. Required to view `/tps`.
-- `sfcore.pl` *(new)* — default `op`. Required to view `/pl`.
-- `sfcore.*` now grants `sfcore.tps` and `sfcore.pl` as children.
+- `obx.tps` *(new)* — default `op`. Required to view `/tps`.
+- `obx.pl` *(new)* — default `op`. Required to view `/pl`.
+- `obx.*` now grants `obx.tps` and `obx.pl` as children.
 
 ### Config
 
@@ -71,16 +71,16 @@
 
 ## Modified / Added Files
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/player/HelpGuiHolder.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/player/HelpGuiMenu.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/menu/HelpGuiListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/player/CommandOverrideListener.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/core/HelpGuiCommand.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/TpsCommand.java` *(new)*
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/PluginListCommand.java` *(new)*
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/perf/TpsService.java` *(new)*
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/Main.java`
+- `src/main/java/dev/zcripted/obx/gui/player/HelpGuiHolder.java`
+- `src/main/java/dev/zcripted/obx/gui/player/HelpGuiMenu.java`
+- `src/main/java/dev/zcripted/obx/listener/menu/HelpGuiListener.java`
+- `src/main/java/dev/zcripted/obx/listener/player/CommandOverrideListener.java`
+- `src/main/java/dev/zcripted/obx/command/core/HelpGuiCommand.java`
+- `src/main/java/dev/zcripted/obx/command/admin/TpsCommand.java` *(new)*
+- `src/main/java/dev/zcripted/obx/command/admin/PluginListCommand.java` *(new)*
+- `src/main/java/dev/zcripted/obx/util/perf/TpsService.java` *(new)*
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
 - `src/main/resources/plugin.yml`
 
 ## Suggested Commit Message

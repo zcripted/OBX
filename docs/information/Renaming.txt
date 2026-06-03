@@ -1,0 +1,8 @@
+OBX (backronym) --> Obsidian eXtended
+ Tagline: "Forged from Obsidian."
+ Palette: obsidian black → violet → magenta fleck (#0A0A0F → #2A0A45 → #6A1B9A)
+ Suite / brand identity = Obsidian (the family)
+ Splash: OBX block-art, Obsidian eXtensions — by zcripted beneath
+
+GitHub tags:
+minecraft, paper, spigot, purpur, bukkit, essentials, obsidian

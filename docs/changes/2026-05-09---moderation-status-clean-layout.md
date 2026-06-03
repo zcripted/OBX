@@ -5,7 +5,7 @@
 ## Summary
 
 `/status <player>` (the moderation profile read-out) was rendering 12+
-chat lines, each one stamped with the full `&6SF-CORE &8➠ &e` prefix.
+chat lines, each one stamped with the full `&6OBX &8➠ &e` prefix.
 That made the report visually noisy in chat and in console — every
 factual line had to fight past the prefix before the operator could
 read it.
@@ -20,24 +20,24 @@ instead of as N independent chat lines.
 ### Before (each line prefix-stamped)
 
 ```
-SF-CORE ➠ Moderation Profile: PlayerName
-SF-CORE ➠ UUID: xxx | Profile: Live | Session: Online | Updated: ...
-SF-CORE ➠ Ban Status: ACTIVE | Type: Permanent | By: Admin | Expires: ...
-SF-CORE ➠ Ban Reason: Cheating
-SF-CORE ➠ Mute Status: Clear
-SF-CORE ➠ Totals: Bans 0 | Tempbans 0 | Kicks 1 | Warnings 2
-SF-CORE ➠ More: Mutes 0 | Unmutes 0 | Unbans 0
-SF-CORE ➠ Last Warning: ... | By: ... | Reason: ...
-SF-CORE ➠ Last Action: ... | At: ... | By: ... | Reason: ...
-SF-CORE ➠ Recent Actions: 3
-SF-CORE ➠ - Kicked | ... | By: ... | Reason: ...
+OBX ➠ Moderation Profile: PlayerName
+OBX ➠ UUID: xxx | Profile: Live | Session: Online | Updated: ...
+OBX ➠ Ban Status: ACTIVE | Type: Permanent | By: Admin | Expires: ...
+OBX ➠ Ban Reason: Cheating
+OBX ➠ Mute Status: Clear
+OBX ➠ Totals: Bans 0 | Tempbans 0 | Kicks 1 | Warnings 2
+OBX ➠ More: Mutes 0 | Unmutes 0 | Unbans 0
+OBX ➠ Last Warning: ... | By: ... | Reason: ...
+OBX ➠ Last Action: ... | At: ... | By: ... | Reason: ...
+OBX ➠ Recent Actions: 3
+OBX ➠ - Kicked | ... | By: ... | Reason: ...
 ...
 ```
 
 ### After (header keeps prefix; body indented under a single border)
 
 ```
-SF-CORE ➠ Moderation Profile › PlayerName
+OBX ➠ Moderation Profile › PlayerName
  │ UUID: xxx  ·  Profile: Live Player  ·  Session: Online  ·  Updated: ...
  │ ● Ban  │  ACTIVE  ·  Permanent  ·  by Admin  ·  expires ...
  │     └ Reason: Cheating
@@ -103,7 +103,7 @@ reads the same shape regardless of language.
 
 ## Files modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
 
 ## Files added
 
@@ -112,7 +112,7 @@ reads the same shape regardless of language.
 ## Verification
 
 - `& ".\maven\bin\mvn.cmd" -DskipTests package` produced a fresh
-  obfuscated `target/SF-Core-1.0.0-SNAPSHOT.jar` with no `[ERROR]`
+  obfuscated `target/OBX-1.0.0-SNAPSHOT.jar` with no `[ERROR]`
   or `BUILD FAILURE` lines. Only ProGuard `Note:` lines for
   reflective accesses (informational per CLAUDE.md).
 - `LanguageManager.resolveMessages` resolves `{prefix}` strictly as
@@ -142,5 +142,5 @@ reads the same shape regardless of language.
 ## Suggested Commit Message
 
 ```
-Style (moderation): strip the SF-Core prefix from /status body lines and reflow the report into a single │-bordered "card" with ● ▸ • └ section glyphs so the profile reads as one indented block instead of N prefix-stamped chat lines
+Style (moderation): strip the OBX prefix from /status body lines and reflow the report into a single │-bordered "card" with ● ▸ • └ section glyphs so the profile reads as one indented block instead of N prefix-stamped chat lines
 ```

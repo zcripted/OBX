@@ -27,12 +27,12 @@ is NOT applied — a working hover is silent.
 
 ## 2. Server-selector compass teleport — WorldEdit navigation wand
 
-The reporter's plugins: PlaceholderAPI, SF-Core, Vault, ViaBackwards, ViaVersion,
+The reporter's plugins: PlaceholderAPI, OBX, Vault, ViaBackwards, ViaVersion,
 **WorldEdit**, WorldGuard. WorldEdit's **navigation wand is a COMPASS** by default
 (right-click → `/thru`, left-click → `/jumpto`), which teleports a player with
 `worldedit.navigation.*` (ops by default) to their crosshairs. So clicking the
-compass server-selector fired BOTH WorldEdit's teleport AND SF-Core's GUI — the
-exact "teleports to crosshairs and opens the menu" symptom. SF-Core has no
+compass server-selector fired BOTH WorldEdit's teleport AND OBX's GUI — the
+exact "teleports to crosshairs and opens the menu" symptom. OBX has no
 teleport code on the selector path; the teleport was entirely WorldEdit's.
 
 **Fixes:**

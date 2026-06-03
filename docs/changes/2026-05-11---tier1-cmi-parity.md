@@ -20,75 +20,75 @@ Big-batch landing of CMI-style Tier 1 essentials. Each bucket ships with: dedica
 ### 1. Teleport requests (`command/teleportation/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/tpa <player>` | `call`, `tpask` | `sfcore.tpa` | true |
-| `/tpahere <player>` | `tpaskhere` | `sfcore.tpahere` | true |
-| `/tpaccept [player]` | `tpyes`, `tpac` | `sfcore.tpaccept` | true |
-| `/tpdeny [player]` | `tpno`, `tpd` | `sfcore.tpdeny` | true |
-| `/tpcancel [player]` | `tpc` | `sfcore.tpcancel` | true |
-| `/tptoggle` | `tpt` | `sfcore.tptoggle` | true |
-| `/tphere <player>` | `s`, `tphr` | `sfcore.tphere` | op |
-| `/tppos <x> <y> <z> [world] [yaw] [pitch]` | `tpcoords` | `sfcore.tppos` | op |
-| `/tpall` | `tpeveryone` | `sfcore.tpall` | op |
+| `/tpa <player>` | `call`, `tpask` | `obx.tpa` | true |
+| `/tpahere <player>` | `tpaskhere` | `obx.tpahere` | true |
+| `/tpaccept [player]` | `tpyes`, `tpac` | `obx.tpaccept` | true |
+| `/tpdeny [player]` | `tpno`, `tpd` | `obx.tpdeny` | true |
+| `/tpcancel [player]` | `tpc` | `obx.tpcancel` | true |
+| `/tptoggle` | `tpt` | `obx.tptoggle` | true |
+| `/tphere <player>` | `s`, `tphr` | `obx.tphere` | op |
+| `/tppos <x> <y> <z> [world] [yaw] [pitch]` | `tpcoords` | `obx.tppos` | op |
+| `/tpall` | `tpeveryone` | `obx.tpall` | op |
 
 `TpaService` holds pending requests with a per-config expiry, dispatches Adventure-driven prompts (`[Accept]` / `[Deny]` clickable + hover), and routes accepted teleports through `TeleportManager` so warmup applies.
 
 ### 2. Messaging (`command/messaging/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/msg <player> <message>` | `tell`, `w`, `whisper`, `pm` | `sfcore.msg` | true |
-| `/reply <message>` | `r` | `sfcore.msg` | true |
-| `/ignore <player>` | `block` | `sfcore.ignore` | true |
-| `/socialspy` | `spy` | `sfcore.socialspy` | op |
-| `/mail send|read|clear|list` | — | `sfcore.mail` | true |
-| `/me <action>` | `action` | `sfcore.me` | true |
-| `/broadcast <message>` | `bc` | `sfcore.broadcast` | op |
-| `/staffchat <message>` | `sc`, `achat` | `sfcore.staffchat` | op |
+| `/msg <player> <message>` | `tell`, `w`, `whisper`, `pm` | `obx.msg` | true |
+| `/reply <message>` | `r` | `obx.msg` | true |
+| `/ignore <player>` | `block` | `obx.ignore` | true |
+| `/socialspy` | `spy` | `obx.socialspy` | op |
+| `/mail send|read|clear|list` | — | `obx.mail` | true |
+| `/me <action>` | `action` | `obx.me` | true |
+| `/broadcast <message>` | `bc` | `obx.broadcast` | op |
+| `/staffchat <message>` | `sc`, `achat` | `obx.staffchat` | op |
 
 `MessageService` tracks last-recipient (for `/r`), ignore sets, socialspy listeners, and inbox mail. Mail is persisted in `messaging.yml`.
 
 ### 3. AFK (`util/control/`, `command/utility/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/afk [reason]` | `away` | `sfcore.afk` | true |
-| `/afk <player>` | — | `sfcore.afk.others` | op |
+| `/afk [reason]` | `away` | `obx.afk` | true |
+| `/afk <player>` | — | `obx.afk.others` | op |
 
 `AfkService` tracks idle time via PlayerMove/Chat/Command/Interact listeners. Configurable thresholds in `config.yml` (`afk.idle-seconds`, `afk.kick-seconds`, `afk.broadcast`).
 
 ### 4. Kits (`command/utility/`, `storage/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/kit [name]` | `kits` | `sfcore.kit` | true |
-| `/kit list` | — | `sfcore.kit.list` | true |
-| `/kit info <name>` | — | `sfcore.kit.info` | true |
-| `/kit give <player> <name>` | — | `sfcore.kit.give` | op |
-| `/kit reload` | — | `sfcore.kit.reload` | op |
+| `/kit [name]` | `kits` | `obx.kit` | true |
+| `/kit list` | — | `obx.kit.list` | true |
+| `/kit info <name>` | — | `obx.kit.info` | true |
+| `/kit give <player> <name>` | — | `obx.kit.give` | op |
+| `/kit reload` | — | `obx.kit.reload` | op |
 
-Per-kit gate: `sfcore.kit.<name>`. Cooldowns persisted in `kits-data.yml`. Kit definitions in `kits.yml`. Players can preview contents via `/kit info`.
+Per-kit gate: `obx.kit.<name>`. Cooldowns persisted in `kits-data.yml`. Kit definitions in `kits.yml`. Players can preview contents via `/kit info`.
 
 ### 5. Economy (`economy/`, `command/economy/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/balance [player]` | `bal`, `money` | `sfcore.balance` | true |
-| `/baltop [page]` | `balancetop`, `moneytop` | `sfcore.baltop` | true |
-| `/pay <player> <amount>` | — | `sfcore.pay` | true |
-| `/eco give|take|set|reset <player> [amount]` | `economy` | `sfcore.eco` | op |
-| `/worth [amount]` | `value` | `sfcore.worth` | true |
-| `/sell hand\|all\|<material>` | — | `sfcore.sell` | true |
-| `/sellall` | — | `sfcore.sellall` | true |
+| `/balance [player]` | `bal`, `money` | `obx.balance` | true |
+| `/baltop [page]` | `balancetop`, `moneytop` | `obx.baltop` | true |
+| `/pay <player> <amount>` | — | `obx.pay` | true |
+| `/eco give|take|set|reset <player> [amount]` | `economy` | `obx.eco` | op |
+| `/worth [amount]` | `value` | `obx.worth` | true |
+| `/sell hand\|all\|<material>` | — | `obx.sell` | true |
+| `/sellall` | — | `obx.sellall` | true |
 
 `EconomyService` owns balances; `VaultEconomyProvider` reflectively registers if Vault is present. Balances persist in `economy.yml`. Item prices live in `worth.yml`.
 
 ### 6. Player info (`command/info/`, `util/perf/`)
 | Command | Aliases | Permission | Default |
 | --- | --- | --- | --- |
-| `/seen <player>` | `lastseen` | `sfcore.seen` | true |
-| `/firstseen <player>` | — | `sfcore.firstseen` | true |
-| `/playtime [player]` | `ptime` | `sfcore.playtime` | true |
-| `/list` | `who`, `online`, `players` | `sfcore.list` | true |
-| `/near [radius]` | `nearby` | `sfcore.near` | true |
-| `/whois <player>` | — | `sfcore.whois` | true |
-| `/realname <displayname>` | — | `sfcore.realname` | true |
-| `/info <player>` | `profile` | `sfcore.info.player` | true |
+| `/seen <player>` | `lastseen` | `obx.seen` | true |
+| `/firstseen <player>` | — | `obx.firstseen` | true |
+| `/playtime [player]` | `ptime` | `obx.playtime` | true |
+| `/list` | `who`, `online`, `players` | `obx.list` | true |
+| `/near [radius]` | `nearby` | `obx.near` | true |
+| `/whois <player>` | — | `obx.whois` | true |
+| `/realname <displayname>` | — | `obx.realname` | true |
+| `/info <player>` | `profile` | `obx.info.player` | true |
 
 `PlaytimeService` accumulates per-player playtime via join/quit listeners, persists to `playtime.yml` (per-UUID totals + first-seen + last-seen). Hover/click profile cards via `ComponentMessenger`.
 

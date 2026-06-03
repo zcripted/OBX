@@ -22,8 +22,8 @@ Files:
 - Kept a safe fallback to custom lines when `profiles` is selected but no sample profile names are configured.
 
 Files:
-- `src/main/java/dev/sergeantfuzzy/sfcore/storage/MotdService.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
+- `src/main/java/dev/zcripted/obx/storage/MotdService.java`
+- `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
 
 Suggested Commit Message
 ```text

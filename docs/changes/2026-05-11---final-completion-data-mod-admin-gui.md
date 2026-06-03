@@ -8,9 +8,9 @@ Closes the three follow-up items flagged at the end of the Tier 2 batch:
 
 1. `data.yml` (homes, back, spawn) → SQLite
 2. `moderation.yml` (profiles, mutes, warns, action history) → SQLite
-3. `/sf` admin GUI exposes Tier 2 staff commands
+3. `/obx` admin GUI exposes Tier 2 staff commands
 
-After this batch every per-player record SF-Core writes lives in SQLite, and the only YAML files the plugin still owns are admin-configured definitions (`config.yml`, `motd.yml`, `kits.yml`, `worth.yml`, `jails.yml`, language packs).
+After this batch every per-player record OBX writes lives in SQLite, and the only YAML files the plugin still owns are admin-configured definitions (`config.yml`, `motd.yml`, `kits.yml`, `worth.yml`, `jails.yml`, language packs).
 
 ## SQLite schema additions
 
@@ -35,7 +35,7 @@ Legacy YAML schemas keyed by lowercase name; new SQLite schemas key by UUID and 
 
 ## Admin GUI additions
 
-The `/sf` admin tree now hosts:
+The `/obx` admin tree now hosts:
 
 - **Jail Center** sub-menu — opens from the "Moderation" placeholder. Lists configured jails, shows the count of currently jailed players, and surfaces a "Set jail here" button that runs `/setjail <name>` after a chat prompt.
 - **Mob Tools** sub-menu — opens from the "Fun Utilities" placeholder. Clickable buttons for `/butcher 32`, `/smite` (at crosshair), `/tree`, and a hint for `/spawnmob`.
@@ -61,7 +61,7 @@ All originally-deferred items are closed:
 
 - [x] `data.yml` → SQLite
 - [x] `moderation.yml` → SQLite
-- [x] `/sf` admin GUI hooks for jail/freeze/fly/butcher/smite/tree
+- [x] `/obx` admin GUI hooks for jail/freeze/fly/butcher/smite/tree
 
 Remaining YAML files are admin configuration only (commit-tracked, hand-editable, no per-player blobs).
 

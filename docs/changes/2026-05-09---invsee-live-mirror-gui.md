@@ -108,22 +108,22 @@ titles fine, but the trim is cheap insurance.
 
 ## Files modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/InvSeeCommand.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/Main.java`
+- `src/main/java/dev/zcripted/obx/command/admin/InvSeeCommand.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
 
 ## Files added
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/InvSeeMenu.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/InvSeeMenuHolder.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/InvSeeMenuManager.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/listener/menu/InvSeeMenuListener.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/InvSeeMenu.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/InvSeeMenuHolder.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/InvSeeMenuManager.java`
+- `src/main/java/dev/zcripted/obx/listener/menu/InvSeeMenuListener.java`
 - `docs/changes/2026-05-09---invsee-live-mirror-gui.md`
 
 ## Verification
 
 - `& ".\maven\bin\mvn.cmd" -DskipTests package` produced a fresh
-  obfuscated `target/SF-Core-1.0.0-SNAPSHOT.jar` with no `[ERROR]`
+  obfuscated `target/OBX-1.0.0-SNAPSHOT.jar` with no `[ERROR]`
   or `BUILD FAILURE` lines. Only ProGuard `Note:` lines for
   reflective accesses (informational per CLAUDE.md).
 - ProGuard's existing `* implements org.bukkit.inventory.InventoryHolder`
@@ -136,8 +136,8 @@ titles fine, but the trim is cheap insurance.
 
 ## Notes / non-changes
 
-- `InvSeeCommand` permission tiers (`sfcore.invsee.basic`,
-  `sfcore.invsee.full`) and `isPrivilegedTarget` rules are
+- `InvSeeCommand` permission tiers (`obx.invsee.basic`,
+  `obx.invsee.full`) and `isPrivilegedTarget` rules are
   unchanged — the GUI replacement is strictly a UX change.
 - No `docs/information/about.md` update — the `/invsee` command,
   permissions, and aliases are unchanged.

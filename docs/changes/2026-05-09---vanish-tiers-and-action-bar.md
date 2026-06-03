@@ -16,8 +16,8 @@ can supervise their staff at a glance.
 
 | Permission | Tier | Visible to |
 |---|---|---|
-| `sfcore.vanish` | **Lower** | Other lower-tier vanished users + all higher-tier vanished users (with `[L]` above their head) |
-| `sfcore.vanish.admin` | **Higher** | Nobody — including other higher-tier vanished users |
+| `obx.vanish` | **Lower** | Other lower-tier vanished users + all higher-tier vanished users (with `[L]` above their head) |
+| `obx.vanish.admin` | **Higher** | Nobody — including other higher-tier vanished users |
 
 ### Visibility matrix
 
@@ -37,13 +37,13 @@ other.
 
 ### Permissions
 
-- New permission **`sfcore.vanish.admin`** (default `op`) — grants the
+- New permission **`obx.vanish.admin`** (default `op`) — grants the
   higher tier. Holders are invisible to every other vanished player as
   well as to non-staff. Documented in `plugin.yml`.
-- `sfcore.vanish.*` updated to include `sfcore.vanish.admin` as a
-  child, so the existing `sfcore.*` umbrella still grants the full
+- `obx.vanish.*` updated to include `obx.vanish.admin` as a
+  child, so the existing `obx.*` umbrella still grants the full
   vanish surface to ops.
-- `sfcore.vanish` description amended to flag it as the lower tier and
+- `obx.vanish` description amended to flag it as the lower tier and
   to mention the `[L]` indicator visible to other vanished viewers.
 
 ### Internal
@@ -110,9 +110,9 @@ identically across locales.
 
 ## Files modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/control/VanishManager.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/util/control/VanishManager.java`
+- `src/main/java/dev/zcripted/obx/Main.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
 - `src/main/resources/plugin.yml`
 
 ## Files added
@@ -122,7 +122,7 @@ identically across locales.
 ## Verification
 
 - `& ".\maven\bin\mvn.cmd" -DskipTests package` produced a fresh
-  obfuscated `target/SF-Core-1.0.0-SNAPSHOT.jar` with no `[ERROR]` or
+  obfuscated `target/OBX-1.0.0-SNAPSHOT.jar` with no `[ERROR]` or
   `BUILD FAILURE` lines. Only ProGuard `Note:` lines for reflective
   accesses (informational per CLAUDE.md).
 - The visibility matrix is centralised in one pure predicate
@@ -147,7 +147,7 @@ identically across locales.
 - No new InvSee-style `/vanish admin` subcommand was added; the tier
   is purely permission-driven so the same `/vanish` invocation
   produces the higher tier when invoked by a holder of
-  `sfcore.vanish.admin`. This keeps the operator UX identical and
+  `obx.vanish.admin`. This keeps the operator UX identical and
   avoids splitting the command surface.
 
 ## Suggested Commit Message

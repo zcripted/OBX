@@ -20,7 +20,7 @@
 ## 2. `/list` command
 
 New `command/core/ListCommand.java` (CommandExecutor), bound in `Main`.
-- Usable by everyone: permission `sfcore.list` (default true).
+- Usable by everyone: permission `obx.list` (default true).
 - Aliases: `/players`, `/online`, `/who`, `/playerlist`.
 - Lists online players split into a **Staff** (OP) section and a **Players**
   section — staff names rendered red, players white.
@@ -28,12 +28,12 @@ New `command/core/ListCommand.java` (CommandExecutor), bound in `Main`.
 **Styled to match `/pl` (PluginListCommand)** — same report layout, not the
 generic divider/prefix style. The command mirrors `PluginListCommand`'s
 structure: it collects all lines into one block and emits them together, routing
-console output through SF-Core's ANSI console writer (`plugin.writeConsoleLine`)
+console output through OBX's ANSI console writer (`plugin.writeConsoleLine`)
 exactly like `/pl`. Layout:
 
 ```
 (blank)
-▍ 𝗦𝗙-𝗖𝗢𝗥𝗘  ›  Online Players  ·  {online}/{max}
+▍ 𝗢𝗕𝗫  ›  Online Players  ·  {online}/{max}
 ──────────────────────────────  (30× U+2500)
   Staff  ·  {count}              (red, bold)
     Admin, Mod                   (indented, red, comma-joined)
@@ -49,9 +49,9 @@ exactly like `/pl`. Layout:
 - `MessageDefaults` — new keys `player.list.header` (line-list, EN+DE),
   `player.list.staff`, `player.list.players`, `player.list.line`,
   `player.list.none`, `player.list.footer` (line-list). Reuses the same glyphs
-  as `/pl`: `▍` U+258D, math-bold `𝗦𝗙-𝗖𝗢𝗥𝗘`, `›` U+203A, `·` U+00B7, the 30×
+  as `/pl`: `▍` U+258D, math-bold `𝗢𝗕𝗫`, `›` U+203A, `·` U+00B7, the 30×
   `─` U+2500 divider, `▪` U+25AA.
-- `plugin.yml` — new `list` command (with aliases) + `sfcore.list` permission (true).
+- `plugin.yml` — new `list` command (with aliases) + `obx.list` permission (true).
 - `docs/information/about.md` — added the `/list` row to the Player table.
 
 ## Notes
@@ -60,7 +60,7 @@ exactly like `/pl`. Layout:
 - All added glyphs verified correct UTF-8 in both source and the compiled
   `MessageDefaults.class`: the staff tag (U+0455 U+1D1B U+1D00 U+A730 U+A730
   U+0020 U+2503 U+0020), and the `/list` report glyphs `▍` (U+258D), math-bold
-  `𝗦𝗙-𝗖𝗢𝗥𝗘` (surrogate `ED A0 B5 …`), `›` (U+203A), `·` (U+00B7), the 30× `─`
+  `𝗢𝗕𝗫` (surrogate `ED A0 B5 …`), `›` (U+203A), `·` (U+00B7), the 30× `─`
   (U+2500) divider, and `▪` (U+25AA). **0** mojibake.
 
 ## Verification

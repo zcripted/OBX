@@ -9,7 +9,7 @@
 ## Summary
 
 Spawn messages now carry a dedicated light-yellow **𝗦𝗣𝗔𝗪𝗡** wordmark prefix (same
-character style as the core SF-CORE prefix), and the `/spawn del` confirmation makes
+character style as the core OBX prefix), and the `/spawn del` confirmation makes
 the word **confirm** clickable (runs `/spawn del confirm`).
 
 ## Categories
@@ -21,7 +21,7 @@ the word **confirm** clickable (runs `/spawn del confirm`).
 - `language/LanguageManager.java` — `resolveMessages` now routes `{prefix}` for any
   `teleport.spawn.*` message to `teleport.spawn.prefix` (mirrors how `enchant.*` uses
   `enchant.prefix`). So **all** spawn messages (`set`, `deleted`, `teleporting`, `info`,
-  `missing`, the confirm prompt, …) show the SPAWN wordmark instead of SF-CORE.
+  `missing`, the confirm prompt, …) show the SPAWN wordmark instead of OBX.
 
 ### `/spawn del` confirmation
 - `teleport.spawn.delete-confirm` reworded to `Click {confirm} or type /spawn del

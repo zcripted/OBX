@@ -128,8 +128,8 @@ Maven build completes cleanly (`./maven/bin/mvn.cmd -DskipTests
 package` — only the standard ProGuard `Note:` lines for reflective
 accesses remain, which are informational per `CLAUDE.md`):
 
-- `target/SF-Core-1.0.0-SNAPSHOT.jar` (308 KB, obfuscated)
-- `target/SF-Core-1.0.0-SNAPSHOT-unobf.jar` (454 KB, unobfuscated)
+- `target/OBX-1.0.0-SNAPSHOT.jar` (308 KB, obfuscated)
+- `target/OBX-1.0.0-SNAPSHOT-unobf.jar` (454 KB, unobfuscated)
 
 Both jars exercise the same render path; the obfuscated jar resolves
 the Adventure handles by Java reflection on string method names, none
@@ -139,7 +139,7 @@ of which ProGuard renames since they live in `net.kyori.*`.
 
 ### Internal — message dispatch
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
     - `buildComponentFromSpans(List<Span>)` — rewritten to group
       consecutive spans that share hover/click into a wrapper
       `Component.text("")`; the wrapper carries the hover/click once
@@ -177,7 +177,7 @@ of which ProGuard renames since they live in `net.kyori.*`.
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
 
 ## Suggested Commit Message
 

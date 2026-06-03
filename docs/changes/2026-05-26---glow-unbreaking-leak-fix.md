@@ -37,7 +37,7 @@ section reads the item's real enchantments and surfaced it as a genuine entry.
   carries a custom Arcanum enchant, a lone level-1 Unbreaking (the glow marker) is
   dropped from the Vanilla section. The glow marker only ever lands on
   custom-enchanted items, so this is precise.
-- `HIDE_ENCHANTS` is now applied whenever SF-Core manages the vanilla display —
+- `HIDE_ENCHANTS` is now applied whenever OBX manages the vanilla display —
   i.e. when a Vanilla section is rendered **or** the item has real enchants (which
   covers the skipped glow marker and the enchanting-table path, where the chosen
   enchants aren't on the item yet). This keeps the default blue lines (including

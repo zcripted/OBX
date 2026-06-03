@@ -19,7 +19,7 @@ Verified programmatically afterward:
 - **All** static permission nodes in `plugin.yml` are now in about.md (a node-set
   diff returns empty apart from grep false-positives on the main-class path and
   the website URL).
-- The only doc-only node, `sfcore.warp.category.<category>`, is the legitimate
+- The only doc-only node, `obx.warp.category.<category>`, is the legitimate
   dynamic per-category node enforced in `WarpAccess` (not a static `plugin.yml`
   entry), so it is correctly documented as dynamic.
 
@@ -27,25 +27,25 @@ Verified programmatically afterward:
 
 ### Documentation
 - **Player table — Hub / Lobby:** added the four default-true hotbar-item
-  permissions: `sfcore.hub.selector`, `sfcore.hub.jumprod`,
-  `sfcore.hub.vanishall`, `sfcore.hub.launchpad`.
+  permissions: `obx.hub.selector`, `obx.hub.jumprod`,
+  `obx.hub.vanishall`, `obx.hub.launchpad`.
 - **Player table — new "Enchantments (Arcanum)" section:** `/enchants`
-  (alias `/scrolls`, `sfcore.enchants.browse`), `/recall` and `/satchel`
-  (`sfcore.enchants.use`), plus a note row for the `sfcore.enchants.use`
+  (alias `/scrolls`, `obx.enchants.browse`), `/recall` and `/satchel`
+  (`obx.enchants.use`), plus a note row for the `obx.enchants.use`
   scroll-use base permission.
 - **Admin table — Player Management:** added the higher-tier
-  `sfcore.vanish.admin` row.
-- **Admin table — new "Enchantments (Arcanum)" section:** `/sfench` (aliases
-  `/sfenchant`, `/sfe`) and all twelve subcommands mapped to their exact nodes —
-  `admin`→`sfcore.enchants.admin`; `apply`/`remove`→`sfcore.enchants.apply`;
-  `give`/`givebook`/`protect`/`success`→`sfcore.enchants.give`;
-  `list`/`info`→`sfcore.enchants.list`; `reload`→`sfcore.enchants.reload`;
-  `loot`→`sfcore.enchants.loot`; `debug`→`sfcore.enchants.debug`. The base
+  `obx.vanish.admin` row.
+- **Admin table — new "Enchantments (Arcanum)" section:** `/obxench` (aliases
+  `/obxenchant`, `/obxe`) and all twelve subcommands mapped to their exact nodes —
+  `admin`→`obx.enchants.admin`; `apply`/`remove`→`obx.enchants.apply`;
+  `give`/`givebook`/`protect`/`success`→`obx.enchants.give`;
+  `list`/`info`→`obx.enchants.list`; `reload`→`obx.enchants.reload`;
+  `loot`→`obx.enchants.loot`; `debug`→`obx.enchants.debug`. The base
   command itself requires no permission (gated per-subcommand) and is noted as
   such.
 - **Admin table — Wildcards & Bundles:** added the five missing bundle nodes:
-  `sfcore.vanish.*`, `sfcore.invsee.*`, `sfcore.staff.*`, `sfcore.hub.*`,
-  `sfcore.enchants.*`.
+  `obx.vanish.*`, `obx.invsee.*`, `obx.staff.*`, `obx.hub.*`,
+  `obx.enchants.*`.
 - Direct file: `docs/information/about.md`
 
 ## Notes

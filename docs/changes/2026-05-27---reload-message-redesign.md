@@ -1,4 +1,4 @@
-# `/sf reload` — Redesigned Message, Console Summary & Accountability
+# `/obx reload` — Redesigned Message, Console Summary & Accountability
 
 ■ **Created:** 2026-05-27 3:30 pm (America/Detroit)
 
@@ -8,8 +8,8 @@
 
 ## Summary
 
-`/sf reload` now reports **per-component load times**, with a cleaner styled hover
-(matching `/sf about` / `/pl`), a clean ANSI console summary, and cross-channel
+`/obx reload` now reports **per-component load times**, with a cleaner styled hover
+(matching `/obx about` / `/pl`), a clean ANSI console summary, and cross-channel
 accountability (who reloaded).
 
 ## Categories
@@ -19,10 +19,10 @@ accountability (who reloaded).
   elapsed nanoseconds** (times each reload step inline). Existing callers (the admin
   GUI) harmlessly ignore the return.
 
-### In-game hover (`command/core/SFCoreCommand.java`)
+### In-game hover (`command/core/ObxCommand.java`)
 - The full-reload hover is now built **dynamically**:
   - SYSTEM-red header `&#FF4526▍ 𝗦𝗬𝗦𝗧𝗘𝗠 › Reload Complete` + a divider (same style as
-    `/sf about`/`/pl`).
+    `/obx about`/`/pl`).
   - Each component listed **alphabetically** with a clean `•` bullet and its individual
     load time in parentheses using **small-caps** units, e.g. `• config.yml (12.4ᴍꜱ)`.
   - `Total › <time>` line, then a `ℹ Tip` line (info icon + "Tip" in light-yellow).
@@ -32,18 +32,18 @@ accountability (who reloaded).
 
 ### Console summary + accountability
 - A clean console block via `ConsoleLog` (which renders §-codes as ANSI matching the
-  in-game palette): a green `[SF-Core][Reload] Reloaded by <who> in <time> (N components)`
+  in-game palette): a green `[OBX][Reload] Reloaded by <who> in <time> (N components)`
   line + a `Reloaded: a (Xms), b (Yms), …` component list (plain `ms` for terminal fonts).
-- **Player runs `/sf reload`** → player sees the styled in-game message; the console logs
+- **Player runs `/obx reload`** → player sees the styled in-game message; the console logs
   it **with the player's name**.
 - **Console runs the reload** → console logs it; every online player with
-  `sfcore.admin.reload` is notified in-game (`commands.sf.reload.notify`) **crediting
+  `obx.admin.reload` is notified in-game (`commands.obx.reload.notify`) **crediting
   "Console"**.
 
 ### Messages (`MessageDefaults`)
-- Replaced static `commands.sf.reload.full.hover` with fragment keys:
+- Replaced static `commands.obx.reload.full.hover` with fragment keys:
   `full.header`, `full.entry`, `full.total-line`, `full.tip-line`; reworded `full.base`;
-  added `commands.sf.reload.notify`. (All under `commands.sf.reload.*` → SYSTEM prefix.)
+  added `commands.obx.reload.notify`. (All under `commands.obx.reload.*` → SYSTEM prefix.)
 
 ## Notes / assumptions
 - "Small custom capital" load times → small-caps unit `ᴍꜱ` (U+1D0D U+A731) in-game;
@@ -51,15 +51,15 @@ accountability (who reloaded).
   small-caps glyphs).
 - `&#FF4526` in the hover header renders on 1.16+ (legacy `§x`); degrades on older.
 - The header is SYSTEM-red to stay cohesive with the reload command's SYSTEM prefix while
-  matching the `/sf about` *structure* (▍ wordmark › divider · rows).
+  matching the `/obx about` *structure* (▍ wordmark › divider · rows).
 
 ## Testing
 - Maven build: exit 0, both jars (obf ~627 KB, unobf ~911 KB). ProGuard `Note:` lines only.
-  Compile-verified. In-game: `/sf reload` → styled base + hover with alphabetical
+  Compile-verified. In-game: `/obx reload` → styled base + hover with alphabetical
   per-component `ᴍꜱ` times, `ℹ Tip`, console green summary naming the player. From console
   → online reload-perm players get the "reloaded by Console" notice.
 
 ## Suggested Commit Message
 ```
-Feature (sf): redesigned /sf reload — per-component load times, styled hover, ANSI console summary, who-reloaded accountability
+Feature (sf): redesigned /obx reload — per-component load times, styled hover, ANSI console summary, who-reloaded accountability
 ```

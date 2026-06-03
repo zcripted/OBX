@@ -7,7 +7,7 @@
 ## Summary
 
 Hover tooltips on the in-game welcome MOTD lines (the gradient
-"Welcome to the Server" header, the player-name line, the `/sf help`
+"Welcome to the Server" header, the player-name line, the `/obx help`
 line, the Discord URL line, and the GitHub / Spigot / BuiltByBit
 credits row) were rendering with their MiniMessage markup intact —
 players hovering on those lines saw raw text like
@@ -70,8 +70,8 @@ cleanly — only ProGuard `Note:` lines for reflective access remain,
 which are informational per `CLAUDE.md`.
 
 Output JARs:
-- `target/SF-Core-1.0.0-SNAPSHOT.jar`
-- `target/SF-Core-1.0.0-SNAPSHOT-unobf.jar`
+- `target/OBX-1.0.0-SNAPSHOT.jar`
+- `target/OBX-1.0.0-SNAPSHOT-unobf.jar`
 
 Trace through the welcome-MOTD lines (`config.yml:67-72`):
 
@@ -79,7 +79,7 @@ Trace through the welcome-MOTD lines (`config.yml:67-72`):
   — joined hover content now routed through `renderBungee`, so
   `<gold>` becomes a real `TextComponent` color and `<bold>` becomes
   a `setBold(true)` call.
-- The `/sf help`, Discord, and GitHub/Spigot/BuiltByBit hover
+- The `/obx help`, Discord, and GitHub/Spigot/BuiltByBit hover
   bodies — same path; their `<yellow>`, `<aqua>`, `<green>`, `<gray>`
   tags now render as styled text.
 - Legacy `&codes` inside hovers (e.g. `&eUUID:&f {uuid}` on the
@@ -90,7 +90,7 @@ Trace through the welcome-MOTD lines (`config.yml:67-72`):
 
 ### Internal — message dispatch
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
     - `applyStyle(TextComponent, Span)` — hover branch now builds
       `BaseComponent[] hoverComponents` via `renderBungee(...)` on
       the joined hover lines instead of `TextComponent.fromLegacyText
@@ -100,7 +100,7 @@ Trace through the welcome-MOTD lines (`config.yml:67-72`):
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
 
 ## Suggested Commit Message
 

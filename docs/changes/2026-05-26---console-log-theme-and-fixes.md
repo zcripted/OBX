@@ -8,24 +8,24 @@
 
 ## Summary
 
-Cleans up SF-Core's console output and fixes two functional bugs surfaced in the
+Cleans up OBX's console output and fixes two functional bugs surfaced in the
 boot log:
 
-- The doubled `[SF-Core] [SF-Core]` prefix on every line.
+- The doubled `[OBX] [OBX]` prefix on every line.
 - Three spurious `unknown category; skipping` warnings from the Arcanum module.
 - The server-list (MOTD) player-count hover failing to build a player sample on
   modern Paper.
 
-All SF-Core console lines now use a single, gold/aqua ANSI-themed prefix that
+All OBX console lines now use a single, gold/aqua ANSI-themed prefix that
 matches the startup banner.
 
 ---
 
 ## Root Causes
 
-- **Doubled prefix:** Bukkit's `PluginLogger` already prepends `[SF-Core]` to
+- **Doubled prefix:** Bukkit's `PluginLogger` already prepends `[OBX]` to
   every `getLogger()` call, and the message text *also* contained a literal
-  `[SF-Core]` (or `[SF-Core][Arcanum]`, etc.), producing `[SF-Core] [SF-Core]…`.
+  `[OBX]` (or `[OBX][Arcanum]`, etc.), producing `[OBX] [OBX]…`.
 - **Unknown category:** `EnchantRegistry` parsed *every* `.yml` in `enchants/` as
   an enchantment roster, including the module config `config.yml`. Its sections
   `apply`, `pvp`, and `conflict_groups` were misread as enchantments with no
@@ -41,28 +41,28 @@ matches the startup banner.
 ## Categories
 
 ### Internal — Console Logging
-- New `ConsoleLog` utility routes SF-Core console output through the
-  `ConsoleCommandSender` with a single colored `[SF-Core]` prefix and an optional
+- New `ConsoleLog` utility routes OBX console output through the
+  `ConsoleCommandSender` with a single colored `[OBX]` prefix and an optional
   subsystem tag (`[Arcanum]`, `[MOTD]`). The platform renders the legacy
   section-codes as ANSI on a color-capable terminal and strips them when piped to
   a file; the normal `[HH:mm:ss INFO]:` timestamp and `logs/latest.log` entry are
   preserved. Falls back to the plugin logger (colors stripped) if the console
   sender is unavailable.
-  - `src/main/java/dev/sergeantfuzzy/sfcore/util/message/ConsoleLog.java` (new)
+  - `src/main/java/dev/zcripted/obx/util/message/ConsoleLog.java` (new)
 - Converted startup/INFO lines to `ConsoleLog` and stripped the redundant literal
-  `[SF-Core]` from WARNING/SEVERE logger calls (which keep their proper log level
+  `[OBX]` from WARNING/SEVERE logger calls (which keep their proper log level
   and single framework prefix).
-  - `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/command/core/SFCoreCommand.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/enchant/registry/EnchantRegistry.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/enchant/loot/EnchantLoot.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/hub/HubService.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/hub/kit/HubKitApplier.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/hub/messaging/BungeeMessenger.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/listener/player/CommandOverrideListener.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/platform/bukkit/resourcepack/AutoResourcePackManager.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/util/message/ConsoleTimestamp.java`
+  - `src/main/java/dev/zcripted/obx/Main.java`
+  - `src/main/java/dev/zcripted/obx/command/core/ObxCommand.java`
+  - `src/main/java/dev/zcripted/obx/enchant/registry/EnchantRegistry.java`
+  - `src/main/java/dev/zcripted/obx/enchant/loot/EnchantLoot.java`
+  - `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
+  - `src/main/java/dev/zcripted/obx/hub/HubService.java`
+  - `src/main/java/dev/zcripted/obx/hub/kit/HubKitApplier.java`
+  - `src/main/java/dev/zcripted/obx/hub/messaging/BungeeMessenger.java`
+  - `src/main/java/dev/zcripted/obx/listener/player/CommandOverrideListener.java`
+  - `src/main/java/dev/zcripted/obx/platform/bukkit/resourcepack/AutoResourcePackManager.java`
+  - `src/main/java/dev/zcripted/obx/util/message/ConsoleTimestamp.java`
 
 ### Internal — Language Files
 - The two separate "Created default language file" lines are folded into one
@@ -71,15 +71,15 @@ matches the startup banner.
   - `LanguageFile.ensureExists` now returns whether it created the file; added
     `getFileName()`; the mojibake-repair line uses `ConsoleLog`.
   - `LanguageManager.reload` collects created files and prints one `ConsoleLog.list`.
-  - `src/main/java/dev/sergeantfuzzy/sfcore/language/LanguageFile.java`
-  - `src/main/java/dev/sergeantfuzzy/sfcore/language/LanguageManager.java`
+  - `src/main/java/dev/zcripted/obx/language/LanguageFile.java`
+  - `src/main/java/dev/zcripted/obx/language/LanguageManager.java`
 
 ### Bugfix — Arcanum Enchantments
 - `EnchantRegistry` now skips reserved module-config files
   (`config.yml`, `scrolls.yml`, `loot.yml`) when scanning `enchants/`, so their
   sections are no longer parsed as enchantments. Eliminates the
   `apply` / `pvp` / `conflict_groups` "unknown category; skipping" warnings.
-  - `src/main/java/dev/sergeantfuzzy/sfcore/enchant/registry/EnchantRegistry.java`
+  - `src/main/java/dev/zcripted/obx/enchant/registry/EnchantRegistry.java`
 
 ### Bugfix — MOTD / Server-List Hover
 - **First attempt** (`createProfileExact`): preferred the exact factory before the
@@ -97,7 +97,7 @@ matches the startup banner.
   `asBukkitMirror`); falls back to the public factories on non-Paper platforms.
   The "ping handled" diagnostic now also reports the resolved factory shape so any
   residual failure is self-explaining.
-  - `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
+  - `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
 
 ---
 
@@ -109,7 +109,7 @@ matches the startup banner.
   are written silently via `saveResource` and were never logged, so they produce
   no console spam to combine.
 - Warnings/errors remain on `getLogger()` to preserve their WARN/SEVERE log level
-  (important for operators grepping logs); only the redundant `[SF-Core]` literal
+  (important for operators grepping logs); only the redundant `[OBX]` literal
   was removed from them. Themed ANSI coloring is applied to the INFO lines that
   appear on every boot.
 
@@ -123,5 +123,5 @@ matches the startup banner.
 
 ## Suggested Commit Message
 ```
-Fix (console): De-duplicate [SF-Core] log prefix + ANSI theme; fix enchant config parsing and MOTD hover sample
+Fix (console): De-duplicate [OBX] log prefix + ANSI theme; fix enchant config parsing and MOTD hover sample
 ```

@@ -6,15 +6,15 @@
 ## Summary
 
 Adds a material-independent safeguard so other plugins can't apply their own
-functions to SF-Core hub kit items. Motivated by WorldEdit's navigation wand
+functions to OBX hub kit items. Motivated by WorldEdit's navigation wand
 (a compass: right-click `/thru`, left-click `/jumpto`) teleporting players who
 clicked the compass server-selector.
 
 ## Change
 
-`src/main/java/dev/sergeantfuzzy/sfcore/listener/player/HubItemUseListener.java`
+`src/main/java/dev/zcripted/obx/listener/player/HubItemUseListener.java`
 - Listener moved from `EventPriority.NORMAL` to **`EventPriority.LOWEST`** so
-  SF-Core claims the interaction before WorldEdit (and other plugins) handle it.
+  OBX claims the interaction before WorldEdit (and other plugins) handle it.
 - For ANY hub item, the interaction is now **cancelled + `useItemInHand`/
   `useInteractedBlock` set to `DENY`** on **both left AND right clicks** (the
   WorldEdit nav wand uses left-click `/jumpto` and right-click `/thru`). Plugins

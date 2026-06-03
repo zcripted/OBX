@@ -1,8 +1,8 @@
 # ════════════════════════════════════════════════════════════════════════════
-# SF-Core Scoreboard (sidebar)
+# OBX Scoreboard (sidebar)
 # ────────────────────────────────────────────────────────────────────────────
 # A FeatherBoard-style sidebar shown to every player. Each player gets their own
-# board so live, per-player fields (health, hearts) work. Re-read on /sf reload.
+# board so live, per-player fields (health, hearts) work. Re-read on /obx reload.
 #
 # Colors in the title and lines use legacy codes:
 #   • Color / format codes   &a, &c, &l, &o, ...
@@ -11,7 +11,7 @@
 #  MiniMessage <tag> set used by the tablist/chat. Use &-codes here.)
 #
 # Placeholders available in the title and every line:
-#   {plugin}          - Plugin name (SF-Core)
+#   {plugin}          - Plugin name (OBX)
 #   {player}          - Player account name
 #   {displayname}     - Player display name
 #   {world}           - Current world
@@ -21,6 +21,8 @@
 #   {max_health}      - Maximum health (rounded)
 #   {health_percent}  - Health as a percentage, e.g. 93
 #   {hearts}          - A 10-icon ❤/♡ bar that fills with current health
+#   {balance}         - Player's full economy balance with the currency symbol ($1,250.00)
+#   {bank}            - Alias of {balance}
 #   {ip}              - server-ip below
 #   {website}         - server-website below
 #
@@ -35,12 +37,20 @@ enabled: true
 # How often (server ticks; 20 = 1s) the sidebar is re-rendered for live fields.
 refresh-interval-ticks: 20
 
-# Sidebar title. Defaults to the plugin name.
-title: "&6&l{plugin}"
+# Sidebar title. Brand purple gradient across "OBX".
+# The sidebar uses a scoreboard objective display name, which has a HARD 32-char
+# limit (counting color codes) on many server builds. Each &#RRGGBB expands to a
+# 14-char §x§R§R§G§G§B§B sequence, so a full 3-color per-letter gradient (45+
+# chars) gets truncated — that is why an over-long title used to show only "O".
+# This is a 2-stop gradient (brand violet -> bright violet) that stays under 32
+# chars and uses viewable shades (the old deep-violet #2A0A45 was near-invisible
+# on the dark sidebar). Keep any custom title within ~32 visible-coded chars.
+# For a plain title, use the {plugin} placeholder, e.g. "&#A855F7&l{plugin}".
+title: "&#6A1B9AO&#A855F7BX"
 
 # Server address + website shown via {ip} / {website}.
-server-ip: "play.sf-core.com"
-server-website: "www.sf-core.com"
+server-ip: "play.example.net"
+server-website: "example.net"
 
 # Sidebar lines, top to bottom.
 #
@@ -52,9 +62,16 @@ lines:
   - "{divider}"
   - "&7Player &8» &f{player}"
   - "&7Health &8» {hearts}"
-  - "&c{health_percent}%"
+  # The heart bar is ALWAYS 10 icons (filled + empty), so its first heart sits at
+  # a fixed position no matter the health level — a constant indent therefore keeps
+  # the percentage aligned for every value (7%, 93%, 100%). Minecraft's font is
+  # PROPORTIONAL, so this indent is tuned in pixels, not characters: the label
+  # "Health > " above is ~45px wide and a space is ~4px, so 11 spaces (~44px) puts
+  # the first digit under the first heart. Add/remove a space to nudge if needed.
+  - "           &c{health_percent}%"
   - "&7Online &8» &a{online}&7/&a{max}"
+  - "&7Bank &8» &a{balance}"
   - "{divider}"
   - "&7IP &8» &e{ip}"
-  - "&7Web &8» &b{website}"
+  - "&7Web &8» &d{website}"
   - "{divider}"

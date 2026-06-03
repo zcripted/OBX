@@ -8,7 +8,7 @@
 
 ## Summary
 
-Two changes: (1) `/sf reload`, `/sf reload <file>`, and `/sf debug` messages now carry a
+Two changes: (1) `/obx reload`, `/obx reload <file>`, and `/obx debug` messages now carry a
 custom **⚙ 𝗦𝗬𝗦𝗧𝗘𝗠** wordmark prefix in hex `#FF4526` (and `colorize()` gained
 `&#RRGGBB` hex support); (2) right-clicking a custom enchant scroll/book in hand shows a
 brief action-bar hint that it must be applied to an item.
@@ -23,10 +23,10 @@ brief action-bar hint that it must be applied to an item.
   - `colorize()` now translates **`&#RRGGBB`** into the `§x§R§R§G§G§B§B` legacy hex
     sequence (renders on 1.16+; safely ignored where unsupported). Plugin-wide, and
     backward-compatible (no existing message used `&#`).
-  - `resolveMessages` routes `{prefix}` for `commands.sf.reload.*` and
-    `commands.sf.debug.*` keys to `system.prefix` (covers `/sf reload`, `/sf reload config`,
-    `/sf reload <file>`, and `/sf debug`). `/sf config`, `/sf diagnostics`, etc. keep the
-    SF-CORE prefix.
+  - `resolveMessages` routes `{prefix}` for `commands.obx.reload.*` and
+    `commands.obx.debug.*` keys to `system.prefix` (covers `/obx reload`, `/obx reload config`,
+    `/obx reload <file>`, and `/obx debug`). `/obx config`, `/obx diagnostics`, etc. keep the
+    OBX prefix.
 
 ### Enchant scroll/book right-click hint
 - `enchant/listener/EnchantBookUseListener.java` (new) — on a right-click with an Arcanum
@@ -47,11 +47,11 @@ brief action-bar hint that it must be applied to an item.
 
 ## Testing
 - Maven build: exit 0, both jars (obf ~625 KB, unobf ~908 KB). ProGuard `Note:` lines only.
-  Compile-verified. In-game: `/sf reload`, `/sf reload config`, `/sf reload <file>`, and
-  `/sf debug` should show the ⚙ SYSTEM prefix; right-clicking an enchant scroll/book should
+  Compile-verified. In-game: `/obx reload`, `/obx reload config`, `/obx reload <file>`, and
+  `/obx debug` should show the ⚙ SYSTEM prefix; right-clicking an enchant scroll/book should
   flash the "must be applied to an item" action bar that fades after ~3 s.
 
 ## Suggested Commit Message
 ```
-Feature (sf/enchants): ⚙ SYSTEM prefix (#FF4526 + &#hex support) for /sf reload & debug; action-bar hint on right-clicking enchant scrolls/books
+Feature (sf/enchants): ⚙ SYSTEM prefix (#FF4526 + &#hex support) for /obx reload & debug; action-bar hint on right-clicking enchant scrolls/books
 ```

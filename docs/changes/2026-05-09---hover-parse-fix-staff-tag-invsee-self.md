@@ -28,7 +28,7 @@ Four follow-ups to the previous welcome-MOTD / vanish / invsee drop:
 
 ### Internal — parser
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
     - **New `findTagEnd(text, from)` helper** — quote-aware close-bracket
       finder. Skips over `>` chars that lie inside single- or
       double-quoted argument strings. MiniMessage hover/click args
@@ -49,7 +49,7 @@ Four follow-ups to the previous welcome-MOTD / vanish / invsee drop:
 
 ### Language strings
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
     - All `player.vanish.*` and `player.invsee.*` user-facing messages
       now lead with `&8[&dSTAFF&8]` after `{prefix}`, then
       action label → state arrow → state badge → description, e.g.
@@ -61,7 +61,7 @@ Four follow-ups to the previous welcome-MOTD / vanish / invsee drop:
 
 ### Commands
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/InvSeeCommand.java`
+- `src/main/java/dev/zcripted/obx/command/admin/InvSeeCommand.java`
     - Self-view branch:
       `if (self && !hasFull) → cannot-view-self`. Full-tier holders fall
       through and successfully open their own inventory; the
@@ -79,9 +79,9 @@ Four follow-ups to the previous welcome-MOTD / vanish / invsee drop:
 ### Tab completion (verified, no behavior change)
 
 - `VanishCommand.onTabComplete` continues to gate suggestions on
-  `sfcore.vanish.others` and only fires for the first arg slot. With
-  default permissions (`op` for both `sfcore.vanish` and
-  `sfcore.vanish.others`), an op typing `/vanish <prefix>` or
+  `obx.vanish.others` and only fires for the first arg slot. With
+  default permissions (`op` for both `obx.vanish` and
+  `obx.vanish.others`), an op typing `/vanish <prefix>` or
   `/v <prefix>` sees online-player names matching the prefix.
 - `InvSeeCommand.onTabComplete` continues to gate on the basic OR full
   permission, fires only on the first arg slot, and silently filters
@@ -91,9 +91,9 @@ Four follow-ups to the previous welcome-MOTD / vanish / invsee drop:
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/InvSeeCommand.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/command/admin/InvSeeCommand.java`
 
 ## Suggested Commit Message
 

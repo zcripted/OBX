@@ -1,7 +1,12 @@
 # =============================================================================
-# SF-Core moderation storage
-# This file is managed by SF-Core and stores mute/warning metadata plus moderation action history.
+# OBX moderation storage
+# This file is managed by OBX and stores mute/warning metadata plus moderation action history.
 # Active bans continue to use Bukkit's built-in BanList implementation.
 # =============================================================================
 
 players: {}
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

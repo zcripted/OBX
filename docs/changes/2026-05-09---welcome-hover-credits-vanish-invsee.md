@@ -10,7 +10,7 @@ Three independent additions in one drop:
 
 1. **Welcome MOTD enrichment** — the `Welcome to the Server` line now has a
    detailed hover tooltip pointing at the YAML location and toggle for the
-   message; `/sf help` and the Discord URL got descriptive click-hover labels;
+   message; `/obx help` and the Discord URL got descriptive click-hover labels;
    a new last credits line links GitHub / Spigot / BuiltByBit with hover and
    click events. Each tooltip line stays at or below 45 visible characters
    and never breaks a word across lines.
@@ -20,9 +20,9 @@ Three independent additions in one drop:
    fallback (1.8 – 1.12), suppresses mob targeting, blocks passive damage
    (combust, food drain, ranged attacks), and silences pickup events. Toggles
    are mirrored to console as a single ANSI-coloured staff line.
-3. **`/invsee`** — two-tier inventory viewer. `sfcore.invsee.basic` can only
-   view non-op players that hold no `sfcore.invsee.*` permission;
-   `sfcore.invsee.full` can view anyone. Tab-completion respects the tier and
+3. **`/invsee`** — two-tier inventory viewer. `obx.invsee.basic` can only
+   view non-op players that hold no `obx.invsee.*` permission;
+   `obx.invsee.full` can view anyone. Tab-completion respects the tier and
    silently filters privileged players from suggestions for basic-tier
    staff. Each open is logged to console with the tier marker.
 
@@ -38,19 +38,19 @@ markers, and detail labels live in `MessageDefaults` (English + German).
     - `join-motd.lines[1]` — wrapped the gradient line in `<hover:show_text:'…'>`
       with a 16-line tooltip describing config file path, YAML section,
       first-join variant, and toggle.
-    - `join-motd.lines[3]` (`/sf help` line) — added `<hover:show_text:…>`
+    - `join-motd.lines[3]` (`/obx help` line) — added `<hover:show_text:…>`
       describing the click action.
     - `join-motd.lines[4]` (Discord line) — added matching hover.
-    - `join-motd.lines[5]` (NEW credits line) — `Made by SergeantFuzzy •
+    - `join-motd.lines[5]` (NEW credits line) — `Made by zcripted •
       [GitHub] [Spigot] [BuiltByBit]` with one click+hover pair per link.
 
 ### Commands (NEW)
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/VanishCommand.java`
+- `src/main/java/dev/zcripted/obx/command/admin/VanishCommand.java`
     - `CommandExecutor + TabCompleter` for `/vanish [player]`. Permission-gated
-      (`sfcore.vanish` self, `sfcore.vanish.others` for targeted use).
+      (`obx.vanish` self, `obx.vanish.others` for targeted use).
       Tab-completion only fires for users with the `others` permission.
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/InvSeeCommand.java`
+- `src/main/java/dev/zcripted/obx/command/admin/InvSeeCommand.java`
     - `CommandExecutor + TabCompleter` for `/invsee <player>`. Two-tier
       permission check: a basic-tier executor sees only non-privileged
       targets in tab-completion and at execution; full-tier sees everyone.
@@ -61,7 +61,7 @@ markers, and detail labels live in `MessageDefaults` (English + German).
 
 ### Internal / Infrastructure
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/control/VanishManager.java`
+- `src/main/java/dev/zcripted/obx/util/control/VanishManager.java`
     - State: `Set<UUID>` of vanished staff (in-memory, session-local;
       `PlayerQuitEvent` clears the entry so a logout drops the flag).
     - Reflective lookup of `hidePlayer(Plugin, Player)` /
@@ -86,11 +86,11 @@ markers, and detail labels live in `MessageDefaults` (English + German).
 
 ### Permissions (`plugin.yml`)
 
-- New `sfcore.vanish.*` umbrella with `sfcore.vanish` (self) and
-  `sfcore.vanish.others` children, default `op`.
-- New `sfcore.invsee.*` umbrella with `sfcore.invsee.basic` (lower tier) and
-  `sfcore.invsee.full` (higher tier) children, default `op`.
-- Both umbrellas are added to `sfcore.*` so a single grant carries them.
+- New `obx.vanish.*` umbrella with `obx.vanish` (self) and
+  `obx.vanish.others` children, default `op`.
+- New `obx.invsee.*` umbrella with `obx.invsee.basic` (lower tier) and
+  `obx.invsee.full` (higher tier) children, default `op`.
+- Both umbrellas are added to `obx.*` so a single grant carries them.
 
 ### Wiring (`Main.java`)
 
@@ -127,16 +127,16 @@ New keys, English + German:
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/control/VanishManager.java` (new)
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/VanishCommand.java` (new)
-- `src/main/java/dev/sergeantfuzzy/sfcore/command/admin/InvSeeCommand.java` (new)
-- `src/main/java/dev/sergeantfuzzy/sfcore/Main.java` (imports, field, getter,
+- `src/main/java/dev/zcripted/obx/util/control/VanishManager.java` (new)
+- `src/main/java/dev/zcripted/obx/command/admin/VanishCommand.java` (new)
+- `src/main/java/dev/zcripted/obx/command/admin/InvSeeCommand.java` (new)
+- `src/main/java/dev/zcripted/obx/Main.java` (imports, field, getter,
   init, command bind, listener register)
-- `src/main/java/dev/sergeantfuzzy/sfcore/language/MessageDefaults.java`
+- `src/main/java/dev/zcripted/obx/language/MessageDefaults.java`
   (vanish + invsee message keys)
 - `src/main/resources/plugin.yml` (commands, permissions, umbrella inclusion)
 - `src/main/resources/config.yml` (welcome MOTD: hover on welcome,
-  /sf help, discord; new credits line)
+  /obx help, discord; new credits line)
 - `docs/information/about.md` (new command rows)
 
 ## Suggested Commit Message

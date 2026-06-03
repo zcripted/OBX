@@ -10,7 +10,7 @@ Server boot stalled for 15–30+ seconds at:
 
 ```
 [WARN]: [org.bukkit.craftbukkit.legacy.CraftLegacy] Initializing Legacy Material Support. Unless you have legacy plugins and/or data this is a bug!
-[WARN]: Legacy plugin SF-Core v1.0.0-SNAPSHOT does not specify an api-version.
+[WARN]: Legacy plugin OBX v1.0.0-SNAPSHOT does not specify an api-version.
 ```
 
 ## Root cause
@@ -23,7 +23,7 @@ combination so that legacy plugins can keep calling
 `Material.matchMaterial("WOOL")` with implicit translation. The table init is
 JIT-cold and synchronous — that's the 15–30s stall.
 
-SF-Core never relied on the legacy translator: every ambiguous material lookup
+OBX never relied on the legacy translator: every ambiguous material lookup
 already cascades through name-fallback chains
 (e.g. `WarpMenuStyling.resolveMaterial("GRAY_STAINED_GLASS_PANE",
 "BLACK_STAINED_GLASS_PANE", "STAINED_GLASS_PANE", "GLASS_PANE", "THIN_GLASS")`),
@@ -33,7 +33,7 @@ so the legacy init was paying a heavy cost for a feature we don't use.
 
 Declare `api-version: '1.13'` in `src/main/resources/plugin.yml`.
 
-- 1.13+ servers see the field, classify SF-Core as a modern plugin, and skip
+- 1.13+ servers see the field, classify OBX as a modern plugin, and skip
   the `CraftLegacy` init entirely.
 - 1.8 – 1.12 servers don't recognise the field and silently ignore it, so the
   single-JAR cross-version target is preserved.

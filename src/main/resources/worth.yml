@@ -1,5 +1,5 @@
 # ════════════════════════════════════════════════════════════════════════════
-# SF-Core Item Worth
+# OBX Item Worth
 # ────────────────────────────────────────────────────────────────────────────
 # Per-material sell value used by /worth, /sell, and /sellall. Missing keys
 # (or values of 0) mean the item cannot be sold. Material names follow the
@@ -19,3 +19,8 @@ worth:
   coal: 0.30
   wheat: 0.20
   bread: 0.50
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

@@ -11,31 +11,31 @@ section codes. Every stage degrades gracefully when its bridge is absent.
 
 ### Internal — text package
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/text/HologramTextResolver.java`
+* `src/main/java/dev/zcripted/obx/hologram/text/HologramTextResolver.java`
   — single entry point. Pipeline order: page split → PAPI (if available
   and template contains `%`) → MiniMessage (if Adventure on classpath
   and template contains `<` or `#`) → filler → legacy `&` → final
   section-code string ready for backend setters.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/text/PlaceholderBridge.java`
+* `src/main/java/dev/zcripted/obx/hologram/text/PlaceholderBridge.java`
   — reflective adapter to `me.clip.placeholderapi.PlaceholderAPI`.
   No compile-time PAPI dep. Cached `Method` handle; returns input
   unchanged on any failure.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/text/MiniMessageBridge.java`
+* `src/main/java/dev/zcripted/obx/hologram/text/MiniMessageBridge.java`
   — reflective adapter to Adventure's `MiniMessage` + `LegacyComponentSerializer`.
   Resolved entirely via `Class.forName` so the same JAR runs on Spigot
   1.12 (no Adventure → identity) and on Paper 1.21 (parses gradients,
   hex colours, decorations and converts back to `§`-coded text).
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/text/FillerExpander.java`
+* `src/main/java/dev/zcripted/obx/hologram/text/FillerExpander.java`
   — implements `%filler%`. Character-count proxy keyed off the hologram's
   `line-width` setting. Tunable per-hologram.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/text/PageState.java`
+* `src/main/java/dev/zcripted/obx/hologram/text/PageState.java`
   — per-(viewer, hologram) page cursor in a `ConcurrentHashMap`.
   `next`, `prev`, `set` operations all modulo by the hologram's page
   count. `PageState.clear(UUID)` called from the existing quit listener.
 
 ### Commands
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/command/sub/PageSub.java`
+* `src/main/java/dev/zcripted/obx/hologram/command/sub/PageSub.java`
   — `/sfholo page <holo> [player] <next|prev|N>`. Updates the page cursor,
   marks the hologram dirty, calls `renderer.refreshFor` so the new page
   shows immediately. Registered in `HologramCommand`.
@@ -79,5 +79,5 @@ section codes. Every stage degrades gracefully when its bridge is absent.
 ## Suggested Commit Message
 
 ```
-SF-Core Holograms: Phase 3 — text resolver + MiniMessage / PAPI bridges + pages
+OBX Holograms: Phase 3 — text resolver + MiniMessage / PAPI bridges + pages
 ```

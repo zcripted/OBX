@@ -55,7 +55,7 @@ Attack Speed » 1.6
   `…attack_speed`) so it survives the 1.21 attribute-registry change. Returns
   `null` (→ vanilla display left untouched) when the item isn't a weapon or the
   values can't be read.
-  - `src/main/java/dev/sergeantfuzzy/sfcore/enchant/storage/WeaponAttributes.java`
+  - `src/main/java/dev/zcripted/obx/enchant/storage/WeaponAttributes.java`
 - `EnchantStorage` renders an **Attributes** section (gold header,
   `Attack Damage » 7` / `Attack Speed » 1.6`) on items that carry a custom Arcane
   enchant, and sets `ItemFlag.HIDE_ATTRIBUTES` so the default gray lines don't
@@ -64,7 +64,7 @@ Attack Speed » 1.6
   it automatically. Attribute lines are recognized as managed decoration in
   `split()` (by the `Attack Damage` / `Attack Speed` label prefix) so they're
   regenerated, not preserved.
-  - `src/main/java/dev/sergeantfuzzy/sfcore/enchant/storage/EnchantStorage.java`
+  - `src/main/java/dev/zcripted/obx/enchant/storage/EnchantStorage.java`
 
 ## Notes / assumptions
 - No current Arcanum enchant modifies item attack damage/speed (combat effects are

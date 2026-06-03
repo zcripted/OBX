@@ -1,16 +1,16 @@
 # ════════════════════════════════════════════════════════════════════════════
-# SF-Core Tablist
+# OBX Tablist
 # ────────────────────────────────────────────────────────────────────────────
 # Customise the in-game player list (TAB) header, footer, and individual
 # entry name. Every template accepts the full Adventure / MiniMessage tag
 # set:
 #   • Legacy color codes  &a, &l, etc.
 #   • Hex colors          &#RRGGBB or <#RRGGBB>
-#   • Named colors        <gray>, <yellow>, <gold>, ...
+#   • Named colors        <gray>, <yellow>, <dark_purple>, ...
 #   • Gradients           <gradient:#A:#B>...</gradient>
 #   • Decorations         <bold>, <italic>, <underlined>, <strikethrough>
 #   • Hover tooltip       <hover:show_text:'line one\nline two'>...</hover>
-#   • Click events        <click:run_command:'/sf'>...</click>
+#   • Click events        <click:run_command:'/obx'>...</click>
 #   • Shadow color        <shadow:#RRGGBB>...</shadow>   (1.21.4+ Adventure)
 #
 # Adventure MiniMessage reference:
@@ -38,7 +38,7 @@ refresh-interval-ticks: 40
 # Header lines shown above the player list. Lines are joined with newlines.
 header:
   - " "
-  - "          <gradient:#FFAA00:#FFFF55><bold>SF-Core Network</bold></gradient>          "
+  - "          <gradient:#2A0A45:#6A1B9A><bold>OBX Network</bold></gradient>          "
   - "<gray>Online: <yellow>{online}</yellow><gray>/<yellow>{max}</yellow>   <gray>TPS: <yellow>{tps}</yellow>"
   - " "
 
@@ -47,7 +47,7 @@ footer:
   - " "
   - "<gray>World: <yellow>{world}</yellow>   <gray>Ping: <yellow>{ping}</yellow><gray>ms"
   - "<gray>Time: <yellow>{time}</yellow>"
-  - "<gradient:#55FFFF:#55FF55>discord.gg/sergeantfuzzy</gradient>"
+  - "<gradient:#2A0A45:#6A1B9A>discord.gg/zcripted</gradient>"
   - " "
 
 # Per-player entry shown in the list itself. Set to an empty string to keep
@@ -63,7 +63,7 @@ player-format: "<#AAAAAA>{player}</#AAAAAA>"
 # columns of ~20 and distributes everyone evenly. Staff occupy their own column
 # only once the list is large enough to wrap into multiple columns; with a small
 # list they sit at the top of the single column. (A strictly fixed staff column
-# would require packet-level fake entries / ProtocolLib, which SF-Core avoids.)
+# would require packet-level fake entries / ProtocolLib, which OBX avoids.)
 staff-grouping:
   enabled: true
   # Tablist name for OP/staff. Default prepends the red, bold "ѕᴛᴀꜰꜰ┃" tag

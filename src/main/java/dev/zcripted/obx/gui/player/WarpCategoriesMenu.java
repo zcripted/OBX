@@ -1,0 +1,14 @@
+package dev.zcripted.obx.gui.player;
+
+import dev.zcripted.obx.Main;
+import org.bukkit.entity.Player;
+
+public final class WarpCategoriesMenu {
+
+    private WarpCategoriesMenu() {
+    }
+
+    public static void open(Main plugin, Player player, int page, boolean adminMode, WarpMenuHolder.BackTarget backTarget) {
+        WarpMenu.openCategories(plugin, player, page, adminMode, backTarget);
+    }
+}

@@ -47,7 +47,7 @@ underlying broken URLs.
 
 ## Files modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/admin/StaffMenu.java`
+- `src/main/java/dev/zcripted/obx/gui/admin/StaffMenu.java`
   - `RED_X_TEXTURE` constant — base64 replaced (decoded URL hash now 64
     chars).
   - `SEARCH_TEXTURE` constant — base64 replaced (decoded URL hash now
@@ -62,7 +62,7 @@ underlying broken URLs.
 - Decoded both new payloads with `[Convert]::FromBase64String` and
   confirmed each URL ends in a 64-hex-char hash.
 - `& ".\maven\bin\mvn.cmd" -DskipTests package` produced a fresh
-  obfuscated `target/SF-Core-1.0.0-SNAPSHOT.jar`. Only ProGuard `Note:`
+  obfuscated `target/OBX-1.0.0-SNAPSHOT.jar`. Only ProGuard `Note:`
   lines for reflective accesses, which CLAUDE.md classifies as
   informational.
 - No language file edits — no user-facing strings added or changed, so

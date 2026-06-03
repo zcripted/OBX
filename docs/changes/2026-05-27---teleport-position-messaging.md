@@ -16,17 +16,17 @@ category, with all new commands categorized in `/help` and `COMMANDS+PERMISSIONS
 
 ### Teleport
 - `command/teleportation/TeleportCommand.java` — `/tp` (+ `/teleport`) and `/tphere`,
-  admin-only (`sfcore.teleport.admin`). `/tp <player>` (go to) / `/tp <a> <b>` (move one to
+  admin-only (`obx.teleport.admin`). `/tp <player>` (go to) / `/tp <a> <b>` (move one to
   another) / `/tphere <player>` (bring). Console can move players but has no position itself,
   and there's no console to teleport to.
 - `command/teleportation/TpaCommand.java` + `util/teleport/TeleportRequestService.java` —
   `/tpa <player>` requests a teleport; the target gets a styled prompt with clickable
   **Accept** / **Deny** (which run `/tpaccept` / `/tpdeny`), 60s expiry. Default-allowed
-  (`sfcore.teleport.request`).
+  (`obx.teleport.request`).
 
 ### Position
 - `command/teleportation/PositionCommand.java` — `/pos` (+ `/position`,
-  `sfcore.position`): a styled coordinate report with a **click-to-copy** line
+  `obx.position`): a styled coordinate report with a **click-to-copy** line
   (COPY_TO_CLIPBOARD, added to `ComponentMessenger`; falls back to suggest on <1.15) and a
   **live action bar** that updates as you move and stops after ~5s.
 
@@ -42,7 +42,7 @@ category, with all new commands categorized in `/help` and `COMMANDS+PERMISSIONS
   date + `h:mm a` time, short preview) in a 4×7 grid; click to read the full message in chat.
 - Commands `command/message/{MsgCommand,ReplyCommand,InboxCommand}.java` — `/msg` (+
   `/tell`, `/pm`, `/whisper`), `/rply` (+ `/reply`, `/r`), `/inbox` (+ `/inbound`),
-  `sfcore.message`. Players **cannot** message the console; the console may send "as Console"
+  `obx.message`. Players **cannot** message the console; the console may send "as Console"
   (those messages carry no reply button). Safeguards for no recent sender / offline targets.
 
 ### /help + docs
@@ -62,8 +62,8 @@ category, with all new commands categorized in `/help` and `COMMANDS+PERMISSIONS
 
 ### Wiring / permissions
 - `Main` constructs the services, registers `MessageService` + `InboxMenuListener`, and binds
-  the commands. `plugin.yml` declares the commands + new permissions: `sfcore.teleport.admin`
-  (op), `sfcore.teleport.request` / `sfcore.position` / `sfcore.message` (default true).
+  the commands. `plugin.yml` declares the commands + new permissions: `obx.teleport.admin`
+  (op), `obx.teleport.request` / `obx.position` / `obx.message` (default true).
 
 ## Notes / assumptions
 - Click-to-reply uses a stateful 60s draft (chat capture), per the request; the clickable

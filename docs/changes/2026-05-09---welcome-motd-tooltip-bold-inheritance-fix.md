@@ -64,8 +64,8 @@ Maven build (`./maven/bin/mvn.cmd -DskipTests package`) completes
 cleanly — only the standard ProGuard `Note:` lines for reflective
 access remain, which are informational per `CLAUDE.md`. Output JARs:
 
-- `target/SF-Core-1.0.0-SNAPSHOT.jar`
-- `target/SF-Core-1.0.0-SNAPSHOT-unobf.jar`
+- `target/OBX-1.0.0-SNAPSHOT.jar`
+- `target/OBX-1.0.0-SNAPSHOT-unobf.jar`
 
 Trace through the welcome banner tooltip
 (`config.yml:67`, hover content `<gold><bold>Welcome MOTD</bold></gold>\n<dark_gray>━...</dark_gray>\n<gray>...`):
@@ -81,7 +81,7 @@ Trace through the welcome banner tooltip
   bold is broken.
 
 Same trace shape applies to the greeting `{player}` hover, the
-`/sf help` hover, the Discord hover, and each of the GitHub / Spigot /
+`/obx help` hover, the Discord hover, and each of the GitHub / Spigot /
 BuiltByBit credit-row hovers — they all share the title-bold,
 body-plain shape and all benefit from the same fix.
 
@@ -89,7 +89,7 @@ body-plain shape and all benefit from the same fix.
 
 ### Internal — message dispatch
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
     - Added `ADVENTURE_COMPONENT_DECORATION_BOOL` field and resolved
       `Component.decoration(TextDecoration, boolean)` in the static
       initializer alongside the existing decoration reflection.
@@ -103,7 +103,7 @@ body-plain shape and all benefit from the same fix.
 
 ## Files Modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+- `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
 
 ## Suggested Commit Message
 

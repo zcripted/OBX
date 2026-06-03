@@ -1,62 +1,88 @@
-﻿![SF-Core Plugin Logo Image](https://sergeantfuzzy.dev/wiki/assets/img/sf-core.png)
+![OBX Plugin Logo](https://zcripted.dev/wiki/assets/img/obx-core.png)
 
-SF-Core is a lightweight essentials-style core plugin for Paper, Spigot, and PurPur servers from **1.12.x through 1.21.11 and 26.1**. It focuses on broad compatibility (compiled against the 1.12.2 API) and a clean, configurable foundation similar to EssentialsX and CMI.
+# OBX — Obsidian eXtended
 
-## Features
+> **Forged from Obsidian.**
 
-### Player Mobility & Safety
-- **Homes, spawn, and first-join routing:** `/home`, `/sethome`, `/delhome`, and `/homes` read/write `data.yml` with the per-player limits defined in `homes.max-per-player` (default `5`). `/setspawn` stores who set spawn (UUID, name, timestamp), while `spawn.teleport-on-first-join` and `spawn.teleport-on-join` let you automatically move new or returning players as soon as they join.
-- **Backtracking & vertical escapes:** `BackListener` persistently tracks the previous death or teleport position so `/back` is always accurate, and `/top` safely teleports staff to the highest safe block while respecting permissions.
-- **Teleport warmups with messaging:** Every teleport flows through `TeleportManager`, which enforces `teleport.warmup-seconds`, optionally broadcasts localized start/finish lines, and cancels pending tasks when players leave to prevent stuck timers.
+OBX is an all-in-one essentials core for Minecraft servers — a single, lightweight JAR that ships homes, warps, teleports, moderation, economy, staff tools, custom enchantments, holograms, and dozens of quality-of-life utilities in one cohesive package.
 
-### Warp Network & Navigation
-- **Full warp lifecycle commands:** The `/warp` suite covers teleporting self/others, listing, info, categories, GUI entry, creation, moves, renames, icon editing, visibility toggles, deletion, and per-category filtering. Each warp is persisted in `warps.yml` with category, icon material, public/hidden flag, optional permission gate, setter metadata, and ISO timestamps so staff can audit changes.
-- **Inventory-driven browsing:** `WarpMenu` renders paged lists, category explorers, per-warp detail sheets, and a dedicated Warp Manager board (create/delete/rename/move/icon/visibility/hidden view toggle). Gradient titles, filler fallbacks for pre-1.13 panes, and permission-aware buttons ensure a consistent experience across 1.12.x–1.21.x.
-- **Chat-integrated editing:** `WarpMenuInputManager` captures chat to finish create/rename/search flows (with cancel/clear keywords) and reopens the correct GUI automatically, while `WarpAccess` ensures players only see warps they’re allowed to use or manage.
+Built for compatibility, OBX runs from **Minecraft 1.8.8 all the way to 26.1.x** and automatically adapts itself at runtime to **Paper, Spigot, PurPur, and Folia** — no per-version downloads, no extra dependencies. One drop-in JAR, every server.
 
-### GUI-First Control Panels
-- **`/sf` menus for players and staff:** Non-admins land in the Main Menu (quick info, warp shortcut, reserved slots for upcoming systems) and anyone with `sfcore.admin.menu` opens the Admin Menu, both styled via `WarpMenuStyling` to keep titles, dividers, and tooltips uniform.
-- **Server control submenus:** The Admin Menu opens contextual boards for server state, player access, performance, world tools, gamerules, and plugin systems. Actions cover stop/restart flows (with double-click confirmation), kicking non-ops into spectator-only windows, toggling whitelists, and surfacing TPS/entity cleanup stubs.
-- **Operational toggles:** `ServerControlState` powers join-lock and redstone-freeze switches baked into these menus, giving staff click-to-freeze automation that instantly ripples to `JoinLockListener` and `RedstoneControlListener`.
+---
 
-### Utility & Moderation Essentials
-- **Quick life-savers:** `/heal`, `/feed`, `/vital`, and `/god` sit atop `GodModeManager`, which cancels damage/combust events and resets toggles when players quit to prevent dangling invulnerability. `/gamemode` exposes per-mode self/others nodes to match granular staff policies.
-- **Precision moderation:** `/kill` enables a scoped “crosshair kill mode” backed by `KillModeManager`, tracing along the player’s view vector (up to `targeting.kill.max-range`, default `40`) and emitting localized success/failure lines.
-- **Knowledge tools:** `/craft` renders hoverable item breakdowns via `ComponentMessenger`, letting staff share recipe info without leaving chat, and `/language` + `/sprache` offer per-player localization control for the rest of the toolkit.
+## ✨ Features
 
-### Admin Diagnostics & Maintenance
-- **Reloads & validation:** `/sf reload`, `/sf reload config`, and `/sf reload <file>` rehydrate configs, languages, data, warps, and the auto resource-pack manager without bouncing the server. `/sf config` + `/sf config validate` expose loaded files and YAML issues directly in chat.
-- **Debug + health reports:** `/sf diagnostics`/`full` summarize platform details, loaded modules, and errors, `/sf debug` toggles verbose logging (with `/sf debug dump` writing YAML bundles under `/plugins/SF-Core/logs/<date>---<player>.yml`), and `/sf updates notify` preserves per-user toggle state so noisy alerts stay opt-in.
-- **Environment locks:** Join-lock and redstone-freeze controls, daylight-cycle overrides (with legacy fallbacks), entity-clearing helpers, and max-player adjustments centralize high-risk operations inside guarded admin menus instead of raw commands.
+### 🏠 Movement & Teleportation
+- **Homes** — set, list, and travel between multiple personal homes.
+- **Spawn & Back** — server spawn point, first-join routing, and a reliable `/back`.
+- **Warps** — a full warp network with categories, icons, public/hidden flags, and a browsable GUI.
+- **Hub / Lobby** — instant return to your server's hub world.
+- **Teleport suite** — `/tp`, `/tphere`, `/tpa` requests, `/tpall`, `/tppos`, plus toggles and request cancelling.
+- **Navigation helpers** — `/top`, `/pos`, and smooth warmup-based teleports.
 
-### Localization & Messaging
-- **Bilingual message packs:** English (`language_en.yml`) and German (`sprache_de.yml`) ship with full key coverage, comments, and auto-sync defaults. `LanguageManager` stores each player’s preference in `player-languages.yml`, and `/language` or `/sprache` swaps it instantly.
-- **Rich chat output:** `ComponentMessenger` bridges Bukkit, Bungee, and Adventure APIs to provide hover/click navigation inside `/sf help`, `/spawn info`, `/craft`, and admin prompts, keeping help links and confirmations readable even on legacy clients.
-- **Interactive prompts:** `WarpMenuInputListener` and contextual language keys power chat-driven prompts (“type a new name or `cancel`”), ensuring every confirmation or warning respects the player’s locale and prefix formatting from `config.yml`.
-- **Configurable server-list presentation:** `motd.yml` controls both MOTD lines, supports `<center>...</center>` true-centering tags for the server list, and can override displayed online/max counts plus the player-count hover sample text.
+### 💬 Communication
+- Private messaging with reply, inbox, and a persistent **mail** system.
+- **Staff chat**, broadcasts, `/me` actions, and `/socialspy` oversight.
+- **Ignore** unwanted players and set personal **nicknames**.
 
-### Resource Packs, Data Persistence & Compatibility
-- **Auto-managed resource pack:** `AutoResourcePackManager` can copy the bundled pack (`bundled-resourcepack/sf-core-gui-pack.zip`) into `plugins/SF-Core/resourcepack/`, reuse or compute a SHA-1 hash, honor `resource-pack.public-url`, and automatically apply it to players on join while watching for repeated failures.
-- **Durable storage with graceful reloads:** `DataService` (`data.yml`) keeps spawn/back/home data, and `WarpService` (`warps.yml`) handles the entire warp catalog; both reload automatically when `/sf reload` runs so edits never require a restart.
-- **Version-spanning polish:** The plugin is compiled against Spigot 1.12.2 yet targets Paper/Spigot/PurPur 1.12.x–1.21.11 and 26.1, dynamically picking item materials, hex coloring, Adventure/Bungee APIs, and reflective MOTD hooks so GUIs, gradients, server-list text, and console banners behave correctly on every supported platform.
-- **Console + link metadata:** Startup/shutdown banners list version, release date, and configurable BuiltByBit/wiki/Discord links defined in `config.yml`, giving operators immediate context the moment the jar loads.
+### 🛡️ Moderation & Staff Tools
+- Full moderation kit: **ban, tempban, unban, kick, mute, unmute, warn**, ban lists, and player status profiles.
+- **Vanish** — go invisible to players and ignored by mobs.
+- **Invsee & Ender Chest** viewing, player **freeze**, and a live **staff overview menu**.
+- **Jail system** — jail anchors, durations, and release controls.
 
-## Installation + Setup
-1. Download the latest SF-Core jar (or build locally with Maven if you are developing).
-2. Drop the jar into your server's `plugins/` folder.
-3. Start the server to generate `config.yml`, `data.yml`, and `motd.yml`.
-4. Adjust settings in `config.yml`, grant permissions as needed (see `COMMANDS+PERMISSIONS.md`), then run `/sf reload` or restart the server.
+### 💰 Economy
+- Player balances, **pay**, a **baltop** leaderboard, and staff economy management.
+- **Sell, sellall, and worth** for item-based trading.
 
-## Configuration
-- `config.yml` sets the chat prefix, teleport warmup options, home limits, and message templates.
-- `data.yml` is created automatically to store homes, spawn, and back locations.
-- `motd.yml` controls the two MOTD lines, true centering tags, displayed player counts, and custom player-count hover text in the server list.
-- Commands and permissions are defined in `plugin.yml` (declares `api-version: 1.13` while staying compatible with 1.12).
+### ⚙️ Quality of Life
+- Instant **heal, feed, vital, and god mode**.
+- **Flight** controls with adjustable fly and walk speeds.
+- Handy item tools: **hat, repair, more, skull, rename, lore, unbreakable, give**, and item info.
+- **Disposal** trash bin and quick inventory clearing.
 
-## Compatibility Notes
-- Compiled against `spigot-api 1.12.2` for maximum backwards compatibility; it runs on newer servers without using version-locked API calls.
-- If you rely on modern-world names, make sure those worlds exist on startup; missing worlds will prevent related teleports.
+### 🧰 Virtual Workstations
+Open crafting tables, anvils, enchanting tables, smithing tables, stonecutters, looms, grindstones, cartography tables, and maps — **anywhere, anytime**.
 
-## Next Steps
-- Add warps/kits/economy hooks, scheduler-based tasks, and per-world settings as needed.
-- Expand the command set to cover the remaining EssentialsX/CMI staples.
+### 🔮 Arcanum Custom Enchantments
+A built-in custom-enchantment system with browsable enchants, guide books, recall points, personal satchel storage, and per-player combat effect toggles.
+
+### 🌍 World & Environment Control
+- Set **time, day, night, sun, and weather** — globally or per-player.
+- World tools: **butcher** mobs, **spawn mobs**, edit **spawners**, call **smite** lightning, and grow **trees** on demand.
+
+### 📊 Player Insights
+- `/seen`, `/firstseen`, `/playtime`, `/near`, `/whois`, `/realname`, and profile cards with quick actions.
+
+### 🪧 Holograms & Kits
+- Create and manage **holograms** with animation support.
+- Claimable starter **kits**.
+
+### 🌐 Localization
+- Fully **bilingual** out of the box — **English** and **German** — with per-player language selection (`/language` · `/sprache`).
+
+### 🎨 Polished Presentation
+- Clean, GUI-first control panels with detailed, well-formatted tooltips.
+- Gradient titles and Adventure/MiniMessage styling that gracefully fall back on legacy clients.
+- Configurable server-list MOTD and a tidy console banner.
+
+---
+
+## 📦 Getting Started
+1. Download the OBX JAR.
+2. Drop it into your server's `plugins/` folder.
+3. Start the server — OBX detects your platform and version automatically.
+
+That's it. One JAR, every supported version.
+
+---
+
+## 👤 Contributor
+
+**zcripted** — creator & maintainer.
+
+- 🌐 Website: [obx.zcripted.dev](https://obx.zcripted.dev)
+
+---
+
+<sub>OBX — Obsidian eXtended. Forged from Obsidian.</sub>

@@ -13,7 +13,7 @@ join / resource-pack listeners, and a debug subcommand.
 
 ### Internal — backends
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/backend/DisplayEntityBackend.java`
+* `src/main/java/dev/zcripted/obx/hologram/backend/DisplayEntityBackend.java`
   — full implementation. Static `ReflectionState` resolves
   `TextDisplay`, `BlockDisplay`, `ItemDisplay`, `Display`, `Display$Billboard`,
   `TextDisplay$TextAlignment`, `Color`, `BlockData`, `Transformation`,
@@ -36,7 +36,7 @@ join / resource-pack listeners, and a debug subcommand.
     visible to every player within server tracking range — graceful degrade.
   * Mutation strategy: re-spawn on dirty (per plan, simplest correct path
     for arbitrary line/setting changes).
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/backend/ArmorStandBackend.java`
+* `src/main/java/dev/zcripted/obx/hologram/backend/ArmorStandBackend.java`
   — full implementation for 1.12 → 1.19.3. Spawns invisible marker armor
   stands with `setVisible(false)`, `setMarker(true)`, `setSmall(true)`,
   `setGravity(false)`, `setCanPickupItems(false)`, `setRemoveWhenFarAway(false)`.
@@ -48,46 +48,46 @@ join / resource-pack listeners, and a debug subcommand.
 
 ### Internal — renderer + tracker + tick loop
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/render/ViewerTracker.java`
+* `src/main/java/dev/zcripted/obx/hologram/render/ViewerTracker.java`
   — pure-distance visibility decision. Checks same-world, distance ≤
   show-range, personally-hidden set, view-permission, and (when
   `doubleSided == false`) dot-product of the hologram normal vs the
   viewer-relative vector. Phase 6 layers wall occlusion on top.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/render/HologramRenderer.java`
+* `src/main/java/dev/zcripted/obx/hologram/render/HologramRenderer.java`
   — backend-agnostic update entry. Owns the per-tick walk:
   `applyMutations` (if dirty) then per-player `updateVisibility`. Also
   exposes `spawnAll`, `destroyAll`, `refreshFor`, `resyncPlayer` for
   lifecycle and listener call sites.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/render/TickLoop.java`
-  — schedules the renderer via SF-Core's existing `SchedulerAdapter`
+* `src/main/java/dev/zcripted/obx/hologram/render/TickLoop.java`
+  — schedules the renderer via OBX's existing `SchedulerAdapter`
   (Folia-aware). Period sourced from
   `systems/holograms.yml → view-update-ticks` (default 5 ticks = 4 Hz).
   Exceptions are logged, never propagated.
 
 ### Internal — listeners
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/listener/HologramJoinListener.java`
+* `src/main/java/dev/zcripted/obx/hologram/listener/HologramJoinListener.java`
   — handles `PlayerJoinEvent`, `PlayerRespawnEvent`,
   `PlayerChangedWorldEvent`, `PlayerQuitEvent`. Join / respawn delay 2
   ticks before calling `resyncPlayer` to let Paper finish the chunk send.
   Quit clears the leaver from every hologram's viewer set.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/listener/HologramResourcePackListener.java`
+* `src/main/java/dev/zcripted/obx/hologram/listener/HologramResourcePackListener.java`
   — on `PlayerResourcePackStatusEvent` with status `ACCEPTED` or
   `SUCCESSFULLY_LOADED`, delays 4 ticks then re-shows holograms for the
   player. Addresses plan §9 ("stale holograms after resource-pack reload").
 
 ### Commands
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/command/HologramCommand.java`
+* `src/main/java/dev/zcripted/obx/hologram/command/HologramCommand.java`
   — minimal dispatcher with `debug` and `info` subcommands. Permission
-  gated (`sfcore.holo.use`, `sfcore.holo.admin`, `sfcore.holo.info`). The
+  gated (`obx.holo.use`, `obx.holo.admin`, `obx.holo.info`). The
   `debug` subcommand spawns / removes a built-in test hologram at the
   player's location showing backend identity. The `info` subcommand
   reports backend, loaded count, and packet-layer state.
 
 ### Service updates
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/service/HologramService.java`
+* `src/main/java/dev/zcripted/obx/hologram/service/HologramService.java`
   — now owns the renderer and tick loop, exposes `getRenderer()` and
   `shutdown()`. `load()` constructs the renderer + starts the tick loop
   when active. `reload()` tears down then rebuilds. `shutdown()` is called
@@ -95,7 +95,7 @@ join / resource-pack listeners, and a debug subcommand.
 
 ### Wiring
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/Main.java`
+* `src/main/java/dev/zcripted/obx/Main.java`
   * `registerCommands` — binds `sfholo` to the new `HologramCommand`.
   * `registerListeners` — registers `HologramJoinListener` and
     `HologramResourcePackListener`.
@@ -122,5 +122,5 @@ join / resource-pack listeners, and a debug subcommand.
 ## Suggested Commit Message
 
 ```
-SF-Core Holograms: Phase 1 — real backends, renderer, listeners, debug command
+OBX Holograms: Phase 1 — real backends, renderer, listeners, debug command
 ```

@@ -1,5 +1,5 @@
 # ════════════════════════════════════════════════════════════════════════════
-# SF-Core Holograms
+# OBX Holograms
 # ────────────────────────────────────────────────────────────────────────────
 # Custom hologram system — no ProtocolLib / PacketEvents / external runtime
 # dependencies. Renders through real display entities on Paper / Spigot 1.19.4+
@@ -9,8 +9,8 @@
 #
 # Toggle surfaces — all converge on the same runtime flag and write back here
 # when changed in-game:
-#   • Command : /holo enable | disable | toggle  (Phase 2+, sfcore.holo.admin)
-#   • Config  : edit `enabled` below and run /sf reload
+#   • Command : /holo enable | disable | toggle  (Phase 2+, obx.holo.admin)
+#   • Config  : edit `enabled` below and run /obx reload
 #
 # Holograms persist in a separate file (`holograms.yml` at the data-folder
 # root, created by the storage layer in Phase 2). This file holds the

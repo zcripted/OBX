@@ -11,15 +11,15 @@ admins can now create, edit, list, teleport-to, and delete holograms via
 
 ### Internal — storage
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/storage/HologramStorage.java`
+* `src/main/java/dev/zcripted/obx/hologram/storage/HologramStorage.java`
   — interface. Methods: `loadAll`, `save(Hologram)`, `saveAll(Collection)`,
   `delete(HologramId)`.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/storage/HologramSerializer.java`
+* `src/main/java/dev/zcripted/obx/hologram/storage/HologramSerializer.java`
   — static read/write helpers between `Hologram` and `ConfigurationSection`.
   Uses the existing `LocationSerializer`. Forward-compatible — unknown keys
   on read are silently ignored so later phases can add fields without
   migration.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/storage/YamlHologramStorage.java`
+* `src/main/java/dev/zcripted/obx/hologram/storage/YamlHologramStorage.java`
   — single-file (`holograms.yml`) implementation. Atomic write via temp +
   rename. `synchronized` lock keeps concurrent saves safe.
 * `HologramService` now constructs the storage in its constructor, calls
@@ -51,8 +51,8 @@ admins can now create, edit, list, teleport-to, and delete holograms via
 
 ### Permissions
 
-* `plugin.yml` already shipped the `sfcore.holo.*` tree in Phase 0 — all
-  29 subcommands map onto one of `sfcore.holo.{use,create,delete,edit,
+* `plugin.yml` already shipped the `obx.holo.*` tree in Phase 0 — all
+  29 subcommands map onto one of `obx.holo.{use,create,delete,edit,
   list,info,tp,interact,gui,admin}`.
 
 ### Language
@@ -72,7 +72,7 @@ admins can now create, edit, list, teleport-to, and delete holograms via
 * `docs/information/COMMANDS+PERMISSIONS.md` — adds the **Holograms —
   admin** section with all 28 subcommands documented (Command · Aliases ·
   Usage · Example · Description · Default · Permission node), plus the
-  `sfcore.holo.*` wildcard entry in the **Wildcards & Bundles** block.
+  `obx.holo.*` wildcard entry in the **Wildcards & Bundles** block.
 
 ### Bug fix encountered during build
 
@@ -96,11 +96,11 @@ admins can now create, edit, list, teleport-to, and delete holograms via
   * `/sfholo copy welcome welcome2` → duplicate with the same content.
   * `/sfholo delete welcome2` → removed from disk + registry, no orphans.
   * Tab-completion works for every subcommand and for hologram ids.
-  * Players without `sfcore.holo.admin` get a clean "no permission" reply
+  * Players without `obx.holo.admin` get a clean "no permission" reply
     on `/sfholo enable|disable|reload|debug`.
 
 ## Suggested Commit Message
 
 ```
-SF-Core Holograms: Phase 2 — persistence + admin commands (29 subcommands)
+OBX Holograms: Phase 2 — persistence + admin commands (29 subcommands)
 ```

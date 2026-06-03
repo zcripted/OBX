@@ -51,7 +51,7 @@ UUID generation was changed.
 
 ## Files modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/shared/CustomHeadUtil.java`
+- `src/main/java/dev/zcripted/obx/gui/shared/CustomHeadUtil.java`
 
 ## Files added
 
@@ -97,7 +97,7 @@ same client-side cache entry → no rotation.
 
 ### Files modified
 
-- `src/main/java/dev/sergeantfuzzy/sfcore/gui/shared/CustomHeadUtil.java`
+- `src/main/java/dev/zcripted/obx/gui/shared/CustomHeadUtil.java`
   - `injectTexture` now passes `stableProfileName(profileUuid)` instead
     of `null` to both `Bukkit.createPlayerProfile(UUID, String)` and
     `new GameProfile(UUID, String)`.

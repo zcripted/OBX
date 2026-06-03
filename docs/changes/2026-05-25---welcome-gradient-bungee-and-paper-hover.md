@@ -30,7 +30,7 @@ only Adventure *core*) was gated behind `ADVENTURE_AVAILABLE`, which requires
 MiniMessage. On Paper builds without MiniMessage bundled (1.16–1.17), that gate
 skipped the good path and dropped to the broken BungeeCord one.
 
-### Changes — `src/main/java/dev/sergeantfuzzy/sfcore/util/message/AdventureMessageUtil.java`
+### Changes — `src/main/java/dev/zcripted/obx/util/message/AdventureMessageUtil.java`
 - `resolveHexReflection()` now resolves `of(String)` and `setColor(...)` against
   `net.md_5.bungee.api.ChatColor` (the class that actually carries hex), so the
   BungeeCord fallback applies a true RGB color per glyph → smooth gradient.
@@ -51,11 +51,11 @@ The Paper listener registration (added previously) is correct: on Paper the base
 `ServerListPingEvent` lacks the player-sample API, so we also register for
 `PaperServerListPingEvent`, whose instance exposes `getPlayerSample()`.
 
-### Changes — `src/main/java/dev/sergeantfuzzy/sfcore/listener/server/MotdPingListener.java`
+### Changes — `src/main/java/dev/zcripted/obx/listener/server/MotdPingListener.java`
 - `applyHoverSample(...)` is now more robust (handles an immutable sample list,
   catches `Throwable`) and returns a short outcome tag.
 - New one-time-per-event-class diagnostic: the first ping for each distinct event
-  class logs `[SF-Core][MOTD] ping handled: event=<class>, hoverLines=<n>,
+  class logs `[OBX][MOTD] ping handled: event=<class>, hoverLines=<n>,
   sample=<outcome>`. On Paper this prints two lines (base + Paper events), making
   it obvious which event carries the sample API and whether the hover was set
   (`ok:mutate …` / `ok:setter …`) or why not (`fail:…`). Negligible hot-path cost
@@ -65,7 +65,7 @@ The Paper listener registration (added previously) is correct: on Paper the base
 - The client **caches** server-list pings. After updating the jar + restarting the
   server, re-open the multiplayer screen (or restart the client) to force a
   re-ping — a stale cache will still show the old (no-hover) result.
-- Check the server console for the `[SF-Core][MOTD] ping handled:` line to confirm
+- Check the server console for the `[OBX][MOTD] ping handled:` line to confirm
   the Paper event is received and the sample is applied.
 
 ## Suggested Commit Message

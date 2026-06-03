@@ -5,7 +5,7 @@
 - Added player/admin command and permission tables covering all command and permission nodes in `docs/information/about.md`.
 - Organized commands alphabetically within category sections for easier navigation.
 - Documented command and subcommand aliases throughout the tables.
-- Assumed "aliases" includes command, subcommand, and gamemode argument aliases (plus /sf help lookup alias).
+- Assumed "aliases" includes command, subcommand, and gamemode argument aliases (plus /obx help lookup alias).
 - Added a dedicated Aliases column and moved alias details next to the command column.
 
 ## Files

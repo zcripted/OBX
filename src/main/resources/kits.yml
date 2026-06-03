@@ -1,8 +1,8 @@
 # ════════════════════════════════════════════════════════════════════════════
-# SF-Core Kits
+# OBX Kits
 # ────────────────────────────────────────────────────────────────────────────
 # Each kit is defined under "kits.<name>". Permissions:
-#   sfcore.kit.<name>     — required to claim the kit (kits.* bypasses all)
+#   obx.kit.<name>     — required to claim the kit (kits.* bypasses all)
 #
 # Item formats:
 #   "MATERIAL"            — single item, amount 1
@@ -23,7 +23,7 @@ kits:
       - "BREAD:8"
       - "TORCH:16"
   miner:
-    display-name: "&6Miner Kit"
+    display-name: "&5Miner Kit"
     cooldown-seconds: 43200
     icon: IRON_PICKAXE
     items:
@@ -32,7 +32,7 @@ kits:
       - "TORCH:32"
       - "COOKED_BEEF:16"
   builder:
-    display-name: "&bBuilder Kit"
+    display-name: "&dBuilder Kit"
     cooldown-seconds: 21600
     icon: BRICKS
     items:
@@ -40,3 +40,8 @@ kits:
       - "COBBLESTONE:64"
       - "GLASS:32"
       - "TORCH:16"
+#
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

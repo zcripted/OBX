@@ -1,23 +1,25 @@
 # ╔═══════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                               ║
-# ║   ███████╗███████╗       ██████╗ ██████╗ ██████╗ ███████╗                     ║
-# ║   ██╔════╝██╔════╝      ██╔════╝██╔═══██╗██╔══██╗██╔════╝                     ║
-# ║   ███████╗█████╗  ████╗ ██║     ██║   ██║██████╔╝█████╗                       ║
-# ║   ╚════██║██╔══╝  ╚═══╝ ██║     ██║   ██║██╔══██╗██╔══╝                       ║
-# ║   ███████║██║           ╚██████╗╚██████╔╝██║  ██║███████╗                     ║
-# ║   ╚══════╝╚═╝            ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝                     ║
+# ║    ██████╗ ██████╗ ██╗  ██╗                                                   ║
+# ║   ██╔═══██╗██╔══██╗╚██╗██╔╝                                                   ║
+# ║   ██║   ██║██████╔╝ ╚███╔╝                                                    ║
+# ║   ██║   ██║██╔══██╗ ██╔██╗                                                    ║
+# ║   ╚██████╔╝██████╔╝██╔╝ ██╗                                                   ║
+# ║    ╚═════╝ ╚═════╝ ╚═╝  ╚═╝                                                   ║
 # ║                                                                               ║
-# ║   Author : SergeantFuzzy                                                      ║
+# ║   Author : zcripted                                                           ║
 # ║   Tagline: A modern Essentials & CMI alternative for Paper, Spigot & Purpur   ║
 # ║                                                                               ║
 # ╚═══════════════════════════════════════════════════════════════════════════════╝
 #
 #
-prefix: "&6𝗦𝗙-𝗖𝗢𝗥𝗘 &8➠ &e"
+#
+# Player-facing message TEXT (command feedback, join/leave broadcasts, the
+# welcome MOTD, etc.) lives in the language files, not here:
+#   plugins/OBX/languages/language_en.yml   (and sprache_de.yml)
+# This file holds behavioural settings and module toggles only.
+#
 debug: false
-banner:
-  header: "\u001B[38;2;255;170;0m================ SF-Core ================\u001B[0m"
-  footer: "\u001B[38;2;255;200;60mAuthor: SergeantFuzzy | Website: https://example.com | Version: ${project.version}\u001B[0m"
 teleport:
   warmup-seconds: 0
   send-messages: true
@@ -31,56 +33,30 @@ spawn:
   teleport-on-first-join: false
   teleport-on-join: false
 # ════════════════════════════════════════════════════════════════════════════
-# JOIN / LEAVE BROADCAST MODULE
+# JOIN / LEAVE BROADCAST + WELCOME MOTD MODULES (toggles only)
 # ────────────────────────────────────────────────────────────────────────────
-# Custom join and leave broadcasts shown to all online players.
-# Full Adventure / MiniMessage formatting is supported, including:
-#   • Legacy color codes (&a, &l, etc.)
-#   • Hex colors via &#RRGGBB or <#RRGGBB>
-#   • Gradients via <gradient:#A33CFF:#FFAA00>...</gradient>
-#   • Hover tooltips via <hover:show_text:'line one\nline two'>...</hover>
-#   • Click events via <click:run_command:'/spawn'>...</click>
-#   • Decorations: <bold>, <italic>, <underlined>, <strikethrough>, <obfuscated>
-#   • Shadow color via <shadow:#RRGGBB>...</shadow> (renders on 1.21.4+ clients)
-# Available placeholders: {player}, {displayname}, {world}, {online}, {max}, {uuid}
-# Adventure MiniMessage reference: https://docs.advntr.dev/minimessage/format.html
+# These toggles enable/disable the modules. The MESSAGE TEXT was moved to the
+# language files for one-stop editing:
+#   languages/language_en.yml → welcome.join-message
+#                               welcome.leave-message
+#                               welcome.first-join-message
+#                               welcome.motd-lines
+#                               welcome.motd-first-join-lines
+# (and the matching keys in sprache_de.yml). Those support full Adventure /
+# MiniMessage markup (gradients, hover, click) and the placeholders
+# {player}, {displayname}, {world}, {online}, {max}, {uuid}.
+#
+# In-game toggles: /obx joinleave <on|off>   and   /obx joinmotd <on|off>
 # ════════════════════════════════════════════════════════════════════════════
 join-leave:
   enabled: true
   suppress-vanilla: true
-  join-message: "<gradient:#55FF55:#00AAAA><bold>+</bold></gradient> &7{player} &fhas joined the server!"
-  leave-message: "<gradient:#FF5555:#AA0000><bold>-</bold></gradient> &7{player} &fhas left the server."
   first-join:
     enabled: true
-    message: "<gradient:#FFAA00:#FF55FF><bold>★</bold></gradient> &eWelcome &6{player}&e to the server for the first time! &7({online}/{max})"
-# ════════════════════════════════════════════════════════════════════════════
-# IN-GAME WELCOME MOTD
-# ────────────────────────────────────────────────────────────────────────────
-# Multi-line message shown to a player when they join the server. Supports the
-# same Adventure / MiniMessage features as the join-leave broadcast above.
-# Adventure MiniMessage reference: https://docs.advntr.dev/minimessage/format.html
-# ════════════════════════════════════════════════════════════════════════════
 join-motd:
   enabled: true
-  lines:
-    - " "
-    - "          <hover:show_text:'<gold><bold>Welcome MOTD</bold></gold>\\n<dark_gray>━━━━━━━━━━━━━━━━━</dark_gray>\\n<gray>Customize or disable</gray>\\n<gray>this welcome message.</gray>\\n \\n<yellow>Config File</yellow>\\n<white>plugins/SF-Core/config.yml</white>\\n \\n<yellow>Lines Path</yellow>\\n<white>join-motd.lines</white>\\n \\n<yellow>First-Join Variant</yellow>\\n<white>join-motd.first-join.lines</white>\\n \\n<yellow>Toggle Off</yellow>\\n<white>join-motd.enabled: false</white>'><gradient:#FFAA00:#FFFF55><bold>Welcome to the Server</bold></gradient></hover>          "
-    - "&7Hello, <hover:show_text:'<gold><bold>{player}</bold></gold>\\n<dark_gray>━━━━━━━━━━━━━━━━━</dark_gray>\\n<gray>UUID</gray>\\n<white>{uuid}</white>\\n \\n<gray>World</gray>\\n<white>{world}</white>'>&6{player}</hover>&7! Glad to see you again."
-    - "&8• &eOnline: &f{online}&7/&f{max}"
-    - "&8• &eType <hover:show_text:'<aqua><bold>Help Menu</bold></aqua>\\n<dark_gray>━━━━━━━━━━━━━━━━━</dark_gray>\\n<gray>Browse all available</gray>\\n<gray>SF-Core commands.</gray>\\n \\n<dark_gray>› Click to execute</dark_gray>'><click:run_command:'/sf help'>&b/sf help</click></hover>&e to view available commands."
-    - "&8• &eDiscord: <hover:show_text:'<aqua><bold>Discord</bold></aqua>\\n<dark_gray>━━━━━━━━━━━━━━━━━</dark_gray>\\n<gray>Join our community</gray>\\n<gray>and stay connected.</gray>\\n \\n<dark_gray>› Click to open</dark_gray>'><click:open_url:'https://discord.gg/sergeantfuzzy'>&bhttps://discord.gg/sergeantfuzzy</click></hover>"
-    - "&8• &7Made by &6SergeantFuzzy &8• <hover:show_text:'<green><bold>GitHub</bold></green>\\n<dark_gray>━━━━━━━━━━━━━━━━━</dark_gray>\\n<gray>Source code and</gray>\\n<gray>development hub.</gray>\\n \\n<dark_gray>› Click to open</dark_gray>'><click:open_url:'https://github.com/SergeantFuzzy/SF-Core'>&8[&aGitHub&8]</click></hover> <hover:show_text:'<gold><bold>Spigot</bold></gold>\\n<dark_gray>━━━━━━━━━━━━━━━━━</dark_gray>\\n<gray>Resource page</gray>\\n<gray>and discussion.</gray>\\n \\n<dark_gray>› Click to open</dark_gray>'><click:open_url:'https://www.spigotmc.org/resources/sf-core/'>&8[&6Spigot&8]</click></hover> <hover:show_text:'<aqua><bold>BuiltByBit</bold></aqua>\\n<dark_gray>━━━━━━━━━━━━━━━━━</dark_gray>\\n<gray>Marketplace page</gray>\\n<gray>and updates.</gray>\\n \\n<dark_gray>› Click to open</dark_gray>'><click:open_url:'https://builtbybit.com/resources/sf-core/'>&8[&bBuiltByBit&8]</click></hover>"
-    - " "
   first-join:
     enabled: true
-    lines:
-      - " "
-      - "          <gradient:#FF55FF:#5555FF><bold>A Brand New Adventure!</bold></gradient>          "
-      - "&7Welcome for the very first time, &6{player}&7!"
-      - "&8• &eRead the rules with <click:run_command:'/sf about'>&b/sf about</click>"
-      - "&8• &eSet your home with &b/sethome &7and travel with &b/home"
-      - "&8• &eHave fun! &cWe're glad you're here."
-      - " "
 resource-pack:
   enabled: false
   public-url: ""
@@ -110,7 +86,7 @@ discord:
     server-id: "1431483426267205785"
     channel-id: "1490820884976500877"
     webhook-url: "https://discord.com/api/webhooks/1490827278886768720/tTDGpeXlF8VpZUi4cq1sD9cAmiwFBm2AbO_x9a72acaorc2osVaf7cpCqTBY_0cWdAAD"
-    webhook-username: "SF-Core Moderation"
+    webhook-username: "OBX Moderation"
     avatar-url: "https://i.ibb.co/4w4n3Chc/Logo-with-backgroundpng.png"
     footer-icon-url: "https://i.ibb.co/4w4n3Chc/Logo-with-backgroundpng.png"
     log-to-console: true
@@ -129,9 +105,9 @@ testing:
       uuid: "11c0d534-1e39-44eb-b2cd-90fb5e2b12d7"
       note: "Regression profile for tempban and banlist output."
 links:
-  builtbybit: "https://builtbybit.com/resources/sf-core/"
-  wiki: "https://github.com/SergeantFuzzy/SF-Core/wiki"
-  discord: "https://discord.gg/sergeantfuzzy"
+  builtbybit: "https://builtbybit.com/resources/OBX"
+  wiki: "https://github.com/zcripted/OBX"
+  discord: "https://discord.gg/zcripted"
 #
 #
 # ╔══════════════════════════════════════════════════════════════╗

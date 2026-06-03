@@ -10,23 +10,23 @@ public dev API (events + facade), and the final docs sweep.
 
 ### Dev API — public events + facade
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/api/HologramSpawnEvent.java`
+* `src/main/java/dev/zcripted/obx/hologram/api/HologramSpawnEvent.java`
   — Bukkit `Event`. Carries the spawned `Hologram` model. Fired from
   `HologramFacade.create` (and reserved as the canonical spawn-event hook
   for backend integrations).
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/api/HologramInteractEvent.java`
+* `src/main/java/dev/zcripted/obx/hologram/api/HologramInteractEvent.java`
   — `Event implements Cancellable`. Fired by `InteractionDispatcher`
   before cooldown / command dispatch. Third-party plugins can cancel to
   suppress the configured CText action — useful for shops, quest hubs,
   permission-gated effects.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/api/HologramFacade.java`
+* `src/main/java/dev/zcripted/obx/hologram/api/HologramFacade.java`
   — single entry point for plugins (`HologramFacade.get()`). Methods:
   `isAvailable`, `all`, `find`, `create(id, location)`, `addLine`,
   `delete`. Internal types stay free to refactor.
 
 ### Internal — GUI
 
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/gui/HologramEditorMenu.java`
+* `src/main/java/dev/zcripted/obx/hologram/gui/HologramEditorMenu.java`
   — single-page chest GUI (27 slots). Shows:
   * Slot 4 — identity / world / position / line count / animation count.
   * Slots 9-17 — first nine lines with material-appropriate preview
@@ -40,8 +40,8 @@ public dev API (events + facade), and the final docs sweep.
   Material name lookups use `Material.matchMaterial` with version-safe
   fallbacks (`COMPARATOR`/`REDSTONE_COMPARATOR`, `CLOCK`/`WATCH`) so the
   GUI renders cleanly on the 1.12 baseline.
-* `src/main/java/dev/sergeantfuzzy/sfcore/hologram/command/sub/GuiSub.java`
-  — `/sfholo gui <id>`. Permission `sfcore.holo.gui`.
+* `src/main/java/dev/zcripted/obx/hologram/command/sub/GuiSub.java`
+  — `/sfholo gui <id>`. Permission `obx.holo.gui`.
 
 ### Wiring
 
@@ -55,7 +55,7 @@ public dev API (events + facade), and the final docs sweep.
 ### Build
 
 * `mvn -DskipTests package` — green up to and including the maven-jar
-  step. `target/SF-Core-1.0.0-SNAPSHOT.jar` is 1.19 MB (up from 1.02 MB
+  step. `target/OBX-1.0.0-SNAPSHOT.jar` is 1.19 MB (up from 1.02 MB
   pre-holograms) and contains 132 hologram-related class / resource
   entries.
 * The ProGuard exec step still fails locally because the host runs
@@ -89,5 +89,5 @@ the hologram module.
 ## Suggested Commit Message
 
 ```
-SF-Core Holograms: Phase 7 — chest-GUI editor + dev API events + facade
+OBX Holograms: Phase 7 — chest-GUI editor + dev API events + facade
 ```

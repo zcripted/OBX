@@ -18,8 +18,8 @@ would require packet-level fake entries / ProtocolLib, which was declined.)
 
 ## How it works
 
-- The client orders the player list by scoreboard-team name. SF-Core puts OP
-  players on team `sfcore.0staff` and everyone else on `sfcore.1players`; the
+- The client orders the player list by scoreboard-team name. OBX puts OP
+  players on team `obx.0staff` and everyone else on `obx.1players`; the
   `0`/`1` ensures staff always sort first. Teams are sort-only — no prefix,
   suffix, or nametag option is set, so names above heads are untouched.
 - OP players get a distinct tablist entry name (the staff tag); non-OP keep the
@@ -40,7 +40,7 @@ would require packet-level fake entries / ProtocolLib, which was declined.)
 - `tablist/listener/TablistJoinListener.java` — new `onQuit` removes the leaver
   from the teams.
 - `tablist/scheduler/TablistRefreshTask.java` — `reset()`s the teams when the
-  tablist or grouping is toggled off (so `/sf reload` cleans up).
+  tablist or grouping is toggled off (so `/obx reload` cleans up).
 - `Main.java` — `onDisable` resets the teams.
 - `systems/tablist.yml` — new documented `staff-grouping` block (enabled +
   per-OP `player-format`), including the columns caveat.
@@ -50,7 +50,7 @@ would require packet-level fake entries / ProtocolLib, which was declined.)
   (≤ `refresh-interval-ticks`) or on join. To drive it from a permission/group
   instead, swap the `isOp()` check in `TablistRenderer.apply` / the listener.
 - If another plugin manages scoreboard teams for the same players, that plugin's
-  team names will compete for the tablist sort — SF-Core assumes it owns this
+  team names will compete for the tablist sort — OBX assumes it owns this
   (the reporter runs no permissions/tab plugin).
 
 ## Verification

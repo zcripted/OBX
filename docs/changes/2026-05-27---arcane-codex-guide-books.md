@@ -16,14 +16,14 @@ and click-a-level-to-apply buttons.
 ## Categories
 
 ### Commands
-- **`/sfench give <player> book <category>`** (aliases `/sfenchant`, `/sfe`) — gives a
-  written-book Codex for the category. Executor needs `sfcore.enchants.give`; the
-  **recipient** must hold `sfcore.enchants.book` (or be op). If the recipient lacks it,
+- **`/obxench give <player> book <category>`** (aliases `/obxenchant`, `/obxe`) — gives a
+  written-book Codex for the category. Executor needs `obx.enchants.give`; the
+  **recipient** must hold `obx.enchants.book` (or be op). If the recipient lacks it,
   the executor gets a chat error **and** a title (`Access Denied`), and **no book is
   given**.
-- **`/sfench bookinfo <id>`** (internal) — prints an enchant's full details in chat;
+- **`/obxench bookinfo <id>`** (internal) — prints an enchant's full details in chat;
   the target of a Codex name-click.
-- **`/sfench bookapply <id> <level>`** (internal) — applies the enchant to the item in
+- **`/obxench bookapply <id> <level>`** (internal) — applies the enchant to the item in
   hand; the target of a Codex level-click. **Only raises to a higher level** than what's
   already present (same/lower level is refused). Resolves the target as **main hand if
   applicable, else off-hand** — so reading the book in the off-hand applies to the weapon
@@ -36,7 +36,7 @@ and click-a-level-to-apply buttons.
   click to `bookinfo`; each level is a `[N]` button with an apply hover + `bookapply`
   click. Built with the Spigot/BungeeCord chat-component API (works 1.8.8 → 1.21.x) and
   degrades to plain-text pages if components are unavailable on a fork.
-- `enchant/command/SfEnchantCommand.java` — routes `give … book`, `bookinfo`, and
+- `enchant/command/ObxEnchantCommand.java` — routes `give … book`, `bookinfo`, and
   `bookapply`; extracts `renderInfo(...)` (shared by `info` + `bookinfo`); adds the
   recipient-permission gate with a title, the held-item resolver, the upgrade-only rule,
   off-hand helpers, and tab completion for `book` + category.
@@ -45,9 +45,9 @@ and click-a-level-to-apply buttons.
   `enchant.book.lower-level`, `enchant.book.no-item`.
 
 ### Permissions (plugin.yml)
-- `sfcore.enchants.book` (default `op`) — required to **receive** a Codex and to use its
-  click actions (`bookinfo`/`bookapply`); added as a child of `sfcore.enchants.*`.
-- `/sfench` usage string updated; `docs/information/about.md` rows added.
+- `obx.enchants.book` (default `op`) — required to **receive** a Codex and to use its
+  click actions (`bookinfo`/`bookapply`); added as a child of `obx.enchants.*`.
+- `/obxench` usage string updated; `docs/information/about.md` rows added.
 
 ## Behavior notes / assumptions
 - **"Held item in hand":** after clicking a link the book closes and the main hand holds
@@ -72,5 +72,5 @@ and click-a-level-to-apply buttons.
 
 ## Suggested Commit Message
 ```
-Feature (enchants): Admin Codex guide books — /sfench give <player> book <category> (interactive hover/click-to-learn/click-to-apply)
+Feature (enchants): Admin Codex guide books — /obxench give <player> book <category> (interactive hover/click-to-learn/click-to-apply)
 ```

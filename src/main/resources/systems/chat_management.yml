@@ -1,15 +1,15 @@
 # ════════════════════════════════════════════════════════════════════════════
-# SF-Core Chat Management
+# OBX Chat Management
 # ────────────────────────────────────────────────────────────────────────────
 # Customise the layout and styling of in-game chat. Every template below
 # accepts the full Adventure / MiniMessage tag set:
 #   • Legacy color codes  &a, &l, etc.
 #   • Hex colors          &#RRGGBB or <#RRGGBB>
-#   • Named colors        <gray>, <yellow>, <gold>, ...
-#   • Gradients           <gradient:#A:#B>...</gradient>
+#   • Named colors        <gray>, <yellow>, <dark_purple>, ...
+#   • Gradients           <gradient:FA:FB>...</gradient>
 #   • Decorations         <bold>, <italic>, <underlined>, <strikethrough>
 #   • Hover tooltip       <hover:show_text:'line one\nline two'>...</hover>
-#   • Click events        <click:run_command:'/sf'>...</click>
+#   • Click events        <click:run_command:'/obx'>...</click>
 #   • Shadow color        <shadow:#RRGGBB>...</shadow>   (1.21.4+ Adventure)
 #
 # Adventure MiniMessage reference:
@@ -67,11 +67,11 @@ format:
       template: "<#AAAAAA>{player}</#AAAAAA>"
       staff-template: "<red>{player}</red>"
     # Separator character placed between username and message.
-    # Default: a typographic right-pointing double-angle quote, light yellow
-    # (&e / #FFFF55).
+    # Default: a typographic right-pointing double-angle quote, brand violet
+    # (&d / #6A1B9A).
     separator:
       character: "»"
-      template: "<#FFFF55>{character}</#FFFF55>"
+      template: "<#6A1B9A>{character}</#6A1B9A>"
     # The chat message itself. Default: regular white (&f / #FFFFFF).
     message:
       template: "<#FFFFFF>{message}</#FFFFFF>"

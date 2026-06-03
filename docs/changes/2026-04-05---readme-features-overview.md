@@ -2,7 +2,7 @@
 
 ## Documentation
 - Replaced the short "Features (current)" bullet list in `README.md` with a full breakdown that covers mobility tools, warp management, GUI menus, moderation utilities, diagnostics, localization, and compatibility behavior.
-- Highlighted where each feature lives in the codebase (e.g., `TeleportManager`, `WarpMenu`, `AutoResourcePackManager`) so readers understand how SF-Core delivers those capabilities.
+- Highlighted where each feature lives in the codebase (e.g., `TeleportManager`, `WarpMenu`, `AutoResourcePackManager`) so readers understand how OBX delivers those capabilities.
 
 ## Files
 - `README.md`
@@ -10,5 +10,5 @@
 
 Suggested Commit Message
 ```
-Docs(readme): expand feature overview for SF-Core
+Docs(readme): expand feature overview for OBX
 ```
