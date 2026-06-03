@@ -67,7 +67,7 @@ import dev.zcripted.obx.feature.item.command.VirtualStationCommand;
 import dev.zcripted.obx.feature.playerstate.command.VitalCommand;
 import dev.zcripted.obx.feature.staff.command.InvSeeCommand;
 import dev.zcripted.obx.feature.staff.command.VanishCommand;
-import dev.zcripted.obx.feature.chat.listener.ChatManagementListener;
+import dev.zcripted.obx.feature.chat.ChatModule;
 import dev.zcripted.obx.feature.chat.service.ChatService;
 import dev.zcripted.obx.feature.tablist.listener.TablistJoinListener;
 import dev.zcripted.obx.feature.tablist.scheduler.TablistRefreshTask;
@@ -138,7 +138,6 @@ public class OBX extends JavaPlugin {
     private ModerationService moderationService;
     private MotdService motdService;
     private JoinLeaveService joinLeaveService;
-    private ChatService chatService;
     private TablistService tablistService;
     private ScoreboardService scoreboardService;
     private ScoreboardRefreshTask scoreboardRefreshTask;
@@ -223,8 +222,6 @@ public class OBX extends JavaPlugin {
         motdService = new MotdService(this);
         motdService.load();
         joinLeaveService = new JoinLeaveService(this);
-        chatService = new ChatService(this);
-        chatService.load();
         tablistService = new TablistService(this);
         tablistService.load();
         tablistRefreshTask = new TablistRefreshTask(this, tablistService);
@@ -307,6 +304,9 @@ public class OBX extends JavaPlugin {
         hologramService.load();
         hologramEditorMenu = new dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu(this);
 
+        registerModules();
+        moduleManager.enableAll();
+
         registerCommands();
         registerListeners();
 
@@ -344,6 +344,7 @@ public class OBX extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        moduleManager.disableAll();
         if (enchantTickTask != null) {
             enchantTickTask.stop();
         }
@@ -474,7 +475,7 @@ public class OBX extends JavaPlugin {
     }
 
     public ChatService getChatService() {
-        return chatService;
+        return serviceRegistry.get(ChatService.class);
     }
 
     public TablistService getTablistService() {
@@ -636,9 +637,6 @@ public class OBX extends JavaPlugin {
         if (joinLeaveService != null) {
             s = System.nanoTime(); joinLeaveService.reload(); times.put("join-leave", System.nanoTime() - s);
         }
-        if (chatService != null) {
-            s = System.nanoTime(); chatService.reload(); times.put("chat.yml", System.nanoTime() - s);
-        }
         if (tablistService != null) {
             s = System.nanoTime();
             tablistService.reload();
@@ -674,7 +672,20 @@ public class OBX extends JavaPlugin {
         if (hologramService != null) {
             s = System.nanoTime(); hologramService.reload(); times.put("holograms.yml", System.nanoTime() - s);
         }
+        s = System.nanoTime(); moduleManager.reloadAll(); times.put("modules", System.nanoTime() - s);
         return times;
+    }
+
+    /**
+     * Registers every feature module with the {@link dev.zcripted.obx.core.module.ModuleManager}.
+     * Modules are enabled in registration order (the manager's topological sort
+     * preserves it for independent modules), which mirrors the historical
+     * construction order. Features migrate out of {@link #registerCommands()} /
+     * {@link #registerListeners()} into their module's {@code onEnable} over the
+     * course of the package-by-feature restructure.
+     */
+    private void registerModules() {
+        moduleManager.register(new ChatModule());
     }
 
     private void registerCommands() {
@@ -830,7 +841,6 @@ public class OBX extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.InvSeeMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuInputListener(staffMenuInputManager), this);
-        getServer().getPluginManager().registerEvents(new ChatManagementListener(this, chatService), this);
         getServer().getPluginManager().registerEvents(new TablistJoinListener(this, tablistService), this);
         getServer().getPluginManager().registerEvents(new ScoreboardJoinListener(this, scoreboardService), this);
         MotdPingListener motdPingListener = new MotdPingListener(this);
