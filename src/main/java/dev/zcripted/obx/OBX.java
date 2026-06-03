@@ -76,6 +76,9 @@ import dev.zcripted.obx.feature.tablist.service.TablistService;
 import dev.zcripted.obx.feature.scoreboard.listener.ScoreboardJoinListener;
 import dev.zcripted.obx.feature.scoreboard.scheduler.ScoreboardRefreshTask;
 import dev.zcripted.obx.feature.scoreboard.service.ScoreboardService;
+import dev.zcripted.obx.feature.scoreboard.ScoreboardModule;
+import dev.zcripted.obx.feature.tablist.TablistModule;
+import dev.zcripted.obx.feature.economy.EconomyModule;
 import dev.zcripted.obx.feature.warp.gui.WarpMenuInputListener;
 import dev.zcripted.obx.feature.teleport.listener.BackListener;
 import dev.zcripted.obx.core.command.CommandOverrideListener;
@@ -138,10 +141,6 @@ public class OBX extends JavaPlugin {
     private VanishManager vanishManager;
     private MotdService motdService;
     private JoinLeaveService joinLeaveService;
-    private TablistService tablistService;
-    private ScoreboardService scoreboardService;
-    private ScoreboardRefreshTask scoreboardRefreshTask;
-    private TablistRefreshTask tablistRefreshTask;
     private dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask adminMenuRefreshTask;
     private AutoResourcePackManager resourcePackManager;
     private WarpMenuInputManager warpMenuInputManager;
@@ -152,8 +151,6 @@ public class OBX extends JavaPlugin {
     private dev.zcripted.obx.feature.teleport.service.TpaService tpaService;
     private dev.zcripted.obx.feature.mail.mail.MailService mailService;
     private dev.zcripted.obx.feature.playerstate.service.AfkService afkService;
-    private dev.zcripted.obx.api.economy.EconomyService economyService;
-    private dev.zcripted.obx.feature.economy.service.WorthService worthService;
     private dev.zcripted.obx.feature.playerinfo.service.PlaytimeService playtimeService;
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
     private dev.zcripted.obx.feature.playerstate.service.FlightStateService flightStateService;
@@ -217,12 +214,6 @@ public class OBX extends JavaPlugin {
         motdService = new MotdService(this);
         motdService.load();
         joinLeaveService = new JoinLeaveService(this);
-        tablistService = new TablistService(this);
-        tablistService.load();
-        tablistRefreshTask = new TablistRefreshTask(this, tablistService);
-        scoreboardService = new ScoreboardService(this);
-        scoreboardService.load();
-        scoreboardRefreshTask = new ScoreboardRefreshTask(this, scoreboardService);
         adminMenuRefreshTask = new dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask(this);
         warpMenuInputManager = new WarpMenuInputManager(this);
         staffMenuInputManager = new dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager(this);
@@ -244,10 +235,6 @@ public class OBX extends JavaPlugin {
         mailService = new dev.zcripted.obx.feature.mail.mail.MailService(this);
         mailService.load();
         afkService = new dev.zcripted.obx.feature.playerstate.service.AfkService(this);
-        economyService = new dev.zcripted.obx.api.economy.EconomyService(this);
-        economyService.load();
-        worthService = new dev.zcripted.obx.feature.economy.service.WorthService(this);
-        worthService.load();
         playtimeService = new dev.zcripted.obx.feature.playerinfo.service.PlaytimeService(this);
         playtimeService.load();
         flightStateService = new dev.zcripted.obx.feature.playerstate.service.FlightStateService(this);
@@ -299,16 +286,8 @@ public class OBX extends JavaPlugin {
         registerCommands();
         registerListeners();
 
-        dev.zcripted.obx.api.economy.VaultEconomyProvider.register(this, economyService);
-
-        if (tablistRefreshTask != null) {
-            tablistRefreshTask.start();
-        }
         if (adminMenuRefreshTask != null) {
             adminMenuRefreshTask.start();
-        }
-        if (scoreboardRefreshTask != null) {
-            scoreboardRefreshTask.start();
         }
         tpsService.start();
         if (afkService != null) {
@@ -374,18 +353,9 @@ public class OBX extends JavaPlugin {
         if (tpsService != null) {
             tpsService.stop();
         }
-        if (tablistRefreshTask != null) {
-            tablistRefreshTask.cancel();
-        }
         if (adminMenuRefreshTask != null) {
             adminMenuRefreshTask.cancel();
         }
-        if (scoreboardRefreshTask != null) {
-            scoreboardRefreshTask.cancel();
-        }
-        // Remove the OBX tablist staff/players sort teams from the main
-        // scoreboard so they don't linger after the plugin unloads.
-        dev.zcripted.obx.feature.tablist.format.TablistTeams.reset();
         if (teleportManager != null) {
             teleportManager.cancelAll();
         }
@@ -465,11 +435,11 @@ public class OBX extends JavaPlugin {
     }
 
     public TablistService getTablistService() {
-        return tablistService;
+        return serviceRegistry.get(TablistService.class);
     }
 
     public ScoreboardService getScoreboardService() {
-        return scoreboardService;
+        return serviceRegistry.get(ScoreboardService.class);
     }
 
     public AutoResourcePackManager getResourcePackManager() {
@@ -509,11 +479,11 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.api.economy.EconomyService getEconomyService() {
-        return economyService;
+        return serviceRegistry.get(dev.zcripted.obx.api.economy.EconomyService.class);
     }
 
     public dev.zcripted.obx.feature.economy.service.WorthService getWorthService() {
-        return worthService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.economy.service.WorthService.class);
     }
 
     public dev.zcripted.obx.feature.playerinfo.service.PlaytimeService getPlaytimeService() {
@@ -620,22 +590,6 @@ public class OBX extends JavaPlugin {
         if (joinLeaveService != null) {
             s = System.nanoTime(); joinLeaveService.reload(); times.put("join-leave", System.nanoTime() - s);
         }
-        if (tablistService != null) {
-            s = System.nanoTime();
-            tablistService.reload();
-            if (tablistRefreshTask != null) {
-                tablistRefreshTask.start();
-            }
-            times.put("tablist.yml", System.nanoTime() - s);
-        }
-        if (scoreboardService != null) {
-            s = System.nanoTime();
-            scoreboardService.reload();
-            if (scoreboardRefreshTask != null) {
-                scoreboardRefreshTask.start();
-            }
-            times.put("scoreboard.yml", System.nanoTime() - s);
-        }
         if (resourcePackManager != null) {
             s = System.nanoTime();
             resourcePackManager.refreshConfig();
@@ -673,6 +627,9 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new KitModule());
         moduleManager.register(new JailModule());
         moduleManager.register(new ModerationModule());
+        moduleManager.register(new ScoreboardModule());
+        moduleManager.register(new TablistModule());
+        moduleManager.register(new EconomyModule());
     }
 
     private void registerCommands() {
@@ -735,13 +692,6 @@ public class OBX extends JavaPlugin {
         bind("broadcast", new dev.zcripted.obx.feature.mail.command.BroadcastCommand(this));
         bind("staffchat", new dev.zcripted.obx.feature.mail.command.StaffChatCommand(this));
         bind("afk", new dev.zcripted.obx.feature.playerstate.command.AfkCommand(this));
-        bind("balance", new dev.zcripted.obx.feature.economy.command.BalanceCommand(this));
-        bind("baltop", new dev.zcripted.obx.feature.economy.command.BalTopCommand(this));
-        bind("pay", new dev.zcripted.obx.feature.economy.command.PayCommand(this));
-        bind("eco", new dev.zcripted.obx.feature.economy.command.EcoCommand(this));
-        bind("worth", new dev.zcripted.obx.feature.economy.command.WorthCommand(this));
-        bind("sell", new dev.zcripted.obx.feature.economy.command.SellCommand(this));
-        bind("sellall", new dev.zcripted.obx.feature.economy.command.SellAllCommand(this));
         bind("seen", new dev.zcripted.obx.feature.playerinfo.command.SeenCommand(this));
         bind("firstseen", new dev.zcripted.obx.feature.playerinfo.command.FirstSeenCommand(this));
         bind("playtime", new dev.zcripted.obx.feature.playerinfo.command.PlaytimeCommand(this));
@@ -812,8 +762,6 @@ public class OBX extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.InvSeeMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuInputListener(staffMenuInputManager), this);
-        getServer().getPluginManager().registerEvents(new TablistJoinListener(this, tablistService), this);
-        getServer().getPluginManager().registerEvents(new ScoreboardJoinListener(this, scoreboardService), this);
         MotdPingListener motdPingListener = new MotdPingListener(this);
         getServer().getPluginManager().registerEvents(motdPingListener, this);
         // Paper (and forks) fire PaperServerListPingEvent on its own HandlerList,
