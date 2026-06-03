@@ -131,13 +131,11 @@ import java.util.concurrent.TimeUnit;
 public class OBX extends JavaPlugin {
 
     private DataService dataService;
-    private WarpService warpService;
     private LanguageManager languageManager;
     private VanishManager vanishManager;
     private MotdService motdService;
     private dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask adminMenuRefreshTask;
     private AutoResourcePackManager resourcePackManager;
-    private WarpMenuInputManager warpMenuInputManager;
     private dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager staffMenuInputManager;
     private dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager invSeeMenuManager;
     private dev.zcripted.obx.feature.staff.service.StaffSessionTracker staffSessionTracker;
@@ -197,12 +195,9 @@ public class OBX extends JavaPlugin {
         dataStore.open();
         dataService = new DataService(this);
         dataService.load();
-        warpService = new WarpService(this);
-        warpService.load();
         motdService = new MotdService(this);
         motdService.load();
         adminMenuRefreshTask = new dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask(this);
-        warpMenuInputManager = new WarpMenuInputManager(this);
         staffMenuInputManager = new dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager(this);
         invSeeMenuManager = new dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager(this);
         staffSessionTracker = new dev.zcripted.obx.feature.staff.service.StaffSessionTracker();
@@ -338,7 +333,7 @@ public class OBX extends JavaPlugin {
     }
 
     public WarpService getWarpService() {
-        return warpService;
+        return serviceRegistry.get(WarpService.class);
     }
 
     public LanguageManager getLanguageManager() {
@@ -402,7 +397,7 @@ public class OBX extends JavaPlugin {
     }
 
     public WarpMenuInputManager getWarpMenuInputManager() {
-        return warpMenuInputManager;
+        return serviceRegistry.get(WarpMenuInputManager.class);
     }
 
     public dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager getStaffMenuInputManager() {
@@ -538,7 +533,6 @@ public class OBX extends JavaPlugin {
         s = System.nanoTime(); reloadConfig(); times.put("config.yml", System.nanoTime() - s);
         s = System.nanoTime(); languageManager.reload(); times.put("languages", System.nanoTime() - s);
         s = System.nanoTime(); dataService.reload(); times.put("data.yml", System.nanoTime() - s);
-        s = System.nanoTime(); warpService.load(); times.put("warps.yml", System.nanoTime() - s);
         if (motdService != null) {
             s = System.nanoTime(); motdService.reload(); times.put("motd.yml", System.nanoTime() - s);
         }
@@ -588,13 +582,12 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.playerinfo.PlayerInfoModule());
         moduleManager.register(new dev.zcripted.obx.feature.teleport.TeleportModule());
         moduleManager.register(new dev.zcripted.obx.feature.mail.MailModule());
+        moduleManager.register(new dev.zcripted.obx.feature.warp.WarpModule());
     }
 
     private void registerCommands() {
-        WarpCommand warpCommand = new WarpCommand(this);
         bind("obx", new ObxCommand(this, languageManager));
         bind("help", new HelpGuiCommand(this));
-        bind("warp", warpCommand);
         bind("tps", new TpsCommand(this));
         bind("pl", new PluginListCommand(this));
         bind("vanish", new VanishCommand(this));
@@ -616,9 +609,7 @@ public class OBX extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CommandOverrideListener(this), this);
         getServer().getPluginManager().registerEvents(new MainMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new HelpGuiListener(this), this);
-        getServer().getPluginManager().registerEvents(new WarpMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new ResourcePackListener(this, resourcePackManager), this);
-        getServer().getPluginManager().registerEvents(new WarpMenuInputListener(warpMenuInputManager), this);
         getServer().getPluginManager().registerEvents(staffSessionTracker, this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.InvSeeMenuListener(this), this);
