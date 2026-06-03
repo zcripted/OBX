@@ -1,7 +1,7 @@
 package dev.zcripted.obx.feature.tablist.format;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.feature.tablist.service.TablistService;
+import dev.zcripted.obx.api.tablist.TablistService;
 import dev.zcripted.obx.util.message.AdventureMessageUtil;
 import dev.zcripted.obx.core.diagnostics.TpsService;
 import org.bukkit.Bukkit;

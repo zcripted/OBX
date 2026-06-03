@@ -3,7 +3,7 @@ package dev.zcripted.obx.feature.scoreboard.scheduler;
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.feature.scoreboard.format.ScoreboardRenderer;
-import dev.zcripted.obx.feature.scoreboard.service.ScoreboardService;
+import dev.zcripted.obx.api.scoreboard.ScoreboardService;
 import org.bukkit.entity.Player;
 
 /**

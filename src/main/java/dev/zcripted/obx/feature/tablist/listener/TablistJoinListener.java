@@ -3,7 +3,7 @@ package dev.zcripted.obx.feature.tablist.listener;
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.tablist.format.TablistRenderer;
 import dev.zcripted.obx.feature.tablist.format.TablistTeams;
-import dev.zcripted.obx.feature.tablist.service.TablistService;
+import dev.zcripted.obx.api.tablist.TablistService;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;

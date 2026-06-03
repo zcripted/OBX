@@ -1,7 +1,7 @@
 package dev.zcripted.obx.feature.scoreboard.format;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.feature.scoreboard.service.ScoreboardService;
+import dev.zcripted.obx.api.scoreboard.ScoreboardService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;

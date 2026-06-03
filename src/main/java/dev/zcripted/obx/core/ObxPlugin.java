@@ -56,19 +56,19 @@ public interface ObxPlugin extends Plugin {
 
     dev.zcripted.obx.feature.moderation.service.ModerationService getModerationService();
 
-    dev.zcripted.obx.feature.playerinfo.service.JoinLeaveService getJoinLeaveService();
+    dev.zcripted.obx.api.playerinfo.JoinLeaveService getJoinLeaveService();
 
     dev.zcripted.obx.api.chat.ChatService getChatService();
 
-    dev.zcripted.obx.feature.tablist.service.TablistService getTablistService();
+    dev.zcripted.obx.api.tablist.TablistService getTablistService();
 
-    dev.zcripted.obx.feature.scoreboard.service.ScoreboardService getScoreboardService();
+    dev.zcripted.obx.api.scoreboard.ScoreboardService getScoreboardService();
 
     dev.zcripted.obx.feature.jail.service.JailService getJailService();
 
     dev.zcripted.obx.feature.hub.service.HubService getHubService();
 
-    dev.zcripted.obx.feature.hub.kit.HubKitApplier getHubKitApplier();
+    dev.zcripted.obx.api.hub.HubKitApplier getHubKitApplier();
 
     dev.zcripted.obx.feature.hub.listener.HubItemUseListener getHubItemUseListener();
 

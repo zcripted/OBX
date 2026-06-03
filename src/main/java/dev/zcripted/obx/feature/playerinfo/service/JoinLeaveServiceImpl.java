@@ -25,7 +25,7 @@ import java.util.List;
  * path read pre-resolved volatile fields instead of re-walking config/lang every
  * connection. The cached snapshot is rebuilt on {@link #reload()} and on each toggle.
  */
-public final class JoinLeaveService {
+public final class JoinLeaveServiceImpl implements dev.zcripted.obx.api.playerinfo.JoinLeaveService {
 
     private final ObxPlugin plugin;
 
@@ -42,7 +42,7 @@ public final class JoinLeaveService {
     private volatile List<String> joinMotdLines = Collections.emptyList();
     private volatile List<String> firstJoinMotdLines = Collections.emptyList();
 
-    public JoinLeaveService(ObxPlugin plugin) {
+    public JoinLeaveServiceImpl(ObxPlugin plugin) {
         this.plugin = plugin;
         cacheSnapshot();
     }

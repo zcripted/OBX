@@ -15,7 +15,7 @@ import java.util.List;
  * {@code /obx reload} re-reads the file so title/lines/interval changes apply
  * live.
  */
-public final class ScoreboardService {
+public final class ScoreboardServiceImpl implements dev.zcripted.obx.api.scoreboard.ScoreboardService {
 
     private static final String RESOURCE_PATH = "systems/scoreboard.yml";
 
@@ -23,7 +23,7 @@ public final class ScoreboardService {
     private final File configFile;
     private YamlConfiguration config;
 
-    public ScoreboardService(ObxPlugin plugin) {
+    public ScoreboardServiceImpl(ObxPlugin plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
     }

@@ -5,7 +5,7 @@ import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.tablist.format.TablistTeams;
 import dev.zcripted.obx.feature.tablist.listener.TablistJoinListener;
 import dev.zcripted.obx.feature.tablist.scheduler.TablistRefreshTask;
-import dev.zcripted.obx.feature.tablist.service.TablistService;
+import dev.zcripted.obx.api.tablist.TablistService;
 
 /** Tablist header/footer + team nameplates feature with live refresh task. */
 public final class TablistModule extends AbstractModule {
@@ -19,7 +19,7 @@ public final class TablistModule extends AbstractModule {
 
     @Override
     protected void onEnable(ObxPlugin plugin) {
-        TablistService service = service(TablistService.class, new TablistService(plugin));
+        TablistService service = service(TablistService.class, new dev.zcripted.obx.feature.tablist.service.TablistServiceImpl(plugin));
         service.load();
         refreshTask = new TablistRefreshTask(plugin, service);
         refreshTask.start();

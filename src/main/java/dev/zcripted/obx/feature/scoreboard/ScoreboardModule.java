@@ -4,7 +4,7 @@ import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.scoreboard.listener.ScoreboardJoinListener;
 import dev.zcripted.obx.feature.scoreboard.scheduler.ScoreboardRefreshTask;
-import dev.zcripted.obx.feature.scoreboard.service.ScoreboardService;
+import dev.zcripted.obx.api.scoreboard.ScoreboardService;
 
 /** Sidebar scoreboard feature: per-player board + live refresh task. */
 public final class ScoreboardModule extends AbstractModule {
@@ -18,7 +18,7 @@ public final class ScoreboardModule extends AbstractModule {
 
     @Override
     protected void onEnable(ObxPlugin plugin) {
-        ScoreboardService service = service(ScoreboardService.class, new ScoreboardService(plugin));
+        ScoreboardService service = service(ScoreboardService.class, new dev.zcripted.obx.feature.scoreboard.service.ScoreboardServiceImpl(plugin));
         service.load();
         refreshTask = new ScoreboardRefreshTask(plugin, service);
         refreshTask.start();

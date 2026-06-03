@@ -14,7 +14,7 @@ import java.util.List;
  * missing or a key is unset so the tablist always renders something
  * sensible.
  */
-public final class TablistService {
+public final class TablistServiceImpl implements dev.zcripted.obx.api.tablist.TablistService {
 
     private static final String RESOURCE_PATH = "systems/tablist.yml";
 
@@ -22,7 +22,7 @@ public final class TablistService {
     private final File configFile;
     private YamlConfiguration config;
 
-    public TablistService(ObxPlugin plugin) {
+    public TablistServiceImpl(ObxPlugin plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
     }

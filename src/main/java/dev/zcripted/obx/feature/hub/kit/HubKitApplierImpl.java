@@ -22,12 +22,12 @@ import org.bukkit.inventory.PlayerInventory;
  * <p>Outside hub worlds (or with hub-mode disabled) this applier never
  * runs — the entire feature is dormant in that state.
  */
-public final class HubKitApplier {
+public final class HubKitApplierImpl implements dev.zcripted.obx.api.hub.HubKitApplier {
 
     private final ObxPlugin plugin;
     private final HubService hub;
 
-    public HubKitApplier(ObxPlugin plugin, HubService hub) {
+    public HubKitApplierImpl(ObxPlugin plugin, HubService hub) {
         this.plugin = plugin;
         this.hub = hub;
     }

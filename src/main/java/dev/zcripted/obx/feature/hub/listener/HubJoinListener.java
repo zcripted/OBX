@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.hub.listener;
 
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.service.HubService;
-import dev.zcripted.obx.feature.hub.kit.HubKitApplier;
+import dev.zcripted.obx.api.hub.HubKitApplier;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

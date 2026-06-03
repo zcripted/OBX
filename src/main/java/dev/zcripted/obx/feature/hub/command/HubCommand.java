@@ -5,7 +5,7 @@ import dev.zcripted.obx.core.command.AbstractObxCommand;
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.gui.ServerSelectorMenu;
 import dev.zcripted.obx.feature.hub.service.HubService;
-import dev.zcripted.obx.feature.hub.kit.HubKitApplier;
+import dev.zcripted.obx.api.hub.HubKitApplier;
 import dev.zcripted.obx.core.storage.DataService;
 import dev.zcripted.obx.core.storage.DataService.SpawnInfo;
 import org.bukkit.Bukkit;

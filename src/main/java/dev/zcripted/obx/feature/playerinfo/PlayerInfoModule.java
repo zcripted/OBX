@@ -12,7 +12,7 @@ import dev.zcripted.obx.feature.playerinfo.command.SeenCommand;
 import dev.zcripted.obx.feature.playerinfo.command.WhoisCommand;
 import dev.zcripted.obx.feature.playerinfo.listener.JoinLeaveListener;
 import dev.zcripted.obx.feature.playerinfo.listener.JoinListener;
-import dev.zcripted.obx.feature.playerinfo.service.JoinLeaveService;
+import dev.zcripted.obx.api.playerinfo.JoinLeaveService;
 import dev.zcripted.obx.feature.playerinfo.service.PlaytimeService;
 
 /**
@@ -29,7 +29,7 @@ public final class PlayerInfoModule extends AbstractModule {
 
     @Override
     protected void onEnable(ObxPlugin plugin) {
-        JoinLeaveService joinLeave = service(JoinLeaveService.class, new JoinLeaveService(plugin));
+        JoinLeaveService joinLeave = service(JoinLeaveService.class, new dev.zcripted.obx.feature.playerinfo.service.JoinLeaveServiceImpl(plugin));
         PlaytimeService playtime = service(PlaytimeService.class, new PlaytimeService(plugin));
         playtime.load();
         onDisable(playtime::save);

@@ -4,7 +4,7 @@ import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.hub.command.HubCommand;
 import dev.zcripted.obx.feature.hub.gui.ServerSelectorListener;
-import dev.zcripted.obx.feature.hub.kit.HubKitApplier;
+import dev.zcripted.obx.api.hub.HubKitApplier;
 import dev.zcripted.obx.feature.hub.launchpad.LaunchpadCooldownManager;
 import dev.zcripted.obx.feature.hub.listener.HubFallDamageListener;
 import dev.zcripted.obx.feature.hub.listener.HubFishingListener;
@@ -30,7 +30,7 @@ public final class HubModule extends AbstractModule {
     protected void onEnable(ObxPlugin plugin) {
         HubService hub = service(HubService.class, new HubService(plugin));
         hub.load();
-        HubKitApplier kitApplier = service(HubKitApplier.class, new HubKitApplier(plugin, hub));
+        HubKitApplier kitApplier = service(HubKitApplier.class, new dev.zcripted.obx.feature.hub.kit.HubKitApplierImpl(plugin, hub));
         LaunchpadCooldownManager launchpad = service(LaunchpadCooldownManager.class, new LaunchpadCooldownManager(plugin, hub));
         BungeeMessenger bungee = service(BungeeMessenger.class, new BungeeMessenger(plugin, hub));
         bungee.register();
