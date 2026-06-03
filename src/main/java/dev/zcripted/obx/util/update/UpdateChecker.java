@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * so that is the only endpoint queried here.
  *
  * <p>All network I/O is performed off the main thread via the plugin's
- * {@link dev.zcripted.obx.platform.scheduler.SchedulerAdapter} ({@code runAsync});
+ * {@link dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter} ({@code runAsync});
  * the {@link Result} is delivered back on the main/global thread
  * ({@code runNow}) so it is always safe to send chat messages from the
  * callback, on Bukkit/Spigot/Paper/Purpur and Folia alike. The check is

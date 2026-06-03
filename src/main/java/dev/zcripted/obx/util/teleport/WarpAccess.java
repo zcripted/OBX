@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.teleport;
 
-import dev.zcripted.obx.storage.WarpService;
+import dev.zcripted.obx.feature.warp.service.WarpService;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;

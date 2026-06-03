@@ -35,8 +35,8 @@
 -dontnote net.md_5.**
 -dontnote jdk.internal.jimage.**
 -dontnote jdk.internal.jrtfs.**
--dontnote dev.zcripted.obx.gui.admin.AdminSubMenu
--dontnote dev.zcripted.obx.gui.shared.WarpMenuStyling
+-dontnote dev.zcripted.obx.feature.staff.gui.AdminSubMenu
+-dontnote dev.zcripted.obx.feature.warp.gui.WarpMenuStyling
 -dontnote dev.zcripted.obx.util.text.ComponentMessenger
 -dontnote org.bukkit.scheduler.**
 -dontwarn java.**
@@ -46,8 +46,8 @@
 -dontwarn org.apache.commons.**
 -dontwarn sun.**
 -dontwarn com.sun.net.httpserver.**
--dontwarn dev.zcripted.obx.gui.admin.AdminSubMenu$SubMenuType
--dontwarn dev.zcripted.obx.gui.admin.AdminSubMenu$ClearMode
+-dontwarn dev.zcripted.obx.feature.staff.gui.AdminSubMenu$SubMenuType
+-dontwarn dev.zcripted.obx.feature.staff.gui.AdminSubMenu$ClearMode
 
 # --- Keep attributes useful for reflection ---------------------------------
 -keepattributes *Annotation*,Signature,InnerClasses
@@ -130,6 +130,6 @@
 # its public fields hold the embedded default strings. The class itself is
 # fine to obfuscate — only its `defaults(...)` and `sectionComments(...)`
 # entry points need a stable public surface.
--keepclassmembers class dev.zcripted.obx.language.MessageDefaults {
+-keepclassmembers class dev.zcripted.obx.core.language.MessageDefaults {
     public static *;
 }

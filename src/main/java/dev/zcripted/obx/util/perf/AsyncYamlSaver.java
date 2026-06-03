@@ -1,7 +1,7 @@
 package dev.zcripted.obx.util.perf;
 
 import dev.zcripted.obx.OBX;
-import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
+import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 

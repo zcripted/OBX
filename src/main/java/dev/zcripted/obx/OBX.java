@@ -1,107 +1,107 @@
 package dev.zcripted.obx;
 
-import dev.zcripted.obx.command.admin.KillCommand;
-import dev.zcripted.obx.command.admin.PluginListCommand;
-import dev.zcripted.obx.command.admin.TpsCommand;
-import dev.zcripted.obx.command.core.HelpGuiCommand;
-import dev.zcripted.obx.command.core.ListCommand;
-import dev.zcripted.obx.command.core.ObxCommand;
-import dev.zcripted.obx.command.moderation.BanListCommand;
-import dev.zcripted.obx.command.moderation.ModerationCommand;
-import dev.zcripted.obx.command.moderation.ModerationStatusCommand;
-import dev.zcripted.obx.command.teleportation.BackCommand;
-import dev.zcripted.obx.command.teleportation.DelHomeCommand;
-import dev.zcripted.obx.command.teleportation.HomeCommand;
-import dev.zcripted.obx.command.teleportation.HomesCommand;
-import dev.zcripted.obx.command.teleportation.HubCommand;
-import dev.zcripted.obx.command.teleportation.SetHomeCommand;
-import dev.zcripted.obx.command.teleportation.SpawnCommand;
-import dev.zcripted.obx.command.teleportation.TopCommand;
-import dev.zcripted.obx.command.teleportation.WarpCommand;
-import dev.zcripted.obx.hub.HubService;
-import dev.zcripted.obx.hub.kit.HubKitApplier;
-import dev.zcripted.obx.hub.launchpad.LaunchpadCooldownManager;
-import dev.zcripted.obx.hub.messaging.BungeeMessenger;
-import dev.zcripted.obx.enchant.command.EnchantsBrowseCommand;
-import dev.zcripted.obx.enchant.command.RecallCommand;
-import dev.zcripted.obx.enchant.command.SatchelCommand;
-import dev.zcripted.obx.enchant.command.ObxEnchantCommand;
-import dev.zcripted.obx.enchant.effect.BoundMovement;
-import dev.zcripted.obx.enchant.effect.EnchantState;
-import dev.zcripted.obx.enchant.effect.EnchantTickTask;
-import dev.zcripted.obx.enchant.gui.EnchantAdminMenu;
-import dev.zcripted.obx.enchant.gui.EnchantMenuListener;
-import dev.zcripted.obx.enchant.item.EnchantItems;
-import dev.zcripted.obx.enchant.listener.CombatEnchantListener;
-import dev.zcripted.obx.enchant.listener.CursedEnchantListener;
-import dev.zcripted.obx.enchant.listener.DefenseEnchantListener;
-import dev.zcripted.obx.enchant.listener.FarmingEnchantListener;
-import dev.zcripted.obx.enchant.listener.MovementEnchantListener;
-import dev.zcripted.obx.enchant.listener.ToolEnchantListener;
-import dev.zcripted.obx.enchant.listener.UtilityEnchantListener;
-import dev.zcripted.obx.enchant.loot.EnchantLoot;
-import dev.zcripted.obx.enchant.scroll.AnvilEnchantListener;
-import dev.zcripted.obx.enchant.scroll.ScrollApplyService;
-import dev.zcripted.obx.enchant.scroll.ScrollDragListener;
-import dev.zcripted.obx.enchant.service.EnchantFeedback;
-import dev.zcripted.obx.enchant.service.EnchantService;
-import dev.zcripted.obx.listener.player.HubFallDamageListener;
-import dev.zcripted.obx.listener.player.HubFishingListener;
-import dev.zcripted.obx.listener.player.HubItemProtectionListener;
-import dev.zcripted.obx.listener.player.HubItemUseListener;
-import dev.zcripted.obx.listener.player.HubJoinListener;
-import dev.zcripted.obx.listener.player.HubLaunchpadListener;
-import dev.zcripted.obx.listener.menu.ServerSelectorListener;
-import dev.zcripted.obx.command.language.LanguageCommand;
-import dev.zcripted.obx.command.utility.AnvilCommand;
-import dev.zcripted.obx.command.utility.CraftCommand;
-import dev.zcripted.obx.command.utility.EnchantCommand;
-import dev.zcripted.obx.command.utility.FeedCommand;
-import dev.zcripted.obx.command.utility.GamemodeCommand;
-import dev.zcripted.obx.command.utility.GodCommand;
-import dev.zcripted.obx.command.utility.HealCommand;
-import dev.zcripted.obx.command.utility.MapCommand;
-import dev.zcripted.obx.command.utility.ResearchCommand;
-import dev.zcripted.obx.command.utility.SmithCommand;
-import dev.zcripted.obx.command.utility.VirtualStationCommand;
-import dev.zcripted.obx.command.utility.VitalCommand;
-import dev.zcripted.obx.command.admin.InvSeeCommand;
-import dev.zcripted.obx.command.admin.VanishCommand;
-import dev.zcripted.obx.chat.listener.ChatManagementListener;
-import dev.zcripted.obx.chat.service.ChatService;
-import dev.zcripted.obx.tablist.listener.TablistJoinListener;
-import dev.zcripted.obx.tablist.scheduler.TablistRefreshTask;
-import dev.zcripted.obx.tablist.service.TablistService;
-import dev.zcripted.obx.scoreboard.listener.ScoreboardJoinListener;
-import dev.zcripted.obx.scoreboard.scheduler.ScoreboardRefreshTask;
-import dev.zcripted.obx.scoreboard.service.ScoreboardService;
-import dev.zcripted.obx.listener.chat.WarpMenuInputListener;
-import dev.zcripted.obx.listener.teleport.BackListener;
-import dev.zcripted.obx.listener.player.CommandOverrideListener;
-import dev.zcripted.obx.listener.player.JoinLockListener;
-import dev.zcripted.obx.listener.player.JoinListener;
-import dev.zcripted.obx.listener.player.JoinLeaveListener;
-import dev.zcripted.obx.listener.menu.HelpGuiListener;
-import dev.zcripted.obx.listener.menu.MainMenuListener;
-import dev.zcripted.obx.listener.menu.WarpMenuListener;
-import dev.zcripted.obx.listener.server.MotdPingListener;
-import dev.zcripted.obx.listener.world.RedstoneControlListener;
-import dev.zcripted.obx.platform.PlatformInfo;
-import dev.zcripted.obx.platform.bukkit.resourcepack.AutoResourcePackManager;
-import dev.zcripted.obx.platform.bukkit.resourcepack.ResourcePackListener;
-import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
-import dev.zcripted.obx.storage.DataService;
-import dev.zcripted.obx.storage.JoinLeaveService;
-import dev.zcripted.obx.storage.MotdService;
-import dev.zcripted.obx.storage.WarpService;
-import dev.zcripted.obx.gui.player.WarpMenuInputManager;
-import dev.zcripted.obx.language.LanguageManager;
-import dev.zcripted.obx.moderation.ModerationService;
-import dev.zcripted.obx.util.control.GodModeManager;
-import dev.zcripted.obx.util.control.KillModeManager;
-import dev.zcripted.obx.util.control.VanishManager;
-import dev.zcripted.obx.util.perf.TpsService;
-import dev.zcripted.obx.util.teleport.TeleportManager;
+import dev.zcripted.obx.feature.playerstate.command.KillCommand;
+import dev.zcripted.obx.core.command.PluginListCommand;
+import dev.zcripted.obx.core.diagnostics.TpsCommand;
+import dev.zcripted.obx.core.command.HelpGuiCommand;
+import dev.zcripted.obx.core.command.ListCommand;
+import dev.zcripted.obx.core.command.ObxCommand;
+import dev.zcripted.obx.feature.moderation.command.BanListCommand;
+import dev.zcripted.obx.feature.moderation.command.ModerationCommand;
+import dev.zcripted.obx.feature.moderation.command.ModerationStatusCommand;
+import dev.zcripted.obx.feature.teleport.command.BackCommand;
+import dev.zcripted.obx.feature.teleport.command.DelHomeCommand;
+import dev.zcripted.obx.feature.teleport.command.HomeCommand;
+import dev.zcripted.obx.feature.teleport.command.HomesCommand;
+import dev.zcripted.obx.feature.hub.command.HubCommand;
+import dev.zcripted.obx.feature.teleport.command.SetHomeCommand;
+import dev.zcripted.obx.feature.teleport.command.SpawnCommand;
+import dev.zcripted.obx.feature.teleport.command.TopCommand;
+import dev.zcripted.obx.feature.warp.command.WarpCommand;
+import dev.zcripted.obx.feature.hub.service.HubService;
+import dev.zcripted.obx.feature.hub.kit.HubKitApplier;
+import dev.zcripted.obx.feature.hub.launchpad.LaunchpadCooldownManager;
+import dev.zcripted.obx.feature.hub.messaging.BungeeMessenger;
+import dev.zcripted.obx.feature.enchant.command.EnchantsBrowseCommand;
+import dev.zcripted.obx.feature.enchant.command.RecallCommand;
+import dev.zcripted.obx.feature.enchant.command.SatchelCommand;
+import dev.zcripted.obx.feature.enchant.command.ObxEnchantCommand;
+import dev.zcripted.obx.feature.enchant.effect.BoundMovement;
+import dev.zcripted.obx.feature.enchant.effect.EnchantState;
+import dev.zcripted.obx.feature.enchant.effect.EnchantTickTask;
+import dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu;
+import dev.zcripted.obx.feature.enchant.gui.EnchantMenuListener;
+import dev.zcripted.obx.feature.enchant.item.EnchantItems;
+import dev.zcripted.obx.feature.enchant.listener.CombatEnchantListener;
+import dev.zcripted.obx.feature.enchant.listener.CursedEnchantListener;
+import dev.zcripted.obx.feature.enchant.listener.DefenseEnchantListener;
+import dev.zcripted.obx.feature.enchant.listener.FarmingEnchantListener;
+import dev.zcripted.obx.feature.enchant.listener.MovementEnchantListener;
+import dev.zcripted.obx.feature.enchant.listener.ToolEnchantListener;
+import dev.zcripted.obx.feature.enchant.listener.UtilityEnchantListener;
+import dev.zcripted.obx.feature.enchant.loot.EnchantLoot;
+import dev.zcripted.obx.feature.enchant.scroll.AnvilEnchantListener;
+import dev.zcripted.obx.feature.enchant.scroll.ScrollApplyService;
+import dev.zcripted.obx.feature.enchant.scroll.ScrollDragListener;
+import dev.zcripted.obx.feature.enchant.service.EnchantFeedback;
+import dev.zcripted.obx.feature.enchant.service.EnchantService;
+import dev.zcripted.obx.feature.hub.listener.HubFallDamageListener;
+import dev.zcripted.obx.feature.hub.listener.HubFishingListener;
+import dev.zcripted.obx.feature.hub.listener.HubItemProtectionListener;
+import dev.zcripted.obx.feature.hub.listener.HubItemUseListener;
+import dev.zcripted.obx.feature.hub.listener.HubJoinListener;
+import dev.zcripted.obx.feature.hub.listener.HubLaunchpadListener;
+import dev.zcripted.obx.feature.hub.gui.ServerSelectorListener;
+import dev.zcripted.obx.core.language.LanguageCommand;
+import dev.zcripted.obx.feature.item.command.AnvilCommand;
+import dev.zcripted.obx.feature.item.command.CraftCommand;
+import dev.zcripted.obx.feature.item.command.EnchantCommand;
+import dev.zcripted.obx.feature.playerstate.command.FeedCommand;
+import dev.zcripted.obx.feature.playerstate.command.GamemodeCommand;
+import dev.zcripted.obx.feature.playerstate.command.GodCommand;
+import dev.zcripted.obx.feature.playerstate.command.HealCommand;
+import dev.zcripted.obx.feature.item.command.MapCommand;
+import dev.zcripted.obx.feature.item.command.ResearchCommand;
+import dev.zcripted.obx.feature.item.command.SmithCommand;
+import dev.zcripted.obx.feature.item.command.VirtualStationCommand;
+import dev.zcripted.obx.feature.playerstate.command.VitalCommand;
+import dev.zcripted.obx.feature.staff.command.InvSeeCommand;
+import dev.zcripted.obx.feature.staff.command.VanishCommand;
+import dev.zcripted.obx.feature.chat.listener.ChatManagementListener;
+import dev.zcripted.obx.feature.chat.service.ChatService;
+import dev.zcripted.obx.feature.tablist.listener.TablistJoinListener;
+import dev.zcripted.obx.feature.tablist.scheduler.TablistRefreshTask;
+import dev.zcripted.obx.feature.tablist.service.TablistService;
+import dev.zcripted.obx.feature.scoreboard.listener.ScoreboardJoinListener;
+import dev.zcripted.obx.feature.scoreboard.scheduler.ScoreboardRefreshTask;
+import dev.zcripted.obx.feature.scoreboard.service.ScoreboardService;
+import dev.zcripted.obx.feature.warp.gui.WarpMenuInputListener;
+import dev.zcripted.obx.feature.teleport.listener.BackListener;
+import dev.zcripted.obx.core.command.CommandOverrideListener;
+import dev.zcripted.obx.feature.world.listener.JoinLockListener;
+import dev.zcripted.obx.feature.playerinfo.listener.JoinListener;
+import dev.zcripted.obx.feature.playerinfo.listener.JoinLeaveListener;
+import dev.zcripted.obx.core.gui.help.HelpGuiListener;
+import dev.zcripted.obx.core.gui.main.MainMenuListener;
+import dev.zcripted.obx.feature.warp.gui.WarpMenuListener;
+import dev.zcripted.obx.core.motd.MotdPingListener;
+import dev.zcripted.obx.feature.world.listener.RedstoneControlListener;
+import dev.zcripted.obx.core.platform.PlatformInfo;
+import dev.zcripted.obx.core.platform.resourcepack.AutoResourcePackManager;
+import dev.zcripted.obx.core.platform.resourcepack.ResourcePackListener;
+import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
+import dev.zcripted.obx.core.storage.DataService;
+import dev.zcripted.obx.feature.playerinfo.service.JoinLeaveService;
+import dev.zcripted.obx.core.motd.MotdService;
+import dev.zcripted.obx.feature.warp.service.WarpService;
+import dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager;
+import dev.zcripted.obx.core.language.LanguageManager;
+import dev.zcripted.obx.feature.moderation.service.ModerationService;
+import dev.zcripted.obx.feature.playerstate.service.GodModeManager;
+import dev.zcripted.obx.feature.playerstate.service.KillModeManager;
+import dev.zcripted.obx.feature.staff.service.VanishManager;
+import dev.zcripted.obx.core.diagnostics.TpsService;
+import dev.zcripted.obx.feature.teleport.service.TeleportManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
@@ -130,8 +130,8 @@ public class OBX extends JavaPlugin {
     private WarpService warpService;
     private LanguageManager languageManager;
     private TeleportManager teleportManager;
-    private dev.zcripted.obx.util.teleport.TeleportRequestService teleportRequestService;
-    private dev.zcripted.obx.message.MessageService messageService;
+    private dev.zcripted.obx.feature.teleport.service.TeleportRequestService teleportRequestService;
+    private dev.zcripted.obx.feature.mail.pm.PrivateMessageService messageService;
     private GodModeManager godModeManager;
     private KillModeManager killModeManager;
     private VanishManager vanishManager;
@@ -143,26 +143,26 @@ public class OBX extends JavaPlugin {
     private ScoreboardService scoreboardService;
     private ScoreboardRefreshTask scoreboardRefreshTask;
     private TablistRefreshTask tablistRefreshTask;
-    private dev.zcripted.obx.gui.admin.AdminMenuRefreshTask adminMenuRefreshTask;
+    private dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask adminMenuRefreshTask;
     private AutoResourcePackManager resourcePackManager;
     private WarpMenuInputManager warpMenuInputManager;
-    private dev.zcripted.obx.gui.admin.StaffMenuInputManager staffMenuInputManager;
-    private dev.zcripted.obx.gui.admin.InvSeeMenuManager invSeeMenuManager;
-    private dev.zcripted.obx.util.control.StaffSessionTracker staffSessionTracker;
+    private dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager staffMenuInputManager;
+    private dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager invSeeMenuManager;
+    private dev.zcripted.obx.feature.staff.service.StaffSessionTracker staffSessionTracker;
     private TpsService tpsService;
-    private dev.zcripted.obx.util.teleport.TpaService tpaService;
-    private dev.zcripted.obx.messaging.MessageService mailService;
-    private dev.zcripted.obx.util.control.AfkService afkService;
-    private dev.zcripted.obx.kit.KitService kitService;
-    private dev.zcripted.obx.economy.EconomyService economyService;
-    private dev.zcripted.obx.economy.WorthService worthService;
-    private dev.zcripted.obx.util.perf.PlaytimeService playtimeService;
-    private dev.zcripted.obx.storage.SqliteDataStore dataStore;
-    private dev.zcripted.obx.util.control.FlightStateService flightStateService;
-    private dev.zcripted.obx.util.control.FreezeService freezeService;
-    private dev.zcripted.obx.nickname.NicknameService nicknameService;
-    private dev.zcripted.obx.util.control.PerPlayerTimeService perPlayerTimeService;
-    private dev.zcripted.obx.jail.JailService jailService;
+    private dev.zcripted.obx.feature.teleport.service.TpaService tpaService;
+    private dev.zcripted.obx.feature.mail.mail.MailService mailService;
+    private dev.zcripted.obx.feature.playerstate.service.AfkService afkService;
+    private dev.zcripted.obx.feature.kit.service.KitService kitService;
+    private dev.zcripted.obx.api.economy.EconomyService economyService;
+    private dev.zcripted.obx.feature.economy.service.WorthService worthService;
+    private dev.zcripted.obx.feature.playerinfo.service.PlaytimeService playtimeService;
+    private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
+    private dev.zcripted.obx.feature.playerstate.service.FlightStateService flightStateService;
+    private dev.zcripted.obx.feature.staff.service.FreezeService freezeService;
+    private dev.zcripted.obx.feature.nickname.service.NicknameService nicknameService;
+    private dev.zcripted.obx.feature.world.service.PerPlayerTimeService perPlayerTimeService;
+    private dev.zcripted.obx.feature.jail.service.JailService jailService;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
     private HubService hubService;
@@ -179,13 +179,13 @@ public class OBX extends JavaPlugin {
     private EnchantState enchantState;
     private EnchantTickTask enchantTickTask;
     private BoundMovement enchantBoundMovement;
-    private dev.zcripted.obx.enchant.effect.CombatState combatState;
-    private dev.zcripted.obx.enchant.service.CombatParticleService combatParticles;
-    private dev.zcripted.obx.enchant.service.HoloFXService holoFX;
-    private dev.zcripted.obx.enchant.service.ReactiveSpecialsService reactiveSpecials;
-    private dev.zcripted.obx.enchant.service.CombatHudService combatHud;
-    private dev.zcripted.obx.hologram.service.HologramService hologramService;
-    private dev.zcripted.obx.hologram.gui.HologramEditorMenu hologramEditorMenu;
+    private dev.zcripted.obx.feature.enchant.effect.CombatState combatState;
+    private dev.zcripted.obx.feature.enchant.service.CombatParticleService combatParticles;
+    private dev.zcripted.obx.feature.enchant.service.HoloFXService holoFX;
+    private dev.zcripted.obx.feature.enchant.service.ReactiveSpecialsService reactiveSpecials;
+    private dev.zcripted.obx.feature.enchant.service.CombatHudService combatHud;
+    private dev.zcripted.obx.feature.hologram.service.HologramService hologramService;
+    private dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu hologramEditorMenu;
     private String releaseDate = "Unknown";
     private long lastLoadDurationMs;
     private final dev.zcripted.obx.core.service.ServiceRegistry serviceRegistry = new dev.zcripted.obx.core.service.ServiceRegistry();
@@ -212,7 +212,7 @@ public class OBX extends JavaPlugin {
         dev.zcripted.obx.util.message.ConsoleLog.info(this, "Detected platform: " + platformInfo.summary());
 
         languageManager = new LanguageManager(this);
-        dataStore = new dev.zcripted.obx.storage.SqliteDataStore(this);
+        dataStore = new dev.zcripted.obx.core.storage.SqliteDataStore(this);
         dataStore.open();
         dataService = new DataService(this);
         dataService.load();
@@ -231,16 +231,16 @@ public class OBX extends JavaPlugin {
         scoreboardService = new ScoreboardService(this);
         scoreboardService.load();
         scoreboardRefreshTask = new ScoreboardRefreshTask(this, scoreboardService);
-        adminMenuRefreshTask = new dev.zcripted.obx.gui.admin.AdminMenuRefreshTask(this);
+        adminMenuRefreshTask = new dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask(this);
         warpMenuInputManager = new WarpMenuInputManager(this);
-        staffMenuInputManager = new dev.zcripted.obx.gui.admin.StaffMenuInputManager(this);
-        invSeeMenuManager = new dev.zcripted.obx.gui.admin.InvSeeMenuManager(this);
-        staffSessionTracker = new dev.zcripted.obx.util.control.StaffSessionTracker();
+        staffMenuInputManager = new dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager(this);
+        invSeeMenuManager = new dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager(this);
+        staffSessionTracker = new dev.zcripted.obx.feature.staff.service.StaffSessionTracker();
         teleportManager = new TeleportManager(this, languageManager);
-        teleportRequestService = new dev.zcripted.obx.util.teleport.TeleportRequestService(this);
-        dev.zcripted.obx.message.MessageStore messageStore = new dev.zcripted.obx.message.MessageStore(this);
+        teleportRequestService = new dev.zcripted.obx.feature.teleport.service.TeleportRequestService(this);
+        dev.zcripted.obx.feature.mail.pm.MessageStore messageStore = new dev.zcripted.obx.feature.mail.pm.MessageStore(this);
         messageStore.load();
-        messageService = new dev.zcripted.obx.message.MessageService(this, messageStore);
+        messageService = new dev.zcripted.obx.feature.mail.pm.PrivateMessageService(this, messageStore);
         godModeManager = new GodModeManager();
         killModeManager = new KillModeManager(this);
         vanishManager = new VanishManager(this);
@@ -248,26 +248,26 @@ public class OBX extends JavaPlugin {
         resourcePackManager.installBundledPack();
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
-        tpaService = new dev.zcripted.obx.util.teleport.TpaService(this);
-        mailService = new dev.zcripted.obx.messaging.MessageService(this);
+        tpaService = new dev.zcripted.obx.feature.teleport.service.TpaService(this);
+        mailService = new dev.zcripted.obx.feature.mail.mail.MailService(this);
         mailService.load();
-        afkService = new dev.zcripted.obx.util.control.AfkService(this);
-        kitService = new dev.zcripted.obx.kit.KitService(this);
+        afkService = new dev.zcripted.obx.feature.playerstate.service.AfkService(this);
+        kitService = new dev.zcripted.obx.feature.kit.service.KitService(this);
         kitService.load();
-        economyService = new dev.zcripted.obx.economy.EconomyService(this);
+        economyService = new dev.zcripted.obx.api.economy.EconomyService(this);
         economyService.load();
-        worthService = new dev.zcripted.obx.economy.WorthService(this);
+        worthService = new dev.zcripted.obx.feature.economy.service.WorthService(this);
         worthService.load();
-        playtimeService = new dev.zcripted.obx.util.perf.PlaytimeService(this);
+        playtimeService = new dev.zcripted.obx.feature.playerinfo.service.PlaytimeService(this);
         playtimeService.load();
-        flightStateService = new dev.zcripted.obx.util.control.FlightStateService(this);
+        flightStateService = new dev.zcripted.obx.feature.playerstate.service.FlightStateService(this);
         flightStateService.load();
-        freezeService = new dev.zcripted.obx.util.control.FreezeService(this);
-        nicknameService = new dev.zcripted.obx.nickname.NicknameService(this);
+        freezeService = new dev.zcripted.obx.feature.staff.service.FreezeService(this);
+        nicknameService = new dev.zcripted.obx.feature.nickname.service.NicknameService(this);
         nicknameService.load();
-        perPlayerTimeService = new dev.zcripted.obx.util.control.PerPlayerTimeService(this);
+        perPlayerTimeService = new dev.zcripted.obx.feature.world.service.PerPlayerTimeService(this);
         perPlayerTimeService.load();
-        jailService = new dev.zcripted.obx.jail.JailService(this);
+        jailService = new dev.zcripted.obx.feature.jail.service.JailService(this);
         jailService.load();
 
         // Hub / lobby system — service must exist before listeners or
@@ -292,25 +292,25 @@ public class OBX extends JavaPlugin {
         enchantLoot = new EnchantLoot(this);
         enchantLoot.register();
         enchantState = new EnchantState(this);
-        combatState = new dev.zcripted.obx.enchant.effect.CombatState();
-        combatParticles = new dev.zcripted.obx.enchant.service.CombatParticleService(this);
-        holoFX = new dev.zcripted.obx.enchant.service.HoloFXService(this);
-        reactiveSpecials = new dev.zcripted.obx.enchant.service.ReactiveSpecialsService(this, combatState, combatParticles);
-        combatHud = new dev.zcripted.obx.enchant.service.CombatHudService(this);
+        combatState = new dev.zcripted.obx.feature.enchant.effect.CombatState();
+        combatParticles = new dev.zcripted.obx.feature.enchant.service.CombatParticleService(this);
+        holoFX = new dev.zcripted.obx.feature.enchant.service.HoloFXService(this);
+        reactiveSpecials = new dev.zcripted.obx.feature.enchant.service.ReactiveSpecialsService(this, combatState, combatParticles);
+        combatHud = new dev.zcripted.obx.feature.enchant.service.CombatHudService(this);
         combatHud.start();
         enchantBoundMovement = new BoundMovement(enchantService.getStorage());
         enchantTickTask = new EnchantTickTask(this, enchantBoundMovement);
 
         // Holograms module. Dormant when systems/holograms.yml master enabled=false.
         // Renders via real display entities on 1.19.4+, armor-stand fallback below.
-        hologramService = new dev.zcripted.obx.hologram.service.HologramService(this);
+        hologramService = new dev.zcripted.obx.feature.hologram.service.HologramService(this);
         hologramService.load();
-        hologramEditorMenu = new dev.zcripted.obx.hologram.gui.HologramEditorMenu(this);
+        hologramEditorMenu = new dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu(this);
 
         registerCommands();
         registerListeners();
 
-        dev.zcripted.obx.economy.VaultEconomyProvider.register(this, economyService);
+        dev.zcripted.obx.api.economy.VaultEconomyProvider.register(this, economyService);
 
         if (tablistRefreshTask != null) {
             tablistRefreshTask.start();
@@ -361,7 +361,7 @@ public class OBX extends JavaPlugin {
         }
         // Clear Curse of the Bound toughness modifiers and speed throttle so nothing persists past unload.
         for (org.bukkit.entity.Player online : getServer().getOnlinePlayers()) {
-            dev.zcripted.obx.enchant.effect.EffectUtil.setBoundToughness(online, 0.0);
+            dev.zcripted.obx.feature.enchant.effect.EffectUtil.setBoundToughness(online, 0.0);
             if (enchantBoundMovement != null) {
                 enchantBoundMovement.restore(online);
             }
@@ -395,7 +395,7 @@ public class OBX extends JavaPlugin {
         }
         // Remove the OBX tablist staff/players sort teams from the main
         // scoreboard so they don't linger after the plugin unloads.
-        dev.zcripted.obx.tablist.format.TablistTeams.reset();
+        dev.zcripted.obx.feature.tablist.format.TablistTeams.reset();
         if (teleportManager != null) {
             teleportManager.cancelAll();
         }
@@ -437,11 +437,11 @@ public class OBX extends JavaPlugin {
         return teleportManager;
     }
 
-    public dev.zcripted.obx.util.teleport.TeleportRequestService getTeleportRequestService() {
+    public dev.zcripted.obx.feature.teleport.service.TeleportRequestService getTeleportRequestService() {
         return teleportRequestService;
     }
 
-    public dev.zcripted.obx.message.MessageService getMessageService() {
+    public dev.zcripted.obx.feature.mail.pm.PrivateMessageService getMessageService() {
         return messageService;
     }
 
@@ -457,7 +457,7 @@ public class OBX extends JavaPlugin {
         return vanishManager;
     }
 
-    public dev.zcripted.obx.gui.admin.InvSeeMenuManager getInvSeeMenuManager() {
+    public dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager getInvSeeMenuManager() {
         return invSeeMenuManager;
     }
 
@@ -493,11 +493,11 @@ public class OBX extends JavaPlugin {
         return warpMenuInputManager;
     }
 
-    public dev.zcripted.obx.gui.admin.StaffMenuInputManager getStaffMenuInputManager() {
+    public dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager getStaffMenuInputManager() {
         return staffMenuInputManager;
     }
 
-    public dev.zcripted.obx.util.control.StaffSessionTracker getStaffSessionTracker() {
+    public dev.zcripted.obx.feature.staff.service.StaffSessionTracker getStaffSessionTracker() {
         return staffSessionTracker;
     }
 
@@ -505,55 +505,55 @@ public class OBX extends JavaPlugin {
         return tpsService;
     }
 
-    public dev.zcripted.obx.util.teleport.TpaService getTpaService() {
+    public dev.zcripted.obx.feature.teleport.service.TpaService getTpaService() {
         return tpaService;
     }
 
-    public dev.zcripted.obx.messaging.MessageService getMailService() {
+    public dev.zcripted.obx.feature.mail.mail.MailService getMailService() {
         return mailService;
     }
 
-    public dev.zcripted.obx.util.control.AfkService getAfkService() {
+    public dev.zcripted.obx.feature.playerstate.service.AfkService getAfkService() {
         return afkService;
     }
 
-    public dev.zcripted.obx.kit.KitService getKitService() {
+    public dev.zcripted.obx.feature.kit.service.KitService getKitService() {
         return kitService;
     }
 
-    public dev.zcripted.obx.economy.EconomyService getEconomyService() {
+    public dev.zcripted.obx.api.economy.EconomyService getEconomyService() {
         return economyService;
     }
 
-    public dev.zcripted.obx.economy.WorthService getWorthService() {
+    public dev.zcripted.obx.feature.economy.service.WorthService getWorthService() {
         return worthService;
     }
 
-    public dev.zcripted.obx.util.perf.PlaytimeService getPlaytimeService() {
+    public dev.zcripted.obx.feature.playerinfo.service.PlaytimeService getPlaytimeService() {
         return playtimeService;
     }
 
-    public dev.zcripted.obx.storage.SqliteDataStore getDataStore() {
+    public dev.zcripted.obx.core.storage.SqliteDataStore getDataStore() {
         return dataStore;
     }
 
-    public dev.zcripted.obx.util.control.FlightStateService getFlightStateService() {
+    public dev.zcripted.obx.feature.playerstate.service.FlightStateService getFlightStateService() {
         return flightStateService;
     }
 
-    public dev.zcripted.obx.util.control.FreezeService getFreezeService() {
+    public dev.zcripted.obx.feature.staff.service.FreezeService getFreezeService() {
         return freezeService;
     }
 
-    public dev.zcripted.obx.nickname.NicknameService getNicknameService() {
+    public dev.zcripted.obx.feature.nickname.service.NicknameService getNicknameService() {
         return nicknameService;
     }
 
-    public dev.zcripted.obx.util.control.PerPlayerTimeService getPerPlayerTimeService() {
+    public dev.zcripted.obx.feature.world.service.PerPlayerTimeService getPerPlayerTimeService() {
         return perPlayerTimeService;
     }
 
-    public dev.zcripted.obx.jail.JailService getJailService() {
+    public dev.zcripted.obx.feature.jail.service.JailService getJailService() {
         return jailService;
     }
 
@@ -601,7 +601,7 @@ public class OBX extends JavaPlugin {
         return enchantAdminMenu;
     }
 
-    public dev.zcripted.obx.hologram.service.HologramService getHologramService() {
+    public dev.zcripted.obx.feature.hologram.service.HologramService getHologramService() {
         return hologramService;
     }
 
@@ -691,19 +691,19 @@ public class OBX extends JavaPlugin {
         bind("setspawn", spawnCommand);
         getServer().getPluginManager().registerEvents(spawnCommand, this);
         getServer().getPluginManager().registerEvents(messageService, this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.listener.menu.InboxMenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.mail.pm.gui.InboxMenuListener(this), this);
         bind("warp", warpCommand);
         bind("gamemode", new GamemodeCommand(this));
         bind("back", new BackCommand(this));
-        bind("tp", new dev.zcripted.obx.command.teleportation.TeleportCommand(this, dev.zcripted.obx.command.teleportation.TeleportCommand.Mode.TO));
-        bind("tphere", new dev.zcripted.obx.command.teleportation.TeleportCommand(this, dev.zcripted.obx.command.teleportation.TeleportCommand.Mode.HERE));
-        bind("tpa", new dev.zcripted.obx.command.teleportation.TpaCommand(this, dev.zcripted.obx.command.teleportation.TpaCommand.Mode.REQUEST));
-        bind("tpaccept", new dev.zcripted.obx.command.teleportation.TpaCommand(this, dev.zcripted.obx.command.teleportation.TpaCommand.Mode.ACCEPT));
-        bind("tpdeny", new dev.zcripted.obx.command.teleportation.TpaCommand(this, dev.zcripted.obx.command.teleportation.TpaCommand.Mode.DENY));
-        bind("pos", new dev.zcripted.obx.command.teleportation.PositionCommand(this));
-        bind("msg", new dev.zcripted.obx.command.message.MsgCommand(this));
-        bind("rply", new dev.zcripted.obx.command.message.ReplyCommand(this));
-        bind("inbox", new dev.zcripted.obx.command.message.InboxCommand(this));
+        bind("tp", new dev.zcripted.obx.feature.teleport.command.TeleportCommand(this, dev.zcripted.obx.feature.teleport.command.TeleportCommand.Mode.TO));
+        bind("tphere", new dev.zcripted.obx.feature.teleport.command.TeleportCommand(this, dev.zcripted.obx.feature.teleport.command.TeleportCommand.Mode.HERE));
+        bind("tpa", new dev.zcripted.obx.feature.teleport.command.TpaCommand(this, dev.zcripted.obx.feature.teleport.command.TpaCommand.Mode.REQUEST));
+        bind("tpaccept", new dev.zcripted.obx.feature.teleport.command.TpaCommand(this, dev.zcripted.obx.feature.teleport.command.TpaCommand.Mode.ACCEPT));
+        bind("tpdeny", new dev.zcripted.obx.feature.teleport.command.TpaCommand(this, dev.zcripted.obx.feature.teleport.command.TpaCommand.Mode.DENY));
+        bind("pos", new dev.zcripted.obx.feature.teleport.command.PositionCommand(this));
+        bind("msg", new dev.zcripted.obx.feature.mail.command.MsgCommand(this));
+        bind("rply", new dev.zcripted.obx.feature.mail.command.ReplyCommand(this));
+        bind("inbox", new dev.zcripted.obx.feature.mail.command.InboxCommand(this));
         bind("kill", new KillCommand(this));
         bind("tps", new TpsCommand(this));
         bind("pl", new PluginListCommand(this));
@@ -726,69 +726,69 @@ public class OBX extends JavaPlugin {
         bind("map", new MapCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
-        bind("tpcancel", new dev.zcripted.obx.command.teleportation.TpCancelCommand(this));
-        bind("tptoggle", new dev.zcripted.obx.command.teleportation.TpToggleCommand(this));
-        bind("tppos", new dev.zcripted.obx.command.teleportation.TpPosCommand(this));
-        bind("tpall", new dev.zcripted.obx.command.teleportation.TpAllCommand(this));
-        bind("ignore", new dev.zcripted.obx.command.messaging.IgnoreCommand(this));
-        bind("socialspy", new dev.zcripted.obx.command.messaging.SocialSpyCommand(this));
-        bind("mail", new dev.zcripted.obx.command.messaging.MailCommand(this));
-        bind("me", new dev.zcripted.obx.command.messaging.MeCommand(this));
-        bind("broadcast", new dev.zcripted.obx.command.messaging.BroadcastCommand(this));
-        bind("staffchat", new dev.zcripted.obx.command.messaging.StaffChatCommand(this));
-        bind("afk", new dev.zcripted.obx.command.utility.AfkCommand(this));
-        bind("kit", new dev.zcripted.obx.command.utility.KitCommand(this));
-        bind("balance", new dev.zcripted.obx.command.economy.BalanceCommand(this));
-        bind("baltop", new dev.zcripted.obx.command.economy.BalTopCommand(this));
-        bind("pay", new dev.zcripted.obx.command.economy.PayCommand(this));
-        bind("eco", new dev.zcripted.obx.command.economy.EcoCommand(this));
-        bind("worth", new dev.zcripted.obx.command.economy.WorthCommand(this));
-        bind("sell", new dev.zcripted.obx.command.economy.SellCommand(this));
-        bind("sellall", new dev.zcripted.obx.command.economy.SellAllCommand(this));
-        bind("seen", new dev.zcripted.obx.command.info.SeenCommand(this));
-        bind("firstseen", new dev.zcripted.obx.command.info.FirstSeenCommand(this));
-        bind("playtime", new dev.zcripted.obx.command.info.PlaytimeCommand(this));
-        bind("list", new dev.zcripted.obx.command.info.ListCommand(this));
-        bind("near", new dev.zcripted.obx.command.info.NearCommand(this));
-        bind("whois", new dev.zcripted.obx.command.info.WhoisCommand(this));
-        bind("realname", new dev.zcripted.obx.command.info.RealnameCommand(this));
-        bind("info", new dev.zcripted.obx.command.info.InfoCommand(this));
-        bind("fly", new dev.zcripted.obx.command.utility.FlyCommand(this));
-        bind("flyspeed", new dev.zcripted.obx.command.utility.FlySpeedCommand(this));
-        bind("walkspeed", new dev.zcripted.obx.command.utility.WalkSpeedCommand(this));
-        bind("freeze", new dev.zcripted.obx.command.admin.FreezeCommand(this));
-        bind("enderchest", new dev.zcripted.obx.command.utility.EnderchestCommand(this));
-        bind("disposal", new dev.zcripted.obx.command.utility.DisposalCommand(this));
-        bind("hat", new dev.zcripted.obx.command.utility.HatCommand(this));
-        bind("clearinv", new dev.zcripted.obx.command.utility.ClearInvCommand(this));
-        bind("repair", new dev.zcripted.obx.command.utility.RepairCommand(this));
-        bind("more", new dev.zcripted.obx.command.utility.MoreCommand(this));
-        bind("skull", new dev.zcripted.obx.command.utility.SkullCommand(this));
-        bind("itemname", new dev.zcripted.obx.command.utility.ItemNameCommand(this));
-        bind("itemlore", new dev.zcripted.obx.command.utility.ItemLoreCommand(this));
-        bind("unbreakable", new dev.zcripted.obx.command.utility.UnbreakableCommand(this));
-        bind("give", new dev.zcripted.obx.command.utility.GiveCommand(this));
-        bind("i", new dev.zcripted.obx.command.utility.ItemCommand(this));
-        bind("book", new dev.zcripted.obx.command.utility.BookCommand(this));
-        bind("nick", new dev.zcripted.obx.command.utility.NickCommand(this));
-        bind("time", new dev.zcripted.obx.command.world.TimeCommand(this));
-        bind("day", new dev.zcripted.obx.command.world.DayCommand(this, 1000L));
-        bind("night", new dev.zcripted.obx.command.world.DayCommand(this, 13000L));
-        bind("sun", new dev.zcripted.obx.command.world.DayCommand(this, 6000L));
-        bind("weather", new dev.zcripted.obx.command.world.WeatherCommand(this));
-        bind("ptime", new dev.zcripted.obx.command.world.PTimeCommand(this));
-        bind("pweather", new dev.zcripted.obx.command.world.PWeatherCommand(this));
-        bind("jail", new dev.zcripted.obx.command.admin.JailCommand(this));
-        bind("unjail", new dev.zcripted.obx.command.admin.UnjailCommand(this));
-        bind("jails", new dev.zcripted.obx.command.admin.JailsCommand(this));
-        bind("setjail", new dev.zcripted.obx.command.admin.SetJailCommand(this));
-        bind("deljail", new dev.zcripted.obx.command.admin.DelJailCommand(this));
-        bind("jailtime", new dev.zcripted.obx.command.admin.JailTimeCommand(this));
-        bind("butcher", new dev.zcripted.obx.command.admin.ButcherCommand(this));
-        bind("spawnmob", new dev.zcripted.obx.command.admin.SpawnMobCommand(this));
-        bind("spawner", new dev.zcripted.obx.command.admin.SpawnerCommand(this));
-        bind("smite", new dev.zcripted.obx.command.admin.SmiteCommand(this));
-        bind("tree", new dev.zcripted.obx.command.admin.TreeCommand(this));
+        bind("tpcancel", new dev.zcripted.obx.feature.teleport.command.TpCancelCommand(this));
+        bind("tptoggle", new dev.zcripted.obx.feature.teleport.command.TpToggleCommand(this));
+        bind("tppos", new dev.zcripted.obx.feature.teleport.command.TpPosCommand(this));
+        bind("tpall", new dev.zcripted.obx.feature.teleport.command.TpAllCommand(this));
+        bind("ignore", new dev.zcripted.obx.feature.mail.command.IgnoreCommand(this));
+        bind("socialspy", new dev.zcripted.obx.feature.mail.command.SocialSpyCommand(this));
+        bind("mail", new dev.zcripted.obx.feature.mail.command.MailCommand(this));
+        bind("me", new dev.zcripted.obx.feature.mail.command.MeCommand(this));
+        bind("broadcast", new dev.zcripted.obx.feature.mail.command.BroadcastCommand(this));
+        bind("staffchat", new dev.zcripted.obx.feature.mail.command.StaffChatCommand(this));
+        bind("afk", new dev.zcripted.obx.feature.playerstate.command.AfkCommand(this));
+        bind("kit", new dev.zcripted.obx.feature.kit.command.KitCommand(this));
+        bind("balance", new dev.zcripted.obx.feature.economy.command.BalanceCommand(this));
+        bind("baltop", new dev.zcripted.obx.feature.economy.command.BalTopCommand(this));
+        bind("pay", new dev.zcripted.obx.feature.economy.command.PayCommand(this));
+        bind("eco", new dev.zcripted.obx.feature.economy.command.EcoCommand(this));
+        bind("worth", new dev.zcripted.obx.feature.economy.command.WorthCommand(this));
+        bind("sell", new dev.zcripted.obx.feature.economy.command.SellCommand(this));
+        bind("sellall", new dev.zcripted.obx.feature.economy.command.SellAllCommand(this));
+        bind("seen", new dev.zcripted.obx.feature.playerinfo.command.SeenCommand(this));
+        bind("firstseen", new dev.zcripted.obx.feature.playerinfo.command.FirstSeenCommand(this));
+        bind("playtime", new dev.zcripted.obx.feature.playerinfo.command.PlaytimeCommand(this));
+        bind("list", new dev.zcripted.obx.feature.playerinfo.command.ListCommand(this));
+        bind("near", new dev.zcripted.obx.feature.playerinfo.command.NearCommand(this));
+        bind("whois", new dev.zcripted.obx.feature.playerinfo.command.WhoisCommand(this));
+        bind("realname", new dev.zcripted.obx.feature.playerinfo.command.RealnameCommand(this));
+        bind("info", new dev.zcripted.obx.feature.playerinfo.command.InfoCommand(this));
+        bind("fly", new dev.zcripted.obx.feature.playerstate.command.FlyCommand(this));
+        bind("flyspeed", new dev.zcripted.obx.feature.playerstate.command.FlySpeedCommand(this));
+        bind("walkspeed", new dev.zcripted.obx.feature.playerstate.command.WalkSpeedCommand(this));
+        bind("freeze", new dev.zcripted.obx.feature.staff.command.FreezeCommand(this));
+        bind("enderchest", new dev.zcripted.obx.feature.item.command.EnderchestCommand(this));
+        bind("disposal", new dev.zcripted.obx.feature.item.command.DisposalCommand(this));
+        bind("hat", new dev.zcripted.obx.feature.item.command.HatCommand(this));
+        bind("clearinv", new dev.zcripted.obx.feature.item.command.ClearInvCommand(this));
+        bind("repair", new dev.zcripted.obx.feature.item.command.RepairCommand(this));
+        bind("more", new dev.zcripted.obx.feature.item.command.MoreCommand(this));
+        bind("skull", new dev.zcripted.obx.feature.item.command.SkullCommand(this));
+        bind("itemname", new dev.zcripted.obx.feature.item.command.ItemNameCommand(this));
+        bind("itemlore", new dev.zcripted.obx.feature.item.command.ItemLoreCommand(this));
+        bind("unbreakable", new dev.zcripted.obx.feature.item.command.UnbreakableCommand(this));
+        bind("give", new dev.zcripted.obx.feature.item.command.GiveCommand(this));
+        bind("i", new dev.zcripted.obx.feature.item.command.ItemCommand(this));
+        bind("book", new dev.zcripted.obx.feature.item.command.BookCommand(this));
+        bind("nick", new dev.zcripted.obx.feature.nickname.command.NickCommand(this));
+        bind("time", new dev.zcripted.obx.feature.world.command.TimeCommand(this));
+        bind("day", new dev.zcripted.obx.feature.world.command.DayCommand(this, 1000L));
+        bind("night", new dev.zcripted.obx.feature.world.command.DayCommand(this, 13000L));
+        bind("sun", new dev.zcripted.obx.feature.world.command.DayCommand(this, 6000L));
+        bind("weather", new dev.zcripted.obx.feature.world.command.WeatherCommand(this));
+        bind("ptime", new dev.zcripted.obx.feature.world.command.PTimeCommand(this));
+        bind("pweather", new dev.zcripted.obx.feature.world.command.PWeatherCommand(this));
+        bind("jail", new dev.zcripted.obx.feature.jail.command.JailCommand(this));
+        bind("unjail", new dev.zcripted.obx.feature.jail.command.UnjailCommand(this));
+        bind("jails", new dev.zcripted.obx.feature.jail.command.JailsCommand(this));
+        bind("setjail", new dev.zcripted.obx.feature.jail.command.SetJailCommand(this));
+        bind("deljail", new dev.zcripted.obx.feature.jail.command.DelJailCommand(this));
+        bind("jailtime", new dev.zcripted.obx.feature.jail.command.JailTimeCommand(this));
+        bind("butcher", new dev.zcripted.obx.feature.playerstate.command.ButcherCommand(this));
+        bind("spawnmob", new dev.zcripted.obx.feature.playerstate.command.SpawnMobCommand(this));
+        bind("spawner", new dev.zcripted.obx.feature.playerstate.command.SpawnerCommand(this));
+        bind("smite", new dev.zcripted.obx.feature.playerstate.command.SmiteCommand(this));
+        bind("tree", new dev.zcripted.obx.feature.playerstate.command.TreeCommand(this));
         bind("ban", new ModerationCommand(this, ModerationCommand.Action.BAN));
         bind("unban", new ModerationCommand(this, ModerationCommand.Action.UNBAN));
         bind("kick", new ModerationCommand(this, ModerationCommand.Action.KICK));
@@ -798,13 +798,13 @@ public class OBX extends JavaPlugin {
         bind("warn", new ModerationCommand(this, ModerationCommand.Action.WARN));
         bind("banlist", new BanListCommand(this));
         bind("status", new ModerationStatusCommand(this));
-        bind("staff", new dev.zcripted.obx.command.admin.StaffCommand(this));
+        bind("staff", new dev.zcripted.obx.feature.staff.command.StaffCommand(this));
         bind("hub", new HubCommand(this, hubService, hubKitApplier));
         bind("obxench", new ObxEnchantCommand(this));
         bind("enchants", new EnchantsBrowseCommand(this));
         bind("recall", new RecallCommand(this, enchantState));
         bind("satchel", new SatchelCommand(this, enchantState));
-        bind("holo", new dev.zcripted.obx.hologram.command.HologramCommand(this, hologramService));
+        bind("holo", new dev.zcripted.obx.feature.hologram.command.HologramCommand(this, hologramService));
     }
 
     private void registerListeners() {
@@ -827,9 +827,9 @@ public class OBX extends JavaPlugin {
         if (afkService != null) {
             getServer().getPluginManager().registerEvents(afkService, this);
         }
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.listener.menu.StaffMenuListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.listener.menu.InvSeeMenuListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.listener.chat.StaffMenuInputListener(staffMenuInputManager), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.InvSeeMenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuInputListener(staffMenuInputManager), this);
         getServer().getPluginManager().registerEvents(new ChatManagementListener(this, chatService), this);
         getServer().getPluginManager().registerEvents(new TablistJoinListener(this, tablistService), this);
         getServer().getPluginManager().registerEvents(new ScoreboardJoinListener(this, scoreboardService), this);
@@ -862,27 +862,27 @@ public class OBX extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new FarmingEnchantListener(this), this);
         getServer().getPluginManager().registerEvents(new UtilityEnchantListener(this), this);
         getServer().getPluginManager().registerEvents(new MovementEnchantListener(this, enchantState), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.effect.SatchelCloseListener(enchantState), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.effect.SatchelCloseListener(enchantState), this);
         getServer().getPluginManager().registerEvents(new CursedEnchantListener(this, enchantBoundMovement), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.listener.EnchantLoreListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.listener.EnchantBookUseListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.listener.OnHitDamageListener(this, combatState, combatParticles, holoFX, combatHud), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.listener.OnKillListener(this, combatState, combatParticles, holoFX), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.listener.OnHitProcListener(this, combatState, combatParticles, combatHud), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.listener.OnDeathListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.listener.RangedListener(this, combatState, combatParticles, reactiveSpecials, combatHud), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.enchant.listener.ReactiveSpecialsListener(this, combatState, reactiveSpecials), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.EnchantLoreListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.EnchantBookUseListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.OnHitDamageListener(this, combatState, combatParticles, holoFX, combatHud), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.OnKillListener(this, combatState, combatParticles, holoFX), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.OnHitProcListener(this, combatState, combatParticles, combatHud), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.OnDeathListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.RangedListener(this, combatState, combatParticles, reactiveSpecials, combatHud), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.ReactiveSpecialsListener(this, combatState, reactiveSpecials), this);
 
         // Holograms module listeners — re-shows holograms on join / respawn / world-change / resource-pack reload.
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.hologram.listener.HologramJoinListener(this, hologramService), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.hologram.listener.HologramResourcePackListener(this, hologramService), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.hologram.listener.HologramConnectionListener(this, hologramService), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.hologram.listener.HologramJoinListener(this, hologramService), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.hologram.listener.HologramResourcePackListener(this, hologramService), this);
+        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.hologram.listener.HologramConnectionListener(this, hologramService), this);
         if (hologramEditorMenu != null) {
             getServer().getPluginManager().registerEvents(hologramEditorMenu, this);
         }
     }
 
-    public dev.zcripted.obx.hologram.gui.HologramEditorMenu getHologramEditorMenu() {
+    public dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu getHologramEditorMenu() {
         return hologramEditorMenu;
     }
 
