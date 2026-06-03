@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Locale;
 
 public enum LanguageRegistry {
-    EN("en", "language_en.yml", "English", Arrays.asList("en", "eng", "english", "englisch")),
-    DE("de", "sprache_de.yml", "Deutsch", Arrays.asList("de", "ger", "german", "deutsch"));
+    EN("en", "en.yml", "English", Arrays.asList("en", "eng", "english", "englisch")),
+    DE("de", "de.yml", "Deutsch", Arrays.asList("de", "ger", "german", "deutsch"));
 
     private final String code;
     private final String fileName;

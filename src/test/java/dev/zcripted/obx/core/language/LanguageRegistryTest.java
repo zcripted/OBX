@@ -50,7 +50,7 @@ class LanguageRegistryTest {
     @Test
     @DisplayName("each registry carries the expected generated file name")
     void fileNames() {
-        assertEquals("language_en.yml", LanguageRegistry.EN.fileName());
-        assertEquals("sprache_de.yml", LanguageRegistry.DE.fileName());
+        assertEquals("en.yml", LanguageRegistry.EN.fileName());
+        assertEquals("de.yml", LanguageRegistry.DE.fileName());
     }
 }

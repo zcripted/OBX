@@ -19,9 +19,11 @@ Work on this IntelliJ project as a **production-grade Minecraft plugin codebase*
     - Detailed
     - Cleanly formatted
     - Use dividers and new lines where appropriate
-- **Anytime a message is added or edited**, update:
-    - `language_en.yml`
-    - `sprache_de.yml`
+- **Anytime a message is added or edited**, update both languages via
+  `core/language/MessageDefaults.java` using `def(key, en, de)` — this guarantees
+  EN/DE parity by construction and generates the runtime language files:
+    - `lang/en.yml`
+    - `lang/de.yml`
 
 ## Output Expectations
 - If instructions are ambiguous:

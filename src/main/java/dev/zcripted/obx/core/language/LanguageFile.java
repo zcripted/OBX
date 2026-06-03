@@ -25,7 +25,7 @@ public class LanguageFile {
     public LanguageFile(OBX plugin, LanguageRegistry language) {
         this.plugin = plugin;
         this.language = language;
-        this.file = new File(new File(plugin.getDataFolder(), "languages"), language.fileName());
+        this.file = new File(new File(plugin.getDataFolder(), "lang"), language.fileName());
     }
 
     /**
