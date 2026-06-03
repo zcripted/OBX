@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.effect.CombatState;
 import dev.zcripted.obx.feature.enchant.effect.EndlessHunger;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
@@ -41,7 +41,7 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class OnHitDamageListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final CombatState combatState;
@@ -71,7 +71,7 @@ public final class OnHitDamageListener implements Listener {
         }
     }
 
-    public OnHitDamageListener(OBX plugin, CombatState combatState, CombatParticleService particles, HoloFXService holo, CombatHudService hud) {
+    public OnHitDamageListener(ObxPlugin plugin, CombatState combatState, CombatParticleService particles, HoloFXService holo, CombatHudService hud) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

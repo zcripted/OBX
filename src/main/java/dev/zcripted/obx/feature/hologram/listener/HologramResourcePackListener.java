@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.service.HologramService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,10 +18,10 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
  */
 public final class HologramResourcePackListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HologramService service;
 
-    public HologramResourcePackListener(OBX plugin, HologramService service) {
+    public HologramResourcePackListener(ObxPlugin plugin, HologramService service) {
         this.plugin = plugin;
         this.service = service;
     }

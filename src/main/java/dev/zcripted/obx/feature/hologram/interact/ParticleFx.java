@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.interact;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
@@ -15,7 +15,7 @@ public final class ParticleFx {
     private ParticleFx() {
     }
 
-    public static void play(OBX plugin, Player viewer, Location location, String particleName, int count) {
+    public static void play(ObxPlugin plugin, Player viewer, Location location, String particleName, int count) {
         if (plugin == null || viewer == null || location == null || particleName == null) {
             return;
         }

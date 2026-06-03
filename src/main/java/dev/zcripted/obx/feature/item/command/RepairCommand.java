@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.item.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -19,7 +19,7 @@ import java.util.List;
 public class RepairCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public RepairCommand(OBX plugin) {
+    public RepairCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

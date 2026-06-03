@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.teleport.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -16,7 +16,7 @@ import java.util.List;
 public class TpAllCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public TpAllCommand(OBX plugin) {
+    public TpAllCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

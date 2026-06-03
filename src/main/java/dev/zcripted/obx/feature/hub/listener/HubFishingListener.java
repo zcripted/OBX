@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import dev.zcripted.obx.feature.hub.item.HubItems;
 import org.bukkit.Location;
@@ -54,10 +54,10 @@ public final class HubFishingListener implements Listener {
         }
     }
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HubService hub;
 
-    public HubFishingListener(OBX plugin, HubService hub) {
+    public HubFishingListener(ObxPlugin plugin, HubService hub) {
         this.plugin = plugin;
         this.hub = hub;
     }

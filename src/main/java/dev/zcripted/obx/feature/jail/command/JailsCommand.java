@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.jail.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.jail.model.Jail;
 import dev.zcripted.obx.feature.jail.service.JailService;
 import dev.zcripted.obx.util.text.Placeholders;
@@ -17,7 +17,7 @@ public class JailsCommand extends AbstractObxCommand implements TabCompleter {
 
     private final JailService jailService;
 
-    public JailsCommand(OBX plugin) {
+    public JailsCommand(ObxPlugin plugin) {
         super(plugin);
         this.jailService = plugin.getJailService();
     }

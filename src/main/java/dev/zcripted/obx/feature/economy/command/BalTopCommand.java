@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.economy.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.api.economy.EconomyService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.command.Command;
@@ -20,7 +20,7 @@ public class BalTopCommand extends AbstractObxCommand implements TabCompleter {
 
     private final EconomyService economy;
 
-    public BalTopCommand(OBX plugin) {
+    public BalTopCommand(ObxPlugin plugin) {
         super(plugin);
         this.economy = plugin.getEconomyService();
     }

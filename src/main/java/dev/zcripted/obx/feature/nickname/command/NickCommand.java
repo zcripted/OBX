@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.nickname.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.nickname.service.NicknameService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -20,7 +20,7 @@ public class NickCommand extends AbstractObxCommand implements TabCompleter {
 
     private final NicknameService nicknames;
 
-    public NickCommand(OBX plugin) {
+    public NickCommand(ObxPlugin plugin) {
         super(plugin);
         this.nicknames = plugin.getNicknameService();
     }

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.playerstate.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -21,12 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AfkService implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final Map<UUID, Long> lastActivity = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> afkState = new ConcurrentHashMap<>();
     private SchedulerAdapter.CancellableTask ticker;
 
-    public AfkService(OBX plugin) {
+    public AfkService(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

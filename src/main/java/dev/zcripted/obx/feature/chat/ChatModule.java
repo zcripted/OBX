@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.chat;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.chat.listener.ChatManagementListener;
 import dev.zcripted.obx.feature.chat.service.ChatService;
@@ -17,14 +17,14 @@ public final class ChatModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         ChatService chatService = service(ChatService.class, new ChatService(plugin));
         chatService.load();
         listener(new ChatManagementListener(plugin, chatService));
     }
 
     @Override
-    public void reload(OBX plugin) {
+    public void reload(ObxPlugin plugin) {
         ChatService chatService = plugin.getChatService();
         if (chatService != null) {
             chatService.reload();

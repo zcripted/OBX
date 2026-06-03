@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.teleport.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.util.text.Placeholders;
@@ -16,11 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TeleportManager implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final LanguageManager languages;
     private final Map<UUID, SchedulerAdapter.CancellableTask> pendingTeleports = new ConcurrentHashMap<>();
 
-    public TeleportManager(OBX plugin, LanguageManager languages) {
+    public TeleportManager(ObxPlugin plugin, LanguageManager languages) {
         this.plugin = plugin;
         this.languages = languages;
     }

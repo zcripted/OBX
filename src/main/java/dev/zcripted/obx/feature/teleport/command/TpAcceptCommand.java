@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.teleport.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.storage.DataService;
 import dev.zcripted.obx.feature.teleport.service.TpaService;
 import dev.zcripted.obx.util.text.Placeholders;
@@ -20,7 +20,7 @@ public class TpAcceptCommand extends AbstractObxCommand implements TabCompleter 
     private final TpaService tpaService;
     private final DataService dataService;
 
-    public TpAcceptCommand(OBX plugin) {
+    public TpAcceptCommand(ObxPlugin plugin) {
         super(plugin);
         this.tpaService = plugin.getTpaService();
         this.dataService = plugin.getDataService();

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.model.HologramId;
 import dev.zcripted.obx.feature.hologram.service.HologramService;
@@ -17,15 +17,15 @@ import java.util.Map;
  */
 public final class HoloContext {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HologramService service;
 
-    public HoloContext(OBX plugin, HologramService service) {
+    public HoloContext(ObxPlugin plugin, HologramService service) {
         this.plugin = plugin;
         this.service = service;
     }
 
-    public OBX plugin() {
+    public ObxPlugin plugin() {
         return plugin;
     }
 

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.gui.help;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -206,11 +206,11 @@ public final class HelpGuiMenu {
     private HelpGuiMenu() {
     }
 
-    public static void open(OBX plugin, Player player, int page) {
+    public static void open(ObxPlugin plugin, Player player, int page) {
         open(plugin, player, page, CATEGORY_ALL);
     }
 
-    public static void open(OBX plugin, Player player, int page, String category) {
+    public static void open(ObxPlugin plugin, Player player, int page, String category) {
         String resolvedCategory = normalizeCategory(category);
         List<HelpEntry> allEntries = collectVisibleCommands(player);
         List<HelpEntry> entries = filterByCategory(allEntries, resolvedCategory);
@@ -386,7 +386,7 @@ public final class HelpGuiMenu {
      *   <li>The static {@link #SF_CORE_COMMAND_CATEGORIES} map keyed by command name and
      *   each declared alias. This is authoritative for OBX commands and survives
      *   ProGuard's package renaming.</li>
-     *   <li>If the registered command originates from the OBX plugin (matched by the
+     *   <li>If the registered command originates from the ObxPlugin plugin (matched by the
      *   owning plugin's name), the executor package is inspected as a fallback in case a
      *   future OBX command is added without updating the map.</li>
      *   <li>Anything else falls into {@link #CATEGORY_OTHER}.</li>

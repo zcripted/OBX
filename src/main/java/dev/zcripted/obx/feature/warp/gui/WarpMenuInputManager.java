@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.warp.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.staff.gui.AdminMenu;
 import dev.zcripted.obx.core.gui.main.MainMenu;
 import dev.zcripted.obx.feature.warp.service.WarpService;
@@ -80,10 +80,10 @@ public class WarpMenuInputManager {
         }
     }
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final Map<UUID, PendingInput> inputs = new ConcurrentHashMap<>();
 
-    public WarpMenuInputManager(OBX plugin) {
+    public WarpMenuInputManager(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

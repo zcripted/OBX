@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.playerinfo.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.chat.service.ChatService;
 import dev.zcripted.obx.feature.playerinfo.service.JoinLeaveService;
 import dev.zcripted.obx.util.message.AdventureMessageUtil;
@@ -19,10 +19,10 @@ import java.util.Map;
 
 public class JoinLeaveListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final JoinLeaveService service;
 
-    public JoinLeaveListener(OBX plugin, JoinLeaveService service) {
+    public JoinLeaveListener(ObxPlugin plugin, JoinLeaveService service) {
         this.plugin = plugin;
         this.service = service;
     }

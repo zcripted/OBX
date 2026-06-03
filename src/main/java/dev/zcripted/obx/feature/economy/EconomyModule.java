@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.economy;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.api.economy.EconomyService;
 import dev.zcripted.obx.api.economy.VaultEconomyProvider;
 import dev.zcripted.obx.core.module.AbstractModule;
@@ -26,7 +26,7 @@ public final class EconomyModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         EconomyService economy = service(EconomyService.class, new EconomyService(plugin));
         economy.load();
         WorthService worth = service(WorthService.class, new WorthService(plugin));

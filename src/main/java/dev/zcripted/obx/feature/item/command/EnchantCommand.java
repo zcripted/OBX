@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.item.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.command.PlayerActionCommand;
 import org.bukkit.entity.Player;
 
@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
  */
 public class EnchantCommand extends PlayerActionCommand {
 
-    public EnchantCommand(OBX plugin) {
+    public EnchantCommand(ObxPlugin plugin) {
         super(plugin, "obx.enchant");
     }
 

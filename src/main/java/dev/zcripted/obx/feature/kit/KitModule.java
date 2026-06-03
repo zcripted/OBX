@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.kit;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.kit.command.KitCommand;
 import dev.zcripted.obx.feature.kit.service.KitService;
@@ -14,7 +14,7 @@ public final class KitModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         KitService service = service(KitService.class, new KitService(plugin));
         service.load();
         // KitCommand resolves the service via plugin.getKitService() in its

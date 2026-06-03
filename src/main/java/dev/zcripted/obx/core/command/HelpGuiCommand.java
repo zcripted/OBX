@@ -2,7 +2,7 @@ package dev.zcripted.obx.core.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.gui.help.HelpGuiMenu;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,7 +16,7 @@ import org.bukkit.entity.Player;
 public final class HelpGuiCommand extends AbstractObxCommand {
 
 
-    public HelpGuiCommand(OBX plugin) {
+    public HelpGuiCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

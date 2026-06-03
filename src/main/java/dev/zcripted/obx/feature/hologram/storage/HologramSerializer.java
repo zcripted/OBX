@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.storage;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.anim.AnimationConfig;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.model.HologramId;
@@ -110,7 +110,7 @@ public final class HologramSerializer {
         section.set("animations", animList);
     }
 
-    public static Hologram read(String name, ConfigurationSection section, OBX plugin) {
+    public static Hologram read(String name, ConfigurationSection section, ObxPlugin plugin) {
         if (name == null || section == null || plugin == null) {
             return null;
         }

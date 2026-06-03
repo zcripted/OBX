@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.listener.CombatSupport;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.util.Potions;
@@ -48,13 +48,13 @@ public final class CombatHudService {
     /** Vertical gap between stacked hologram lines. */
     private static final double LINE_SPACING = 0.28;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final Map<UUID, EntitySession> entities = new ConcurrentHashMap<UUID, EntitySession>();
     private final Map<UUID, PlayerHud> playerHuds = new ConcurrentHashMap<UUID, PlayerHud>();
     private SchedulerAdapter.CancellableTask task;
     private int ticks;
 
-    public CombatHudService(OBX plugin) {
+    public CombatHudService(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.tablist.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -18,11 +18,11 @@ public final class TablistService {
 
     private static final String RESOURCE_PATH = "systems/tablist.yml";
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final File configFile;
     private YamlConfiguration config;
 
-    public TablistService(OBX plugin) {
+    public TablistService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
     }

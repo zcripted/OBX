@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub.kit;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import dev.zcripted.obx.feature.hub.item.HubItems;
 import org.bukkit.GameMode;
@@ -24,10 +24,10 @@ import org.bukkit.inventory.PlayerInventory;
  */
 public final class HubKitApplier {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HubService hub;
 
-    public HubKitApplier(OBX plugin, HubService hub) {
+    public HubKitApplier(ObxPlugin plugin, HubService hub) {
         this.plugin = plugin;
         this.hub = hub;
     }

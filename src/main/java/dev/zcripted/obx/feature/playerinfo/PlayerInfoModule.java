@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.playerinfo;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.playerinfo.command.FirstSeenCommand;
 import dev.zcripted.obx.feature.playerinfo.command.InfoCommand;
@@ -28,7 +28,7 @@ public final class PlayerInfoModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         JoinLeaveService joinLeave = service(JoinLeaveService.class, new JoinLeaveService(plugin));
         PlaytimeService playtime = service(PlaytimeService.class, new PlaytimeService(plugin));
         playtime.load();
@@ -48,7 +48,7 @@ public final class PlayerInfoModule extends AbstractModule {
     }
 
     @Override
-    public void reload(OBX plugin) {
+    public void reload(ObxPlugin plugin) {
         JoinLeaveService joinLeave = plugin.getJoinLeaveService();
         if (joinLeave != null) {
             joinLeave.reload();

@@ -1,7 +1,7 @@
 package dev.zcripted.obx.feature.jail.listener;
 
 import dev.zcripted.obx.feature.jail.service.JailService;
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.event.EventHandler;
@@ -21,11 +21,11 @@ public class JailListener implements Listener {
     private static final Set<String> ALLOWED_COMMANDS = new HashSet<>(Arrays.asList(
             "/jailtime", "/obx", "/language", "/sprache", "/help", "/?"));
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final JailService jailService;
     private final LanguageManager languages;
 
-    public JailListener(OBX plugin) {
+    public JailListener(ObxPlugin plugin) {
         this.plugin = plugin;
         this.jailService = plugin.getJailService();
         this.languages = plugin.getLanguageManager();

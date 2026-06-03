@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.mail.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.mail.pm.gui.InboxMenu;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 public final class InboxCommand extends AbstractObxCommand {
 
 
-    public InboxCommand(OBX plugin) {
+    public InboxCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.warp.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.warp.gui.WarpMenu;
 import dev.zcripted.obx.feature.warp.gui.WarpMenuHolder;
 import dev.zcripted.obx.core.language.LanguageManager;
@@ -32,13 +32,13 @@ final class WarpQueryCommands {
 
     private static final int LIST_PAGE_SIZE = 10;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final WarpService warpService;
     private final LanguageManager languages;
     private final TeleportManager teleportManager;
     private final DataService dataService;
 
-    WarpQueryCommands(OBX plugin, WarpService warpService, LanguageManager languages,
+    WarpQueryCommands(ObxPlugin plugin, WarpService warpService, LanguageManager languages,
                       TeleportManager teleportManager, DataService dataService) {
         this.plugin = plugin;
         this.warpService = warpService;

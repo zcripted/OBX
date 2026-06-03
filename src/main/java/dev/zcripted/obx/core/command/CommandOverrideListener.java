@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,7 +26,7 @@ import java.util.Set;
 public final class CommandOverrideListener implements Listener {
 
     /**
-     * Maps every accepted alias (always lowercase) to the OBX plugin command name that
+     * Maps every accepted alias (always lowercase) to the ObxPlugin plugin command name that
      * should service it. Both the bare command and any namespaced variant route to the
      * canonical {@code heal} / {@code god} executor.
      */
@@ -64,9 +64,9 @@ public final class CommandOverrideListener implements Listener {
     private static final Set<String> KNOWN_NAMESPACES = new HashSet<>(Arrays.asList(
             "bukkit", "minecraft", "essentials", "obx", "obx", "paper", "purpur", "spigot"));
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    public CommandOverrideListener(OBX plugin) {
+    public CommandOverrideListener(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

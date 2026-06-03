@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.packet.PacketAvailability;
 import dev.zcripted.obx.feature.hologram.packet.PacketChannelInjector;
 import dev.zcripted.obx.feature.hologram.service.HologramService;
@@ -19,10 +19,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
  */
 public final class HologramConnectionListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HologramService service;
 
-    public HologramConnectionListener(OBX plugin, HologramService service) {
+    public HologramConnectionListener(ObxPlugin plugin, HologramService service) {
         this.plugin = plugin;
         this.service = service;
     }

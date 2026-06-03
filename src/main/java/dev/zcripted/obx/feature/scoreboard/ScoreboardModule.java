@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.scoreboard;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.scoreboard.listener.ScoreboardJoinListener;
 import dev.zcripted.obx.feature.scoreboard.scheduler.ScoreboardRefreshTask;
@@ -17,7 +17,7 @@ public final class ScoreboardModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         ScoreboardService service = service(ScoreboardService.class, new ScoreboardService(plugin));
         service.load();
         refreshTask = new ScoreboardRefreshTask(plugin, service);
@@ -31,7 +31,7 @@ public final class ScoreboardModule extends AbstractModule {
     }
 
     @Override
-    public void reload(OBX plugin) {
+    public void reload(ObxPlugin plugin) {
         ScoreboardService service = plugin.getScoreboardService();
         if (service != null) {
             service.reload();

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.nickname;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.nickname.command.NickCommand;
 import dev.zcripted.obx.feature.nickname.listener.NicknameApplyListener;
@@ -18,7 +18,7 @@ public final class NicknameModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         NicknameService service = service(NicknameService.class, new NicknameService(plugin));
         service.load();
         command("nick", new NickCommand(plugin));

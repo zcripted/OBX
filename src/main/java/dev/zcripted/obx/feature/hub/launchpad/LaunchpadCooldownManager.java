@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub.launchpad;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
@@ -30,14 +30,14 @@ public final class LaunchpadCooldownManager {
 
     private static final long REFRESH_PERIOD_TICKS = 4L;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HubService hubService;
     private final Map<UUID, Long> cooldownEndMillis = new ConcurrentHashMap<>();
     private final Map<UUID, Long> launchExpiryMillis = new ConcurrentHashMap<>();
 
     private SchedulerAdapter.CancellableTask refreshTask;
 
-    public LaunchpadCooldownManager(OBX plugin, HubService hubService) {
+    public LaunchpadCooldownManager(ObxPlugin plugin, HubService hubService) {
         this.plugin = plugin;
         this.hubService = hubService;
     }

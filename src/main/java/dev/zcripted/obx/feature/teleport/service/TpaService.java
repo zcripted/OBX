@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.teleport.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -49,7 +49,7 @@ public final class TpaService implements Listener {
         }
     }
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     // Sender → their single outgoing pending request.
     private final Map<UUID, Request> outgoing = new ConcurrentHashMap<>();
     // Receiver → queue of incoming pending requests (most recent at tail).
@@ -59,7 +59,7 @@ public final class TpaService implements Listener {
 
     private SchedulerAdapter.CancellableTask sweeper;
 
-    public TpaService(OBX plugin) {
+    public TpaService(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

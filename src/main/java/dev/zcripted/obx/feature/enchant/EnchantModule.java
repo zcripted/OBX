@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.enchant.command.EnchantsBrowseCommand;
 import dev.zcripted.obx.feature.enchant.command.ObxEnchantCommand;
@@ -56,7 +56,7 @@ public final class EnchantModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         EnchantService enchantService = service(EnchantService.class, new EnchantService(plugin));
         enchantService.load();
         service(EnchantItems.class, new EnchantItems(enchantService));
@@ -119,7 +119,7 @@ public final class EnchantModule extends AbstractModule {
     }
 
     @Override
-    public void reload(OBX plugin) {
+    public void reload(ObxPlugin plugin) {
         EnchantService enchantService = plugin.getEnchantService();
         if (enchantService != null) {
             enchantService.reload();

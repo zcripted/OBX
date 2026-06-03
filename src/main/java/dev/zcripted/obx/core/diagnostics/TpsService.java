@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.diagnostics;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 
@@ -24,7 +24,7 @@ public final class TpsService {
     private static final long RETENTION_NANOS = TimeUnit.MINUTES.toNanos(15);
     private static final int RECENT_TICK_WINDOW = 100;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final Deque<Sample> samples = new ArrayDeque<>();
     private final Deque<Long> recentTickDurationsNanos = new ArrayDeque<>();
 
@@ -44,7 +44,7 @@ public final class TpsService {
     private static volatile Method PAPER_AVG_TICK_TIME;
     private static volatile boolean PAPER_PROBED;
 
-    public TpsService(OBX plugin) {
+    public TpsService(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

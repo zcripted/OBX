@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.module;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
@@ -14,34 +14,34 @@ import java.util.List;
 /**
  * Convenience base for {@link Module} implementations.
  *
- * <p>Subclasses implement {@link #onEnable(OBX)} and use the {@code listener(...)},
+ * <p>Subclasses implement {@link #onEnable(ObxPlugin)} and use the {@code listener(...)},
  * {@code command(...)}, {@code service(...)} and {@code onDisable(...)} helpers to
  * wire the feature up. This base records everything that was registered and tears
- * it down automatically in {@link #disable(OBX)} — unregistering listeners,
+ * it down automatically in {@link #disable(ObxPlugin)} — unregistering listeners,
  * cancelling tracked work, restoring a "disabled" stub on commands, and dropping
  * services from the registry — so runtime toggling works without per-module
  * teardown code.
  */
 public abstract class AbstractModule implements Module {
 
-    protected OBX plugin;
+    protected ObxPlugin plugin;
 
     private final List<Listener> listeners = new ArrayList<>();
     private final List<String> commandNames = new ArrayList<>();
     private final List<Class<?>> services = new ArrayList<>();
     private final List<Runnable> teardown = new ArrayList<>();
 
-    /** Feature wiring goes here. Called by {@link #enable(OBX)} after {@code plugin} is set. */
-    protected abstract void onEnable(OBX plugin);
+    /** Feature wiring goes here. Called by {@link #enable(ObxPlugin)} after {@code plugin} is set. */
+    protected abstract void onEnable(ObxPlugin plugin);
 
     @Override
-    public final void enable(OBX plugin) {
+    public final void enable(ObxPlugin plugin) {
         this.plugin = plugin;
         onEnable(plugin);
     }
 
     @Override
-    public void disable(OBX plugin) {
+    public void disable(ObxPlugin plugin) {
         // Run feature-specific teardown first (save state, stop tasks), newest first.
         for (int i = teardown.size() - 1; i >= 0; i--) {
             try {

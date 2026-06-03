@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.item.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -42,7 +42,7 @@ public final class VirtualStationCommand extends AbstractObxCommand {
 
     private final Station station;
 
-    public VirtualStationCommand(OBX plugin, Station station) {
+    public VirtualStationCommand(ObxPlugin plugin, Station station) {
         super(plugin);
         this.station = station;
     }

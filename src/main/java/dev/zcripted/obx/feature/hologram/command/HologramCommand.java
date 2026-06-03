@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.hologram.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.command.sub.AimGuiSub;
 import dev.zcripted.obx.feature.hologram.command.sub.AlignmentSub;
 import dev.zcripted.obx.feature.hologram.command.sub.AnimSub;
@@ -70,7 +70,7 @@ public final class HologramCommand extends AbstractObxCommand implements TabComp
     private final HoloContext ctx;
     private final Map<String, HoloSubCommand> subs = new LinkedHashMap<>();
 
-    public HologramCommand(OBX plugin, HologramService service) {
+    public HologramCommand(ObxPlugin plugin, HologramService service) {
         super(plugin);
         this.service = service;
         this.ctx = new HoloContext(plugin, service);

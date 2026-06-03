@@ -1,6 +1,6 @@
 package dev.zcripted.obx.api.hologram;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.model.HologramId;
 import dev.zcripted.obx.feature.hologram.model.HologramLine;
@@ -23,20 +23,20 @@ import java.util.Collection;
  */
 public final class HologramFacade {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HologramService service;
 
-    private HologramFacade(OBX plugin, HologramService service) {
+    private HologramFacade(ObxPlugin plugin, HologramService service) {
         this.plugin = plugin;
         this.service = service;
     }
 
     public static HologramFacade get() {
         JavaPlugin loaded = (JavaPlugin) org.bukkit.Bukkit.getPluginManager().getPlugin("OBX");
-        if (!(loaded instanceof OBX)) {
+        if (!(loaded instanceof ObxPlugin)) {
             return null;
         }
-        OBX main = (OBX) loaded;
+        ObxPlugin main = (ObxPlugin) loaded;
         HologramService svc = main.getHologramService();
         if (svc == null) {
             return null;

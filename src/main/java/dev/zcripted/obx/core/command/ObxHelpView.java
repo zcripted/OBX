@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.ChatColor;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  */
 class ObxHelpView {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final LanguageManager languages;
 
     enum Category {
@@ -94,7 +94,7 @@ class ObxHelpView {
             entry("debug dump", "commands.obx.entry.debug-dump.usage", "commands.obx.entry.debug-dump.description", "obx.debug.dump", Category.CONFIG_DEBUG, PermissionDefault.OP, "/obx debug dump")
     );
 
-    ObxHelpView(OBX plugin, LanguageManager languages) {
+    ObxHelpView(ObxPlugin plugin, LanguageManager languages) {
         this.plugin = plugin;
         this.languages = languages;
     }

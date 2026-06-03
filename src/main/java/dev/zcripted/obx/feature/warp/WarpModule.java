@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.warp;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.warp.command.WarpCommand;
 import dev.zcripted.obx.feature.warp.gui.WarpMenuInputListener;
@@ -17,7 +17,7 @@ public final class WarpModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         WarpService warp = service(WarpService.class, new WarpService(plugin));
         warp.load();
         WarpMenuInputManager inputManager = service(WarpMenuInputManager.class, new WarpMenuInputManager(plugin));
@@ -27,7 +27,7 @@ public final class WarpModule extends AbstractModule {
     }
 
     @Override
-    public void reload(OBX plugin) {
+    public void reload(ObxPlugin plugin) {
         WarpService warp = plugin.getWarpService();
         if (warp != null) {
             warp.load();

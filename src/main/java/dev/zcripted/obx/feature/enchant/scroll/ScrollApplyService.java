@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.scroll;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.item.EnchantItems;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.model.EnchantCategory;
@@ -30,13 +30,13 @@ import java.util.Map;
  */
 public final class ScrollApplyService {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantItems items;
     private final EnchantFeedback feedback;
     private final LanguageManager languages;
 
-    public ScrollApplyService(OBX plugin) {
+    public ScrollApplyService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.items = plugin.getEnchantItems();

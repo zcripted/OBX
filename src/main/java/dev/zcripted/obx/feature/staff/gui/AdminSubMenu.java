@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.staff.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.gui.MenuHolder;
 import dev.zcripted.obx.core.language.LanguageManager;
 
@@ -85,7 +85,7 @@ public final class AdminSubMenu {
     private AdminSubMenu() {
     }
 
-    public static void open(OBX plugin, Player player, AdminMenu.PlaceholderView placeholder) {
+    public static void open(ObxPlugin plugin, Player player, AdminMenu.PlaceholderView placeholder) {
         String stripped = ChatColor.stripColor(placeholder.name()).toLowerCase();
         if ("server control".equals(stripped)) {
             openServerControlMenu(player, placeholder);
@@ -98,7 +98,7 @@ public final class AdminSubMenu {
         }
     }
 
-    public static void openJailCenterMenu(OBX plugin, Player player, AdminMenu.PlaceholderView placeholder) {
+    public static void openJailCenterMenu(ObxPlugin plugin, Player player, AdminMenu.PlaceholderView placeholder) {
         Holder holder = new Holder(placeholder, SubMenuType.JAIL_CENTER);
         Inventory inventory = Bukkit.createInventory(holder, 27, AdminMenu.gradientTitle("Jail Center"));
         holder.setInventory(inventory);
@@ -140,7 +140,7 @@ public final class AdminSubMenu {
         player.openInventory(inventory);
     }
 
-    public static void openMobToolsMenu(OBX plugin, Player player, AdminMenu.PlaceholderView placeholder) {
+    public static void openMobToolsMenu(ObxPlugin plugin, Player player, AdminMenu.PlaceholderView placeholder) {
         Holder holder = new Holder(placeholder, SubMenuType.MOB_TOOLS);
         Inventory inventory = Bukkit.createInventory(holder, 27, AdminMenu.gradientTitle("Mob Tools"));
         holder.setInventory(inventory);
@@ -439,7 +439,7 @@ public final class AdminSubMenu {
      * <p>Click actions are wired in
      * {@link dev.zcripted.obx.core.gui.main.MainMenuListener}.
      */
-    public static void openHubMenu(OBX plugin, Player player) {
+    public static void openHubMenu(ObxPlugin plugin, Player player) {
         Holder holder = new Holder(null, SubMenuType.HUB);
         Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Hub / Lobby Controls"));
         holder.setInventory(inventory);
@@ -525,7 +525,7 @@ public final class AdminSubMenu {
      * {@link dev.zcripted.obx.core.gui.main.MainMenuListener}
      * when the holder's type is {@link SubMenuType#HUB}.
      */
-    public static void handleHubMenuClick(OBX plugin, Player player, int slot,
+    public static void handleHubMenuClick(ObxPlugin plugin, Player player, int slot,
                                           org.bukkit.event.inventory.ClickType click) {
         if (plugin.getHubService() == null) {
             return;
@@ -781,7 +781,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static boolean setBooleanGameRule(OBX plugin, World world, String ruleName, boolean value) {
+    private static boolean setBooleanGameRule(ObxPlugin plugin, World world, String ruleName, boolean value) {
         if (plugin == null || world == null || ruleName == null) {
             return false;
         }
@@ -870,7 +870,7 @@ public final class AdminSubMenu {
     }
 
     // Action handlers
-    public static void handleAction(OBX plugin, Player player, Holder holder, int slot, ClickType click) {
+    public static void handleAction(ObxPlugin plugin, Player player, Holder holder, int slot, ClickType click) {
         if (holder == null || holder.getType() == null) {
             return;
         }
@@ -921,7 +921,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handleServerControlClick(OBX plugin, Player player, int slot) {
+    private static void handleServerControlClick(ObxPlugin plugin, Player player, int slot) {
         if (slot == 10) {
             openServerStateMenu(player);
         } else if (slot == 12) {
@@ -935,7 +935,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handleServerStateClick(OBX plugin, Player player, int slot) {
+    private static void handleServerStateClick(ObxPlugin plugin, Player player, int slot) {
         LanguageManager languages = plugin.getLanguageManager();
         if (slot == 10) {
             if (stopConfirmations.remove(player.getUniqueId())) {
@@ -960,7 +960,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handlePlayerAccessClick(OBX plugin, Player player, int slot, ClickType click) {
+    private static void handlePlayerAccessClick(ObxPlugin plugin, Player player, int slot, ClickType click) {
         LanguageManager languages = plugin.getLanguageManager();
         if (slot == 10) {
             ServerControlActions.toggleWhitelist(plugin, player);
@@ -987,7 +987,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handlePerformanceClick(OBX plugin, Player player, int slot, ClickType click) {
+    private static void handlePerformanceClick(ObxPlugin plugin, Player player, int slot, ClickType click) {
         LanguageManager languages = plugin.getLanguageManager();
         if (slot == 10) {
             // Identical styled report to the /tps command.
@@ -1007,7 +1007,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handleWorldControlsClick(OBX plugin, Player player, int slot, ClickType click) {
+    private static void handleWorldControlsClick(ObxPlugin plugin, Player player, int slot, ClickType click) {
         LanguageManager languages = plugin.getLanguageManager();
         if (slot == 10) {
             for (World world : Bukkit.getWorlds()) {
@@ -1036,7 +1036,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handlePluginSystemsClick(OBX plugin, Player player, int slot) {
+    private static void handlePluginSystemsClick(ObxPlugin plugin, Player player, int slot) {
         LanguageManager languages = plugin.getLanguageManager();
         if (slot == 12) {
             plugin.reloadPlugin();
@@ -1048,7 +1048,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handleWeatherClick(OBX plugin, Player player, int slot) {
+    private static void handleWeatherClick(ObxPlugin plugin, Player player, int slot) {
         String changed = null;
         if (slot == 11) {
             for (World world : Bukkit.getWorlds()) {
@@ -1075,7 +1075,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handleTimeClick(OBX plugin, Player player, int slot) {
+    private static void handleTimeClick(ObxPlugin plugin, Player player, int slot) {
         LanguageManager languages = plugin.getLanguageManager();
         if (slot == 11) {
             for (World world : Bukkit.getWorlds()) {
@@ -1118,7 +1118,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handleGameruleClick(OBX plugin, Player player, int slot) {
+    private static void handleGameruleClick(ObxPlugin plugin, Player player, int slot) {
         GameruleEntry entry = GameruleEntry.forSlot(slot);
         if (entry == null) {
             return;
@@ -1150,7 +1150,7 @@ public final class AdminSubMenu {
         openGameruleMenu(player);
     }
 
-    private static void startRestartCountdown(OBX plugin, Player initiator, int seconds, String labelKey) {
+    private static void startRestartCountdown(ObxPlugin plugin, Player initiator, int seconds, String labelKey) {
         final BossBar bar = Bukkit.createBossBar(plugin.getLanguageManager().get(initiator, "admin.restart.title", Collections.singletonMap("label", plugin.getLanguageManager().get(initiator, labelKey))), BarColor.RED, BarStyle.SOLID);
         Bukkit.getOnlinePlayers().forEach(bar::addPlayer);
         Map<String, String> placeholders = new HashMap<>();
@@ -1188,7 +1188,7 @@ public final class AdminSubMenu {
         taskRef[0] = plugin.getSchedulerAdapter().runRepeating(tick, 1L, 20L);
     }
 
-    private static void toggleRedstone(OBX plugin, Player player) {
+    private static void toggleRedstone(ObxPlugin plugin, Player player) {
         boolean frozen = ServerControlState.toggleRedstoneFrozen();
         LanguageManager languages = plugin.getLanguageManager();
         String state = languages.get(player, frozen ? "admin.redstone.state.frozen" : "admin.redstone.state.resumed");
@@ -1293,7 +1293,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void handleWorldBorderClick(OBX plugin, Player player, int slot) {
+    private static void handleWorldBorderClick(ObxPlugin plugin, Player player, int slot) {
         org.bukkit.WorldBorder border;
         try {
             border = player.getWorld().getWorldBorder();
@@ -1336,7 +1336,7 @@ public final class AdminSubMenu {
 
     // ── Module toggles (reached from Plugin + Systems slot 14) ─────────────────
 
-    public static void openModulesMenu(OBX plugin, Player player) {
+    public static void openModulesMenu(ObxPlugin plugin, Player player) {
         Holder holder = new Holder(null, SubMenuType.MODULES);
         Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Module Toggles"));
         holder.setInventory(inventory);
@@ -1357,7 +1357,7 @@ public final class AdminSubMenu {
         player.openInventory(inventory);
     }
 
-    private static void handleModulesClick(OBX plugin, Player player, int slot) {
+    private static void handleModulesClick(ObxPlugin plugin, Player player, int slot) {
         ModuleEntry module = ModuleEntry.forSlot(slot);
         if (module == null) {
             return;
@@ -1420,7 +1420,7 @@ public final class AdminSubMenu {
             return null;
         }
 
-        boolean isEnabled(OBX plugin) {
+        boolean isEnabled(ObxPlugin plugin) {
             switch (this) {
                 case CHAT:
                     return plugin.getChatService() != null && plugin.getChatService().isEnabled();
@@ -1439,7 +1439,7 @@ public final class AdminSubMenu {
             }
         }
 
-        void setEnabled(OBX plugin, boolean value) {
+        void setEnabled(ObxPlugin plugin, boolean value) {
             switch (this) {
                 case CHAT:
                     writeModuleFlag(plugin, "systems/chat_management.yml", "enabled", value);
@@ -1468,7 +1468,7 @@ public final class AdminSubMenu {
         }
     }
 
-    private static void writeModuleFlag(OBX plugin, String relFile, String key, boolean value) {
+    private static void writeModuleFlag(ObxPlugin plugin, String relFile, String key, boolean value) {
         java.io.File file = new java.io.File(plugin.getDataFolder(), relFile);
         org.bukkit.configuration.file.YamlConfiguration yaml =
                 org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);

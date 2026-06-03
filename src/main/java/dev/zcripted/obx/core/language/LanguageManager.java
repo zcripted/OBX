@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.language;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -19,12 +19,12 @@ import java.util.UUID;
 
 public class LanguageManager {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final Map<LanguageRegistry, LanguageFile> languageFiles = new HashMap<>();
     private final Map<UUID, LanguageRegistry> playerLanguages = new HashMap<>();
     private File playerLanguageFile;
 
-    public LanguageManager(OBX plugin) {
+    public LanguageManager(ObxPlugin plugin) {
         this.plugin = plugin;
         reload();
     }

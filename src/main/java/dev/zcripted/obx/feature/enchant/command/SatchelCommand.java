@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.enchant.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.effect.EnchantState;
 import dev.zcripted.obx.feature.enchant.service.EnchantService;
 import org.bukkit.command.Command;
@@ -17,7 +17,7 @@ public final class SatchelCommand extends AbstractObxCommand {
 
     private final EnchantState state;
 
-    public SatchelCommand(OBX plugin, EnchantState state) {
+    public SatchelCommand(ObxPlugin plugin, EnchantState state) {
         super(plugin);
         this.state = state;
     }

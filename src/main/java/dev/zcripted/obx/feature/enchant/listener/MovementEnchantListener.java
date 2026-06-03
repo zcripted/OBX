@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.effect.EnchantState;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.service.EnchantService;
@@ -29,12 +29,12 @@ import org.bukkit.util.Vector;
  */
 public final class MovementEnchantListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final EnchantState state;
 
-    public MovementEnchantListener(OBX plugin, EnchantState state) {
+    public MovementEnchantListener(ObxPlugin plugin, EnchantState state) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

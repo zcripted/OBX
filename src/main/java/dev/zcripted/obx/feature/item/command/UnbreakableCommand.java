@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.item.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -18,7 +18,7 @@ import java.util.List;
 public class UnbreakableCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public UnbreakableCommand(OBX plugin) {
+    public UnbreakableCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

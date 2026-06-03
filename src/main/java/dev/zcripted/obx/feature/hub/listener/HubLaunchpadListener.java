@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import dev.zcripted.obx.feature.hub.item.HubItems;
 import dev.zcripted.obx.feature.hub.launchpad.LaunchpadCooldownManager;
@@ -36,11 +36,11 @@ import org.bukkit.util.Vector;
  */
 public final class HubLaunchpadListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HubService hub;
     private final LaunchpadCooldownManager cooldownManager;
 
-    public HubLaunchpadListener(OBX plugin, HubService hub, LaunchpadCooldownManager cooldownManager) {
+    public HubLaunchpadListener(ObxPlugin plugin, HubService hub, LaunchpadCooldownManager cooldownManager) {
         this.plugin = plugin;
         this.hub = hub;
         this.cooldownManager = cooldownManager;

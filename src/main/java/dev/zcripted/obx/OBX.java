@@ -128,7 +128,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-public class OBX extends JavaPlugin {
+public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
 
     private DataService dataService;
     private LanguageManager languageManager;

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.mail;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.mail.command.BroadcastCommand;
 import dev.zcripted.obx.feature.mail.command.IgnoreCommand;
@@ -29,7 +29,7 @@ public final class MailModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         MessageStore store = new MessageStore(plugin);
         store.load();
         PrivateMessageService pm = service(PrivateMessageService.class, new PrivateMessageService(plugin, store));

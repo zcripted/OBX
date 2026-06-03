@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.staff.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.staff.service.VanishManager;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -32,7 +32,7 @@ public class VanishCommand extends AbstractObxCommand implements TabCompleter {
     private final VanishManager vanishManager;
     private final SimpleDateFormat timestamp = new SimpleDateFormat("HH:mm:ss");
 
-    public VanishCommand(OBX plugin) {
+    public VanishCommand(ObxPlugin plugin) {
         super(plugin);
         this.vanishManager = plugin.getVanishManager();
     }

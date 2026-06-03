@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.hub.command.HubCommand;
 import dev.zcripted.obx.feature.hub.gui.ServerSelectorListener;
@@ -27,7 +27,7 @@ public final class HubModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         HubService hub = service(HubService.class, new HubService(plugin));
         hub.load();
         HubKitApplier kitApplier = service(HubKitApplier.class, new HubKitApplier(plugin, hub));
@@ -53,7 +53,7 @@ public final class HubModule extends AbstractModule {
     }
 
     @Override
-    public void reload(OBX plugin) {
+    public void reload(ObxPlugin plugin) {
         HubService hub = plugin.getHubService();
         if (hub != null) {
             hub.reload();

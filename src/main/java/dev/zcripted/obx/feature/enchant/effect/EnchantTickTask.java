@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.effect;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.service.EnchantService;
 import dev.zcripted.obx.feature.enchant.storage.EnchantStorage;
@@ -36,13 +36,13 @@ public final class EnchantTickTask implements Runnable {
             "WEAKNESS", "HUNGER", "NAUSEA", "CONFUSION", "BLINDNESS", "BAD_OMEN",
             "DARKNESS", "UNLUCK", "LEVITATION"));
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final BoundMovement boundMovement;
     private SchedulerAdapter.CancellableTask task;
 
-    public EnchantTickTask(OBX plugin, BoundMovement boundMovement) {
+    public EnchantTickTask(ObxPlugin plugin, BoundMovement boundMovement) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

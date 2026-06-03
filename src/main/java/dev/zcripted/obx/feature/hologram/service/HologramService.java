@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.backend.BackendSelector;
 import dev.zcripted.obx.feature.hologram.backend.HologramBackend;
 import dev.zcripted.obx.feature.hologram.interact.RaycastTargeter;
@@ -33,7 +33,7 @@ import java.io.IOException;
  *   <li>Resolves the appropriate {@link HologramBackend} via
  *       {@link BackendSelector};</li>
  *   <li>Probes for the optional packet layer via
- *       {@link PacketAvailability#probe(OBX)} and logs the result;</li>
+ *       {@link PacketAvailability#probe(ObxPlugin)} and logs the result;</li>
  *   <li>Owns the {@link HologramRegistry} — populated by storage in Phase 2;</li>
  *   <li>Defers tick / listener / command wiring to later phases (Phase 1
  *       brings the renderer + listeners, Phase 2 brings the command tree).</li>
@@ -47,7 +47,7 @@ public final class HologramService {
 
     private static final String RESOURCE_PATH = "systems/holograms.yml";
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final File configFile;
     private final HologramRegistry registry = new HologramRegistry();
     private final HologramStorage storage;
@@ -59,7 +59,7 @@ public final class HologramService {
     private volatile RaycastTargeter raycastTargeter;
     private volatile boolean active;
 
-    public HologramService(OBX plugin) {
+    public HologramService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
         this.storage = new YamlHologramStorage(plugin);

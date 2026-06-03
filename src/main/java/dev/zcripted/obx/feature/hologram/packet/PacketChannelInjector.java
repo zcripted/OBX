@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.packet;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.service.HologramService;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
@@ -44,7 +44,7 @@ public final class PacketChannelInjector {
     private PacketChannelInjector() {
     }
 
-    public static void inject(OBX plugin, HologramService service, Player player) {
+    public static void inject(ObxPlugin plugin, HologramService service, Player player) {
         if (player == null || service == null || !PacketAvailability.isAvailable()) {
             return;
         }
@@ -85,7 +85,7 @@ public final class PacketChannelInjector {
         }
     }
 
-    public static void eject(OBX plugin, Player player) {
+    public static void eject(ObxPlugin plugin, Player player) {
         if (player == null) {
             return;
         }

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.render;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.backend.HologramBackend;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.service.HologramRegistry;
@@ -21,11 +21,11 @@ import java.util.List;
  */
 public final class HologramRenderer {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HologramRegistry registry;
     private final HologramBackend backend;
 
-    public HologramRenderer(OBX plugin, HologramRegistry registry, HologramBackend backend) {
+    public HologramRenderer(ObxPlugin plugin, HologramRegistry registry, HologramBackend backend) {
         this.plugin = plugin;
         this.registry = registry;
         this.backend = backend;

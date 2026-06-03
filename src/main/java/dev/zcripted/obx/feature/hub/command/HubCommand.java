@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.hub.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.gui.ServerSelectorMenu;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import dev.zcripted.obx.feature.hub.kit.HubKitApplier;
@@ -50,7 +50,7 @@ public final class HubCommand extends AbstractObxCommand implements TabCompleter
     private final HubService hub;
     private final HubKitApplier applier;
 
-    public HubCommand(OBX plugin, HubService hub, HubKitApplier applier) {
+    public HubCommand(ObxPlugin plugin, HubService hub, HubKitApplier applier) {
         super(plugin);
         this.hub = hub;
         this.applier = applier;

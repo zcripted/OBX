@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.model.HologramLine;
 import dev.zcripted.obx.feature.hologram.model.HologramSettings;
@@ -37,10 +37,10 @@ public final class HologramEditorMenu implements Listener {
 
     private static final String TITLE_PREFIX = ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Hologram " + ChatColor.GRAY + "› ";
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final Map<UUID, String> openFor = new HashMap<>();
 
-    public HologramEditorMenu(OBX plugin) {
+    public HologramEditorMenu(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

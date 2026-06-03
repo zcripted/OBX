@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.effect;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class EnchantState {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final File satchelFile;
     private final YamlConfiguration satchelConfig;
 
@@ -38,7 +38,7 @@ public final class EnchantState {
     private final Map<UUID, List<Location>> recallPoints = new ConcurrentHashMap<UUID, List<Location>>();
     private final Map<UUID, Inventory> satchels = new ConcurrentHashMap<UUID, Inventory>();
 
-    public EnchantState(OBX plugin) {
+    public EnchantState(ObxPlugin plugin) {
         this.plugin = plugin;
         this.satchelFile = new File(plugin.getDataFolder(), "satchels.yml");
         this.satchelConfig = YamlConfiguration.loadConfiguration(satchelFile);

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub.messaging;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
@@ -38,7 +38,7 @@ public final class BungeeMessenger implements PluginMessageListener, Listener {
     /** BungeeCord / Velocity-compatible plugin-message channel. */
     public static final String CHANNEL = "BungeeCord";
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final HubService hubService;
 
     /** Latest known online count keyed by lowercase server id. -1 means unknown. */
@@ -53,7 +53,7 @@ public final class BungeeMessenger implements PluginMessageListener, Listener {
 
     private boolean registered;
 
-    public BungeeMessenger(OBX plugin, HubService hubService) {
+    public BungeeMessenger(ObxPlugin plugin, HubService hubService) {
         this.plugin = plugin;
         this.hubService = hubService;
     }

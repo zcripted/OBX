@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.chat.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -15,11 +15,11 @@ public final class ChatService {
 
     private static final String RESOURCE_PATH = "systems/chat_management.yml";
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final File configFile;
     private YamlConfiguration config;
 
-    public ChatService(OBX plugin) {
+    public ChatService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
     }

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.tablist.format;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.tablist.service.TablistService;
 import dev.zcripted.obx.util.message.AdventureMessageUtil;
 import dev.zcripted.obx.core.diagnostics.TpsService;
@@ -47,7 +47,7 @@ public final class TablistRenderer {
     private TablistRenderer() {
     }
 
-    public static void apply(OBX plugin, TablistService service, Player player) {
+    public static void apply(ObxPlugin plugin, TablistService service, Player player) {
         if (plugin == null || service == null || player == null || !service.isEnabled()) {
             return;
         }
@@ -97,7 +97,7 @@ public final class TablistRenderer {
         return builder.toString();
     }
 
-    private static Map<String, String> buildPlaceholders(OBX plugin, Player player) {
+    private static Map<String, String> buildPlaceholders(ObxPlugin plugin, Player player) {
         Map<String, String> placeholders = new LinkedHashMap<>();
         Server server = Bukkit.getServer();
         int online = server.getOnlinePlayers().size();
@@ -167,7 +167,7 @@ public final class TablistRenderer {
         return -1;
     }
 
-    private static String resolveTps(OBX plugin, Server server) {
+    private static String resolveTps(ObxPlugin plugin, Server server) {
         TpsService tpsService = plugin.getTpsService();
         if (tpsService != null && tpsService.isReady()) {
             double tps = tpsService.tpsForWindow(TimeUnit.MINUTES.toNanos(1));

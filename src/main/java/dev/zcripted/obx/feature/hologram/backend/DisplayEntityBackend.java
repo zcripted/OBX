@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.backend;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.model.HologramLine;
 import dev.zcripted.obx.feature.hologram.model.HologramSettings;
@@ -38,14 +38,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class DisplayEntityBackend implements HologramBackend {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final String description;
 
     /** Live entities allocated per hologram, ordered by line index. */
     private final Map<UUID, List<Entity>> spawnedByHologram = new ConcurrentHashMap<>();
 
     /** Map hologram-id-UUID → its Hologram for tear-down. Keyed by random UUID per spawn. */
-    public DisplayEntityBackend(OBX plugin, String description) {
+    public DisplayEntityBackend(ObxPlugin plugin, String description) {
         this.plugin = plugin;
         this.description = description;
     }
@@ -428,7 +428,7 @@ public final class DisplayEntityBackend implements HologramBackend {
         }
     }
 
-    OBX getPlugin() {
+    ObxPlugin getPlugin() {
         return plugin;
     }
 

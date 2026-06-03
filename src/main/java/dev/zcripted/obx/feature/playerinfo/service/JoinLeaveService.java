@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.playerinfo.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageRegistry;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -27,7 +27,7 @@ import java.util.List;
  */
 public final class JoinLeaveService {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
     private volatile boolean joinLeaveEnabled;
     private volatile boolean suppressVanilla;
@@ -42,7 +42,7 @@ public final class JoinLeaveService {
     private volatile List<String> joinMotdLines = Collections.emptyList();
     private volatile List<String> firstJoinMotdLines = Collections.emptyList();
 
-    public JoinLeaveService(OBX plugin) {
+    public JoinLeaveService(ObxPlugin plugin) {
         this.plugin = plugin;
         cacheSnapshot();
     }

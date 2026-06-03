@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.staff.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.staff.gui.InvSeeMenu;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -41,7 +41,7 @@ public class InvSeeCommand extends AbstractObxCommand implements TabCompleter {
 
     private final SimpleDateFormat timestamp = new SimpleDateFormat("HH:mm:ss");
 
-    public InvSeeCommand(OBX plugin) {
+    public InvSeeCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.registry;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.model.EnchantCategory;
 import dev.zcripted.obx.feature.enchant.model.EnchantRarity;
@@ -48,12 +48,12 @@ public final class EnchantRegistry {
     private static final Set<String> RESERVED_FILES = new HashSet<String>(Arrays.asList(
             "config.yml", "scrolls.yml", "loot.yml"));
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final Map<String, CustomEnchant> byId = new LinkedHashMap<String, CustomEnchant>();
     private final Map<String, String> byPlainName = new LinkedHashMap<String, String>();
     private final Map<EnchantCategory, List<CustomEnchant>> byCategory = new EnumMap<EnchantCategory, List<CustomEnchant>>(EnchantCategory.class);
 
-    public EnchantRegistry(OBX plugin) {
+    public EnchantRegistry(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

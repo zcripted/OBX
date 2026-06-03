@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.staff.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.warp.gui.WarpMenuStyling;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.util.text.Placeholders;
@@ -57,7 +57,7 @@ public final class InvSeeMenu {
     private InvSeeMenu() {
     }
 
-    public static void open(OBX plugin, Player viewer, Player target) {
+    public static void open(ObxPlugin plugin, Player viewer, Player target) {
         LanguageManager languages = plugin.getLanguageManager();
         int[] slotMap = buildSlotMap();
         InvSeeMenuHolder holder = new InvSeeMenuHolder(target.getUniqueId(), target.getName(), slotMap, CLOSE_SLOT);

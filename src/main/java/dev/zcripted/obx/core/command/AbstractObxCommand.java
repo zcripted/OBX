@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -24,10 +24,10 @@ import org.bukkit.entity.Player;
  */
 public abstract class AbstractObxCommand implements CommandExecutor {
 
-    protected final OBX plugin;
+    protected final ObxPlugin plugin;
     protected final LanguageManager languages;
 
-    protected AbstractObxCommand(OBX plugin) {
+    protected AbstractObxCommand(ObxPlugin plugin) {
         this.plugin = plugin;
         this.languages = plugin.getLanguageManager();
     }

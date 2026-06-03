@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.teleport;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.teleport.command.BackCommand;
 import dev.zcripted.obx.feature.teleport.command.DelHomeCommand;
@@ -33,7 +33,7 @@ public final class TeleportModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         TeleportManager teleportManager = service(TeleportManager.class,
                 new TeleportManager(plugin, plugin.getLanguageManager()));
         service(TeleportRequestService.class, new TeleportRequestService(plugin));

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.loot;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.item.EnchantItems;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.model.EnchantCategory;
@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public final class EnchantLoot {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantItems items;
     private final File lootFile;
@@ -55,7 +55,7 @@ public final class EnchantLoot {
     private Method setLoot;
     private boolean registered;
 
-    public EnchantLoot(OBX plugin) {
+    public EnchantLoot(ObxPlugin plugin) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.items = plugin.getEnchantItems();

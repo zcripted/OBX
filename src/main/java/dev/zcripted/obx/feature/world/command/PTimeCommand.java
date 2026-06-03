@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.world.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.world.service.PerPlayerTimeService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.command.Command;
@@ -19,7 +19,7 @@ public class PTimeCommand extends AbstractObxCommand implements TabCompleter {
 
     private final PerPlayerTimeService timeService;
 
-    public PTimeCommand(OBX plugin) {
+    public PTimeCommand(ObxPlugin plugin) {
         super(plugin);
         this.timeService = plugin.getPerPlayerTimeService();
     }

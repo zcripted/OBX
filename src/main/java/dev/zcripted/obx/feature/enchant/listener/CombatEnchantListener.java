@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.service.CombatHudService;
 import dev.zcripted.obx.feature.enchant.service.EnchantService;
@@ -40,7 +40,7 @@ import java.util.UUID;
  */
 public final class CombatEnchantListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final CombatHudService hud;
@@ -48,7 +48,7 @@ public final class CombatEnchantListener implements Listener {
     /** Per-attacker Vampiric Edge stacking state. */
     private final Map<UUID, VampiricState> vampiric = new HashMap<UUID, VampiricState>();
 
-    public CombatEnchantListener(OBX plugin, EnchantService service, CombatHudService hud) {
+    public CombatEnchantListener(ObxPlugin plugin, EnchantService service, CombatHudService hud) {
         this.plugin = plugin;
         this.service = service;
         this.storage = service.getStorage();

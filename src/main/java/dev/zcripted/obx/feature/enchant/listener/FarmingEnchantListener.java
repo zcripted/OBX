@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.effect.EffectUtil;
 import dev.zcripted.obx.feature.enchant.item.EnchantItems;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
@@ -38,7 +38,7 @@ public final class FarmingEnchantListener implements Listener {
     private final EnchantItems items;
     private final Set<UUID> processing = new HashSet<UUID>();
 
-    public FarmingEnchantListener(OBX plugin) {
+    public FarmingEnchantListener(ObxPlugin plugin) {
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();
         this.items = plugin.getEnchantItems();

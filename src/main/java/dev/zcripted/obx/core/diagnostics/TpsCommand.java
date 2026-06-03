@@ -2,7 +2,7 @@ package dev.zcripted.obx.core.diagnostics;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.util.message.AdventureMessageUtil;
 import dev.zcripted.obx.core.diagnostics.TpsService;
@@ -37,7 +37,7 @@ public final class TpsCommand extends AbstractObxCommand {
     private static final String BEST_MSPT = "&a0.00ms";
 
 
-    public TpsCommand(OBX plugin) {
+    public TpsCommand(ObxPlugin plugin) {
         super(plugin);
     }
 
@@ -56,7 +56,7 @@ public final class TpsCommand extends AbstractObxCommand {
      * other entry points (e.g. the Performance + Health GUI's "View TPS" item)
      * produce the exact same output without duplicating the layout.
      */
-    public static void sendReport(OBX plugin, CommandSender sender) {
+    public static void sendReport(ObxPlugin plugin, CommandSender sender) {
         LanguageManager languages = plugin.getLanguageManager();
         TpsService service = plugin.getTpsService();
         Map<String, String> placeholders = buildPlaceholders(service);

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -31,14 +31,14 @@ public final class HubService {
 
     private static final String RESOURCE_PATH = "systems/hub.yml";
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final File configFile;
     private volatile YamlConfiguration config;
 
     /** Cached lowercase world names for fast {@link #isHubWorld(String)} checks. */
     private final CopyOnWriteArraySet<String> hubWorldNames = new CopyOnWriteArraySet<>();
 
-    public HubService(OBX plugin) {
+    public HubService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
     }

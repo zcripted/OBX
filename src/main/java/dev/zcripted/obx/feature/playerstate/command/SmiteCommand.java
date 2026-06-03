@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.playerstate.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,7 +19,7 @@ import java.util.List;
 public class SmiteCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public SmiteCommand(OBX plugin) {
+    public SmiteCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.teleport.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.storage.DataService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.command.Command;
@@ -16,7 +16,7 @@ public class HomesCommand extends AbstractObxCommand {
 
     private final DataService dataService;
 
-    public HomesCommand(OBX plugin) {
+    public HomesCommand(ObxPlugin plugin) {
         super(plugin);
         this.dataService = plugin.getDataService();
     }

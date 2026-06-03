@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.item.EnchantItems;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.service.EnchantService;
@@ -39,11 +39,11 @@ public final class OnDeathListener implements Listener {
     private static final String SOUL_MARKER = "Arcanum Soul L";
     private static final String[] SOUL_PICKUP_SOUND = {"ENTITY_VEX_DEATH", "ENTITY_EXPERIENCE_ORB_PICKUP", "ORB_PICKUP"};
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
 
-    public OnDeathListener(OBX plugin) {
+    public OnDeathListener(ObxPlugin plugin) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

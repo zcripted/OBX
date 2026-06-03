@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.playerstate.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Location;
 import org.bukkit.TreeType;
@@ -19,7 +19,7 @@ import java.util.List;
 public class TreeCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public TreeCommand(OBX plugin) {
+    public TreeCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.staff.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.staff.service.FreezeService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -19,7 +19,7 @@ public class FreezeCommand extends AbstractObxCommand implements TabCompleter {
 
     private final FreezeService freeze;
 
-    public FreezeCommand(OBX plugin) {
+    public FreezeCommand(ObxPlugin plugin) {
         super(plugin);
         this.freeze = plugin.getFreezeService();
     }

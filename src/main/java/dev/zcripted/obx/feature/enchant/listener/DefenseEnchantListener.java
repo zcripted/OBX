@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.effect.EffectUtil;
 import dev.zcripted.obx.feature.enchant.effect.EnchantState;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class DefenseEnchantListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final EnchantState state;
@@ -42,7 +42,7 @@ public final class DefenseEnchantListener implements Listener {
     /** Items kept by Soulbound, returned on respawn. */
     private final Map<UUID, List<ItemStack>> soulbound = new ConcurrentHashMap<UUID, List<ItemStack>>();
 
-    public DefenseEnchantListener(OBX plugin, EnchantState state) {
+    public DefenseEnchantListener(ObxPlugin plugin, EnchantState state) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

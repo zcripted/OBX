@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.item.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -19,7 +19,7 @@ import java.util.List;
 public class BookCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public BookCommand(OBX plugin) {
+    public BookCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

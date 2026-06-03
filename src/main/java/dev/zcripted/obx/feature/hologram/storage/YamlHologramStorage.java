@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.storage;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.model.HologramId;
 import org.bukkit.configuration.ConfigurationSection;
@@ -33,11 +33,11 @@ import java.util.List;
  */
 public final class YamlHologramStorage implements HologramStorage {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final File file;
     private final Object writeLock = new Object();
 
-    public YamlHologramStorage(OBX plugin) {
+    public YamlHologramStorage(ObxPlugin plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "holograms.yml");
     }

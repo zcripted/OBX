@@ -1,7 +1,7 @@
 
 package dev.zcripted.obx.feature.warp.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.staff.gui.AdminMenu;
 import dev.zcripted.obx.feature.warp.gui.WarpMenuStyling;
 import dev.zcripted.obx.core.language.LanguageManager;
@@ -66,11 +66,11 @@ public final class WarpMenu {
     private WarpMenu() {
     }
 
-    public static void openMain(OBX plugin, Player player, int page, String categoryFilter, String searchTerm, boolean adminMode, WarpMenuHolder.BackTarget backTarget) {
+    public static void openMain(ObxPlugin plugin, Player player, int page, String categoryFilter, String searchTerm, boolean adminMode, WarpMenuHolder.BackTarget backTarget) {
         openMain(plugin, player, page, categoryFilter, searchTerm, adminMode, backTarget, WarpMenuHolder.AdminAction.NONE);
     }
 
-    public static void openMain(OBX plugin, Player player, int page, String categoryFilter, String searchTerm, boolean adminMode, WarpMenuHolder.BackTarget backTarget, WarpMenuHolder.AdminAction adminAction) {
+    public static void openMain(ObxPlugin plugin, Player player, int page, String categoryFilter, String searchTerm, boolean adminMode, WarpMenuHolder.BackTarget backTarget, WarpMenuHolder.AdminAction adminAction) {
         LanguageManager languages = plugin.getLanguageManager();
         boolean includeHidden = shouldIncludeHidden(player, adminMode);
         boolean manageBypass = adminMode && player.hasPermission("obx.warp.manage");
@@ -111,7 +111,7 @@ public final class WarpMenu {
         player.openInventory(inventory);
     }
 
-    public static void openCategories(OBX plugin, Player player, int page, boolean adminMode, WarpMenuHolder.BackTarget backTarget) {
+    public static void openCategories(ObxPlugin plugin, Player player, int page, boolean adminMode, WarpMenuHolder.BackTarget backTarget) {
         List<String> categories = new ArrayList<>(plugin.getWarpService().categories());
         if (categories.isEmpty()) {
             plugin.getLanguageManager().send(player, "teleport.warp.categories.none");
@@ -149,7 +149,7 @@ public final class WarpMenu {
         player.openInventory(inventory);
     }
 
-    public static void openDetails(OBX plugin, Player player, WarpService.WarpEntry entry, boolean adminMode, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
+    public static void openDetails(ObxPlugin plugin, Player player, WarpService.WarpEntry entry, boolean adminMode, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
         if (entry == null) {
             return;
         }
@@ -174,7 +174,7 @@ public final class WarpMenu {
 
         player.openInventory(inventory);
     }
-    public static void openManage(OBX plugin, Player player, int page, String categoryFilter, String searchTerm, WarpMenuHolder.BackTarget backTarget) {
+    public static void openManage(ObxPlugin plugin, Player player, int page, String categoryFilter, String searchTerm, WarpMenuHolder.BackTarget backTarget) {
         boolean includeHidden = shouldIncludeHidden(player, true);
         int safePage = 0;
         int maxPages = 1;
@@ -199,7 +199,7 @@ public final class WarpMenu {
         player.openInventory(inventory);
     }
 
-    public static void openManageSelection(OBX plugin, Player player, int page, String categoryFilter, String searchTerm, WarpMenuHolder.BackTarget backTarget, WarpMenuHolder.AdminAction action) {
+    public static void openManageSelection(ObxPlugin plugin, Player player, int page, String categoryFilter, String searchTerm, WarpMenuHolder.BackTarget backTarget, WarpMenuHolder.AdminAction action) {
         boolean includeHidden = shouldIncludeHidden(player, true);
         boolean manageBypass = player.hasPermission("obx.warp.manage");
         List<WarpService.WarpEntry> warps = collectWarps(plugin.getWarpService(), player, categoryFilter, searchTerm, includeHidden, manageBypass);
@@ -233,7 +233,7 @@ public final class WarpMenu {
         player.openInventory(inventory);
     }
 
-    public static void openConfirmDelete(OBX plugin, Player player, WarpService.WarpEntry entry, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
+    public static void openConfirmDelete(ObxPlugin plugin, Player player, WarpService.WarpEntry entry, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
         if (entry == null) {
             return;
         }
@@ -250,7 +250,7 @@ public final class WarpMenu {
         player.openInventory(inventory);
     }
 
-    public static void openConfirmMove(OBX plugin, Player player, WarpService.WarpEntry entry, Location targetLocation, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
+    public static void openConfirmMove(ObxPlugin plugin, Player player, WarpService.WarpEntry entry, Location targetLocation, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
         if (entry == null || targetLocation == null) {
             return;
         }
@@ -272,7 +272,7 @@ public final class WarpMenu {
         player.openInventory(inventory);
     }
 
-    public static void openConfirmOverwrite(OBX plugin, Player player, String warpName, Location newLocation, WarpService.WarpEntry existing, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
+    public static void openConfirmOverwrite(ObxPlugin plugin, Player player, String warpName, Location newLocation, WarpService.WarpEntry existing, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
         WarpMenuHolder holder = new WarpMenuHolder(plugin, WarpMenuHolder.View.CONFIRM_OVERWRITE, 0, categoryFilter, searchTerm, null, null, existing == null ? warpName : existing.getKey(), warpName, true, backTarget, WarpMenuHolder.AdminAction.OVERWRITE, returnPage, newLocation == null ? null : newLocation.clone());
         Inventory inventory = Bukkit.createInventory(holder, INVENTORY_SIZE, WarpMenuStyling.gradientTitle("Overwrite Warp"));
         holder.setInventory(inventory);
@@ -295,7 +295,7 @@ public final class WarpMenu {
         player.openInventory(inventory);
     }
 
-    public static void openIconPicker(OBX plugin, Player player, WarpService.WarpEntry entry, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
+    public static void openIconPicker(ObxPlugin plugin, Player player, WarpService.WarpEntry entry, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
         if (entry == null) {
             return;
         }
@@ -322,7 +322,7 @@ public final class WarpMenu {
         player.openInventory(inventory);
     }
 
-    public static void openVisibilityMenu(OBX plugin, Player player, WarpService.WarpEntry entry, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
+    public static void openVisibilityMenu(ObxPlugin plugin, Player player, WarpService.WarpEntry entry, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
         if (entry == null) {
             return;
         }

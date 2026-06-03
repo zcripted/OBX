@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.staff.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -23,10 +23,10 @@ public final class AdminMenuRefreshTask {
     // any work.
     private static final long PERIOD_TICKS = 10L;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private SchedulerAdapter.CancellableTask task;
 
-    public AdminMenuRefreshTask(OBX plugin) {
+    public AdminMenuRefreshTask(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

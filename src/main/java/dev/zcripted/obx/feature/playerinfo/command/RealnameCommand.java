@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.playerinfo.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -16,7 +16,7 @@ import java.util.List;
 public class RealnameCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public RealnameCommand(OBX plugin) {
+    public RealnameCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

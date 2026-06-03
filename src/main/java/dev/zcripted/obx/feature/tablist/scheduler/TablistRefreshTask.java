@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.tablist.scheduler;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.feature.tablist.format.TablistRenderer;
 import dev.zcripted.obx.feature.tablist.format.TablistTeams;
@@ -16,11 +16,11 @@ import org.bukkit.entity.Player;
  */
 public final class TablistRefreshTask {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final TablistService service;
     private SchedulerAdapter.CancellableTask task;
 
-    public TablistRefreshTask(OBX plugin, TablistService service) {
+    public TablistRefreshTask(ObxPlugin plugin, TablistService service) {
         this.plugin = plugin;
         this.service = service;
     }

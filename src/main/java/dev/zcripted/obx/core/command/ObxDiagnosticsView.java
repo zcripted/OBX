@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.util.message.ConsoleLog;
 import dev.zcripted.obx.util.text.ComponentMessenger;
@@ -33,10 +33,10 @@ class ObxDiagnosticsView {
     /** Max config-file rows per page; keeps the whole /obx config message at/under 15 lines. */
     private static final int CONFIG_PER_PAGE = 10;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final LanguageManager languages;
 
-    ObxDiagnosticsView(OBX plugin, LanguageManager languages) {
+    ObxDiagnosticsView(ObxPlugin plugin, LanguageManager languages) {
         this.plugin = plugin;
         this.languages = languages;
     }

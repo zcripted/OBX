@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.item.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -34,7 +34,7 @@ public class ClearInvCommand extends AbstractObxCommand implements TabCompleter 
     private static final int HOVER_RECENT_LIMIT = 5;
 
 
-    public ClearInvCommand(OBX plugin) {
+    public ClearInvCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.playerinfo.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.playerinfo.service.PlaytimeService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -20,7 +20,7 @@ public class PlaytimeCommand extends AbstractObxCommand implements TabCompleter 
 
     private final PlaytimeService playtime;
 
-    public PlaytimeCommand(OBX plugin) {
+    public PlaytimeCommand(ObxPlugin plugin) {
         super(plugin);
         this.playtime = plugin.getPlaytimeService();
     }

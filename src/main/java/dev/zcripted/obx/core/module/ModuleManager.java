@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.module;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,13 +20,13 @@ import java.util.Map;
  */
 public final class ModuleManager {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     /** Insertion-ordered: registration order, used as the tie-breaker within a dependency level. */
     private final Map<String, Module> modules = new LinkedHashMap<>();
     private final Map<String, Boolean> active = new LinkedHashMap<>();
     private List<Module> enableOrder;
 
-    public ModuleManager(OBX plugin) {
+    public ModuleManager(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

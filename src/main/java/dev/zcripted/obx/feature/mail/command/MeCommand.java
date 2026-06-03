@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.mail.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -18,7 +18,7 @@ import java.util.Map;
 public class MeCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public MeCommand(OBX plugin) {
+    public MeCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

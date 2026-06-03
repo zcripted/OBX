@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.gui.help;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.gui.help.HelpGuiHolder;
 import dev.zcripted.obx.core.gui.help.HelpGuiMenu;
 import org.bukkit.entity.HumanEntity;
@@ -26,9 +26,9 @@ public final class HelpGuiListener implements Listener {
             "help", "?", "bukkit:help", "bukkit:?", "minecraft:help", "minecraft:?"
     ));
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    public HelpGuiListener(OBX plugin) {
+    public HelpGuiListener(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

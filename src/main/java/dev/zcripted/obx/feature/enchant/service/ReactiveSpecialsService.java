@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.effect.CombatState;
 import dev.zcripted.obx.feature.enchant.listener.CombatSupport;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
@@ -47,13 +47,13 @@ public final class ReactiveSpecialsService {
     /** Visual tick period; pull/HP cadences below are multiples of this. */
     private static final long PERIOD = 5L;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final CombatState combatState;
     private final CombatParticleService particles;
 
-    public ReactiveSpecialsService(OBX plugin, CombatState combatState, CombatParticleService particles) {
+    public ReactiveSpecialsService(ObxPlugin plugin, CombatState combatState, CombatParticleService particles) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

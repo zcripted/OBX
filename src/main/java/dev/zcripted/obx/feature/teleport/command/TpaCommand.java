@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.teleport.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -26,7 +26,7 @@ public final class TpaCommand extends AbstractObxCommand implements TabCompleter
 
     private final Mode mode;
 
-    public TpaCommand(OBX plugin, Mode mode) {
+    public TpaCommand(ObxPlugin plugin, Mode mode) {
         super(plugin);
         this.mode = mode;
     }

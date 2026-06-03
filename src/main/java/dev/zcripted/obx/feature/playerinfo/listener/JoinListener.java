@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.playerinfo.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.tablist.format.TablistTeams;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,9 +11,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class JoinListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    public JoinListener(OBX plugin) {
+    public JoinListener(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

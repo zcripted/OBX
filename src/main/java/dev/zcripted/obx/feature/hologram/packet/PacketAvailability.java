@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.packet;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.Bukkit;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,7 +25,7 @@ public final class PacketAvailability {
     private PacketAvailability() {
     }
 
-    public static synchronized boolean probe(OBX plugin) {
+    public static synchronized boolean probe(ObxPlugin plugin) {
         if (cached != null) {
             return cached;
         }
@@ -70,7 +70,7 @@ public final class PacketAvailability {
      * even under packet storms, so a single misbehaving entity can't flood
      * the log.
      */
-    public static void noteFailure(OBX plugin, Throwable throwable) {
+    public static void noteFailure(ObxPlugin plugin, Throwable throwable) {
         if (plugin == null || throwable == null) {
             return;
         }

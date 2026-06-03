@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.playerstate.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -21,7 +21,7 @@ import java.util.Map;
 public class SpawnMobCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public SpawnMobCommand(OBX plugin) {
+    public SpawnMobCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

@@ -1,7 +1,7 @@
 package dev.zcripted.obx.feature.jail.service;
 
 import dev.zcripted.obx.feature.jail.model.Jail;
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.storage.LocationSerializer;
 import dev.zcripted.obx.core.storage.SqliteDataStore;
 import org.bukkit.Bukkit;
@@ -52,13 +52,13 @@ public class JailService {
         }
     }
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final SqliteDataStore store;
     private final File jailsFile;
     private YamlConfiguration jailsConfig;
     private final Map<String, Jail> jails = new LinkedHashMap<>();
 
-    public JailService(OBX plugin) {
+    public JailService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
         this.jailsFile = new File(plugin.getDataFolder(), "jails.yml");

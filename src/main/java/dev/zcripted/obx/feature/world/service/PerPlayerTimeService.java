@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.world.service;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.storage.SqliteDataStore;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,10 +11,10 @@ import java.util.UUID;
 
 public class PerPlayerTimeService implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final SqliteDataStore store;
 
-    public PerPlayerTimeService(OBX plugin) {
+    public PerPlayerTimeService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
     }

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.warp.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 import dev.zcripted.obx.feature.warp.gui.WarpMenu;
 import dev.zcripted.obx.feature.warp.gui.WarpMenuHolder;
@@ -30,7 +30,7 @@ public class WarpCommand extends AbstractObxCommand implements TabCompleter {
     private final WarpQueryCommands query;
     private final WarpAdminCommands admin;
 
-    public WarpCommand(OBX plugin) {
+    public WarpCommand(ObxPlugin plugin) {
         super(plugin);
         this.warpService = plugin.getWarpService();
         this.query = new WarpQueryCommands(plugin, warpService, languages,

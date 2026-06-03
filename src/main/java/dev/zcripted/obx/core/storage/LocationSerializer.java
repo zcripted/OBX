@@ -3,7 +3,7 @@ package dev.zcripted.obx.core.storage;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
 public final class LocationSerializer {
 
@@ -22,7 +22,7 @@ public final class LocationSerializer {
         section.set("pitch", location.getPitch());
     }
 
-    public static Location deserialize(ConfigurationSection section, JavaPlugin plugin) {
+    public static Location deserialize(ConfigurationSection section, Plugin plugin) {
         if (section == null || plugin == null) {
             return null;
         }

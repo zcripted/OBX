@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.scroll;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.gui.EnchantMenuHolder;
 import dev.zcripted.obx.feature.enchant.item.EnchantItems;
 import dev.zcripted.obx.feature.enchant.item.ScrollKind;
@@ -27,12 +27,12 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class ScrollDragListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantItems items;
     private final ScrollApplyService scrolls;
 
-    public ScrollDragListener(OBX plugin, ScrollApplyService scrolls) {
+    public ScrollDragListener(ObxPlugin plugin, ScrollApplyService scrolls) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.items = plugin.getEnchantItems();

@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.enchant.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 public final class EnchantsBrowseCommand extends AbstractObxCommand {
 
 
-    public EnchantsBrowseCommand(OBX plugin) {
+    public EnchantsBrowseCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

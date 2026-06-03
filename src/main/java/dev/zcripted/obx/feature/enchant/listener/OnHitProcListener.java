@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.effect.CombatState;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.registry.EnchantRegistry;
@@ -48,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class OnHitProcListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final CombatState combatState;
@@ -62,7 +62,7 @@ public final class OnHitProcListener implements Listener {
     /** Re-entrancy guard so Cleave's secondary hits don't cascade into more cleaves. */
     private boolean inSecondary = false;
 
-    public OnHitProcListener(OBX plugin, CombatState combatState, CombatParticleService particles, CombatHudService hud) {
+    public OnHitProcListener(ObxPlugin plugin, CombatState combatState, CombatParticleService particles, CombatHudService hud) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

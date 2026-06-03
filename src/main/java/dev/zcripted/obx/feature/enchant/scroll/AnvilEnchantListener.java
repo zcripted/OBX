@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.scroll;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.item.EnchantItems;
 import dev.zcripted.obx.feature.enchant.item.ScrollKind;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
@@ -26,12 +26,12 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class AnvilEnchantListener implements org.bukkit.event.Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantItems items;
     private final ScrollApplyService scrolls;
 
-    public AnvilEnchantListener(OBX plugin, ScrollApplyService scrolls) {
+    public AnvilEnchantListener(ObxPlugin plugin, ScrollApplyService scrolls) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.items = plugin.getEnchantItems();

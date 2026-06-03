@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.staff.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.staff.gui.InvSeeMenuHolder;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -31,9 +31,9 @@ import org.bukkit.inventory.InventoryHolder;
  */
 public final class InvSeeMenuListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    public InvSeeMenuListener(OBX plugin) {
+    public InvSeeMenuListener(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

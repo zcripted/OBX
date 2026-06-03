@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.mail.pm.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.mail.pm.gui.InboxMenu;
 import dev.zcripted.obx.feature.mail.pm.gui.InboxMenuHolder;
 import dev.zcripted.obx.feature.mail.pm.InboxMessage;
@@ -19,9 +19,9 @@ import org.bukkit.inventory.Inventory;
  */
 public final class InboxMenuListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    public InboxMenuListener(OBX plugin) {
+    public InboxMenuListener(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

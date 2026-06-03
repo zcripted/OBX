@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.playerstate.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.playerstate.service.FlightStateService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -19,7 +19,7 @@ public class FlyCommand extends AbstractObxCommand implements TabCompleter {
 
     private final FlightStateService flight;
 
-    public FlyCommand(OBX plugin) {
+    public FlyCommand(ObxPlugin plugin) {
         super(plugin);
         this.flight = plugin.getFlightStateService();
     }

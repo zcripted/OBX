@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.motd;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.message.MotdMessageUtil;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class MotdService {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final File motdFile;
 
     private volatile YamlConfiguration config;
@@ -43,7 +43,7 @@ public class MotdService {
     private volatile List<String> hoverLineTemplates = Collections.emptyList();
     private volatile List<String> sampleProfileNames = Collections.emptyList();
 
-    public MotdService(OBX plugin) {
+    public MotdService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.motdFile = new File(plugin.getDataFolder(), "motd.yml");
     }

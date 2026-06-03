@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.staff;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.staff.command.FreezeCommand;
 import dev.zcripted.obx.feature.staff.command.InvSeeCommand;
@@ -30,7 +30,7 @@ public final class StaffModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         VanishManager vanish = service(VanishManager.class, new VanishManager(plugin));
         service(FreezeService.class, new FreezeService(plugin));
         StaffSessionTracker sessions = service(StaffSessionTracker.class, new StaffSessionTracker());

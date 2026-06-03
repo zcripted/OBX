@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.world.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -17,7 +17,7 @@ public class DayCommand extends AbstractObxCommand implements TabCompleter {
 
     private final long target;
 
-    public DayCommand(OBX plugin, long target) {
+    public DayCommand(ObxPlugin plugin, long target) {
         super(plugin);
         this.target = target;
     }

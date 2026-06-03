@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.gui.ServerSelectorHolder;
 import dev.zcripted.obx.feature.hub.messaging.BungeeMessenger;
 import org.bukkit.entity.HumanEntity;
@@ -21,9 +21,9 @@ import org.bukkit.inventory.InventoryHolder;
  */
 public final class ServerSelectorListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    public ServerSelectorListener(OBX plugin) {
+    public ServerSelectorListener(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

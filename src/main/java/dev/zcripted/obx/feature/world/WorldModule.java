@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.world;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.world.command.DayCommand;
 import dev.zcripted.obx.feature.world.command.PTimeCommand;
@@ -23,7 +23,7 @@ public final class WorldModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         PerPlayerTimeService time = service(PerPlayerTimeService.class, new PerPlayerTimeService(plugin));
         time.load();
         command("time", new TimeCommand(plugin));

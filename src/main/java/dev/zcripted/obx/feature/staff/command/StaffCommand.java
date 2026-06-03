@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.staff.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.staff.gui.StaffMenu;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -27,7 +27,7 @@ public final class StaffCommand extends AbstractObxCommand implements TabComplet
     public static final String PERMISSION = "obx.staff.menu";
 
 
-    public StaffCommand(OBX plugin) {
+    public StaffCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

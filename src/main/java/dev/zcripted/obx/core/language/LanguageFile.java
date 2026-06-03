@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.language;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -17,12 +17,12 @@ import java.util.Set;
 
 public class LanguageFile {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final LanguageRegistry language;
     private final File file;
     private YamlConfiguration config;
 
-    public LanguageFile(OBX plugin, LanguageRegistry language) {
+    public LanguageFile(ObxPlugin plugin, LanguageRegistry language) {
         this.plugin = plugin;
         this.language = language;
         this.file = new File(new File(plugin.getDataFolder(), "lang"), language.fileName());

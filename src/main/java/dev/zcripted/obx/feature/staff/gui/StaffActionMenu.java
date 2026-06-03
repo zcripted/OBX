@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.staff.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.warp.gui.WarpMenuStyling;
 import dev.zcripted.obx.core.language.LanguageManager;
 import org.bukkit.Bukkit;
@@ -39,7 +39,7 @@ public final class StaffActionMenu {
     private StaffActionMenu() {
     }
 
-    public static void open(OBX plugin, Player viewer, UUID targetUuid, String fallbackName) {
+    public static void open(ObxPlugin plugin, Player viewer, UUID targetUuid, String fallbackName) {
         LanguageManager languages = plugin.getLanguageManager();
         OfflinePlayer target = Bukkit.getOfflinePlayer(targetUuid);
         String targetName = target.getName() != null ? target.getName() : fallbackName;

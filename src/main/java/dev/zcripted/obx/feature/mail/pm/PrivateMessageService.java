@@ -1,7 +1,7 @@
 package dev.zcripted.obx.feature.mail.pm;
 import dev.zcripted.obx.feature.mail.pm.gui.InboxMenu;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
@@ -34,14 +34,14 @@ public final class PrivateMessageService implements Listener {
     private static final UUID CONSOLE_ID = new UUID(0L, 0L);
     private static final long DRAFT_MS = 60_000L;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final LanguageManager languages;
     private final MessageStore store;
     private final Map<UUID, UUID> replyTarget = new ConcurrentHashMap<UUID, UUID>();
     private final Map<UUID, String> replyTargetName = new ConcurrentHashMap<UUID, String>();
     private final Map<UUID, Draft> drafts = new ConcurrentHashMap<UUID, Draft>();
 
-    public PrivateMessageService(OBX plugin, MessageStore store) {
+    public PrivateMessageService(ObxPlugin plugin, MessageStore store) {
         this.plugin = plugin;
         this.languages = plugin.getLanguageManager();
         this.store = store;

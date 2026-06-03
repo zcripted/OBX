@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.playerstate;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.playerstate.command.AfkCommand;
 import dev.zcripted.obx.feature.playerstate.command.ButcherCommand;
@@ -35,7 +35,7 @@ public final class PlayerStateModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         GodModeManager god = service(GodModeManager.class, new GodModeManager());
         KillModeManager kill = service(KillModeManager.class, new KillModeManager(plugin));
         AfkService afk = service(AfkService.class, new AfkService(plugin));

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.mail.mail;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.storage.SqliteDataStore;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -41,12 +41,12 @@ public class MailService {
     private static final DateTimeFormatter DISPLAY_TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a z")
             .withZone(ZoneId.of("America/Detroit"));
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final SqliteDataStore store;
     private final java.util.Map<UUID, UUID> lastRecipient = new ConcurrentHashMap<>();
     private final Set<UUID> socialSpies = ConcurrentHashMap.newKeySet();
 
-    public MailService(OBX plugin) {
+    public MailService(ObxPlugin plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
     }

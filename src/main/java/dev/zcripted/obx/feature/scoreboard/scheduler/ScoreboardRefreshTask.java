@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.scoreboard.scheduler;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.feature.scoreboard.format.ScoreboardRenderer;
 import dev.zcripted.obx.feature.scoreboard.service.ScoreboardService;
@@ -15,11 +15,11 @@ import org.bukkit.entity.Player;
  */
 public final class ScoreboardRefreshTask {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final ScoreboardService service;
     private SchedulerAdapter.CancellableTask task;
 
-    public ScoreboardRefreshTask(OBX plugin, ScoreboardService service) {
+    public ScoreboardRefreshTask(ObxPlugin plugin, ScoreboardService service) {
         this.plugin = plugin;
         this.service = service;
     }

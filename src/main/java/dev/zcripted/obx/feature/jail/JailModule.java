@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.jail;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.jail.command.DelJailCommand;
 import dev.zcripted.obx.feature.jail.command.JailCommand;
@@ -25,7 +25,7 @@ public final class JailModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         JailService service = service(JailService.class, new JailService(plugin));
         service.load();
         command("jail", new JailCommand(plugin));

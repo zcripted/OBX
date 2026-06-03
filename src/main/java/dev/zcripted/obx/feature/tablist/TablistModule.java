@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.tablist;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.tablist.format.TablistTeams;
 import dev.zcripted.obx.feature.tablist.listener.TablistJoinListener;
@@ -18,7 +18,7 @@ public final class TablistModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         TablistService service = service(TablistService.class, new TablistService(plugin));
         service.load();
         refreshTask = new TablistRefreshTask(plugin, service);
@@ -34,7 +34,7 @@ public final class TablistModule extends AbstractModule {
     }
 
     @Override
-    public void reload(OBX plugin) {
+    public void reload(ObxPlugin plugin) {
         TablistService service = plugin.getTablistService();
         if (service != null) {
             service.reload();

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.motd;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.motd.MotdService;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -44,9 +44,9 @@ public class MotdPingListener implements Listener {
     private static final Field MISSING_FIELD = sentinelField();
     private static final Class<?> MISSING_CLASS = MissingClassMarker.class;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    public MotdPingListener(OBX plugin) {
+    public MotdPingListener(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -337,7 +337,7 @@ public class MotdPingListener implements Listener {
          * element type until the list accepts one, restoring the original contents
          * between failed attempts. Returns a short outcome tag for the diagnostic.
          */
-        String applyHoverSample(OBX plugin, ServerListPingEvent event, List<String> hoverLines) {
+        String applyHoverSample(ObxPlugin plugin, ServerListPingEvent event, List<String> hoverLines) {
             StringBuilder tried = new StringBuilder();
             // 1) Official API path (setter, else mutate / field-replace the getter's
             //    list). Sufficient on platforms whose sample list is mutable.
@@ -386,7 +386,7 @@ public class MotdPingListener implements Listener {
          * workaround for modern Paper, whose serialised sample field differs from
          * the {@code getPlayerSample()} view. Returns the number of fields written.
          */
-        private int injectProfileListFields(OBX plugin, ServerListPingEvent event, List<String> hoverLines) {
+        private int injectProfileListFields(ObxPlugin plugin, ServerListPingEvent event, List<String> hoverLines) {
             int written = 0;
             Class<?> current = event.getClass();
             while (current != null) {
@@ -653,7 +653,7 @@ public class MotdPingListener implements Listener {
             return firstFailure == null ? base : base + "; first-fail=" + firstFailure;
         }
 
-        static ProfileFactory resolve(OBX plugin, Class<?> sampleType) {
+        static ProfileFactory resolve(ObxPlugin plugin, Class<?> sampleType) {
             if (sampleType == null) {
                 return NONE;
             }
@@ -708,7 +708,7 @@ public class MotdPingListener implements Listener {
          * when GameProfile or a suitable wrapper can't be found, so the caller falls
          * back to the public factory.
          */
-        private static ProfileFactory resolveGameProfileWrap(OBX plugin, Class<?> sampleType) {
+        private static ProfileFactory resolveGameProfileWrap(ObxPlugin plugin, Class<?> sampleType) {
             Class<?> gpClass = findClass("com.mojang.authlib.GameProfile");
             if (gpClass == null || gpClass == MISSING_CLASS) {
                 return null;
@@ -744,7 +744,7 @@ public class MotdPingListener implements Listener {
         }
 
         /** Locates the runtime {@code CraftPlayerProfile} implementation class. */
-        private static Class<?> findCraftPlayerProfileClass(OBX plugin) {
+        private static Class<?> findCraftPlayerProfileClass(ObxPlugin plugin) {
             // Derive the CraftBukkit base package from the live server class, covering
             // both the modern unversioned package (1.20.5+) and the older versioned
             // org.bukkit.craftbukkit.v1_xx_Rn form.
@@ -787,7 +787,7 @@ public class MotdPingListener implements Listener {
             return true;
         }
 
-        List<Object> buildAll(OBX plugin, List<String> hoverLines) {
+        List<Object> buildAll(ObxPlugin plugin, List<String> hoverLines) {
             if (strategy == null || hoverLines == null || hoverLines.isEmpty()) {
                 return new ArrayList<>(0);
             }
@@ -803,7 +803,7 @@ public class MotdPingListener implements Listener {
             return profiles;
         }
 
-        private Object build(OBX plugin, UUID uuid, String value) {
+        private Object build(ObxPlugin plugin, UUID uuid, String value) {
             try {
                 switch (strategy) {
                     case GAME_PROFILE:
@@ -869,7 +869,7 @@ public class MotdPingListener implements Listener {
          * <p>Returns {@code null} (recording a diagnostic) only when every
          * strategy fails.
          */
-        private Object buildPlayerProfile(OBX plugin, UUID uuid, String value) {
+        private Object buildPlayerProfile(ObxPlugin plugin, UUID uuid, String value) {
             // 1) Factory method (createProfileExact preferred).
             if (profileSource != null) {
                 Object profile = profileSource.create(plugin, uuid, value);
@@ -1083,7 +1083,7 @@ public class MotdPingListener implements Listener {
             }
         }
 
-        private Object[] buildArguments(OBX plugin, Class<?>[] paramTypes, UUID uuid, String value) {
+        private Object[] buildArguments(ObxPlugin plugin, Class<?>[] paramTypes, UUID uuid, String value) {
             Object[] args = new Object[paramTypes.length];
             for (int i = 0; i < paramTypes.length; i++) {
                 Class<?> type = paramTypes[i];
@@ -1149,7 +1149,7 @@ public class MotdPingListener implements Listener {
             this.profileType = profileType;
         }
 
-        static ProfileSource detect(OBX plugin, Class<?> expectedType) {
+        static ProfileSource detect(ObxPlugin plugin, Class<?> expectedType) {
             Class<?> serverClass = plugin.getServer().getClass();
             // createProfileExact performs NO name validation. The MOTD hover
             // "names" are arbitrary coloured text (e.g. "§eOnline: 5/20"), which
@@ -1191,7 +1191,7 @@ public class MotdPingListener implements Listener {
             return new ProfileSource(method, isStatic, method.getReturnType());
         }
 
-        Object create(OBX plugin, UUID uuid, String value) {
+        Object create(ObxPlugin plugin, UUID uuid, String value) {
             try {
                 Object target = isStatic ? null : plugin.getServer();
                 return method.invoke(target, uuid, value);

@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.teleport.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.storage.DataService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -60,7 +60,7 @@ public class TopCommand extends AbstractObxCommand implements TabCompleter {
 
     private final DataService dataService;
 
-    public TopCommand(OBX plugin) {
+    public TopCommand(ObxPlugin plugin) {
         super(plugin);
         this.dataService = plugin.getDataService();
     }

@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.playerstate.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.playerstate.service.FlightStateService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.command.Command;
@@ -17,7 +17,7 @@ public class WalkSpeedCommand extends AbstractObxCommand implements TabCompleter
 
     private final FlightStateService flight;
 
-    public WalkSpeedCommand(OBX plugin) {
+    public WalkSpeedCommand(ObxPlugin plugin) {
         super(plugin);
         this.flight = plugin.getFlightStateService();
     }

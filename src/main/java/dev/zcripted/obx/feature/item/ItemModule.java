@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.item;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.item.command.AnvilCommand;
 import dev.zcripted.obx.feature.item.command.BookCommand;
@@ -35,7 +35,7 @@ public final class ItemModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         command("craft", new CraftCommand(plugin));
         command("research", new ResearchCommand(plugin));
         command("anvil", new AnvilCommand(plugin));

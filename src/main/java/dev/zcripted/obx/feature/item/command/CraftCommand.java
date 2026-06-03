@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.item.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.command.PlayerActionCommand;
 import org.bukkit.entity.Player;
 
@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
  */
 public class CraftCommand extends PlayerActionCommand {
 
-    public CraftCommand(OBX plugin) {
+    public CraftCommand(ObxPlugin plugin) {
         super(plugin, "obx.craft");
     }
 

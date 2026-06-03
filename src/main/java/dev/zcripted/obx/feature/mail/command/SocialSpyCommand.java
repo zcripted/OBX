@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.mail.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.mail.mail.MailService;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,7 +16,7 @@ public class SocialSpyCommand extends AbstractObxCommand implements TabCompleter
 
     private final MailService messageService;
 
-    public SocialSpyCommand(OBX plugin) {
+    public SocialSpyCommand(ObxPlugin plugin) {
         super(plugin);
         this.messageService = plugin.getMailService();
     }

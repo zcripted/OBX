@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.warp.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.gui.MenuHolder;
 import org.bukkit.Location;
 
@@ -40,7 +40,7 @@ public class WarpMenuHolder extends MenuHolder {
         OVERWRITE
     }
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final View view;
     private final int page;
     private final String categoryFilter;
@@ -55,7 +55,7 @@ public class WarpMenuHolder extends MenuHolder {
     private final int returnPage;
     private final Location pendingLocation;
 
-    public WarpMenuHolder(OBX plugin,
+    public WarpMenuHolder(ObxPlugin plugin,
                           View view,
                           int page,
                           String categoryFilter,
@@ -85,7 +85,7 @@ public class WarpMenuHolder extends MenuHolder {
         this.pendingLocation = pendingLocation;
     }
 
-    public OBX getPlugin() {
+    public ObxPlugin getPlugin() {
         return plugin;
     }
 

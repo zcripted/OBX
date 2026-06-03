@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.playerstate.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -20,7 +20,7 @@ import java.util.Map;
 public class ButcherCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public ButcherCommand(OBX plugin) {
+    public ButcherCommand(ObxPlugin plugin) {
         super(plugin);
     }
 

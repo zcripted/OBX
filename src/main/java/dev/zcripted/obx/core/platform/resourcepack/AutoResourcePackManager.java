@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.platform.resourcepack;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
@@ -23,7 +23,7 @@ public class AutoResourcePackManager {
 
     private static final int FAILURE_THRESHOLD = 2;
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final File packFile;
     private final Map<UUID, Integer> failures = new ConcurrentHashMap<>();
     private final AtomicBoolean warnedOnce = new AtomicBoolean(false);
@@ -36,7 +36,7 @@ public class AutoResourcePackManager {
     private volatile boolean hashFromConfig;
     private volatile boolean enabled;
 
-    public AutoResourcePackManager(OBX plugin) {
+    public AutoResourcePackManager(ObxPlugin plugin) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.packFile = new File(plugin.getDataFolder(), "resourcepack/obx-core-pack.zip");

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.moderation;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.moderation.command.BanListCommand;
 import dev.zcripted.obx.feature.moderation.command.ModerationCommand;
@@ -19,7 +19,7 @@ public final class ModerationModule extends AbstractModule {
     }
 
     @Override
-    protected void onEnable(OBX plugin) {
+    protected void onEnable(ObxPlugin plugin) {
         ModerationService service = service(ModerationService.class, new ModerationService(plugin));
         service.load();
         command("ban", new ModerationCommand(plugin, ModerationCommand.Action.BAN));
@@ -35,7 +35,7 @@ public final class ModerationModule extends AbstractModule {
     }
 
     @Override
-    public void reload(OBX plugin) {
+    public void reload(ObxPlugin plugin) {
         ModerationService service = plugin.getModerationService();
         if (service != null) {
             service.reload();

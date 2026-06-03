@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hologram.interact;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.model.HologramId;
 import dev.zcripted.obx.feature.hologram.model.HologramLine;
@@ -30,7 +30,7 @@ public final class InteractionDispatcher {
     private InteractionDispatcher() {
     }
 
-    public static void dispatch(OBX plugin, HologramService service, Player viewer, HologramId id, InteractDecoder.Decoded decoded) {
+    public static void dispatch(ObxPlugin plugin, HologramService service, Player viewer, HologramId id, InteractDecoder.Decoded decoded) {
         if (plugin == null || service == null || viewer == null || id == null) {
             return;
         }
@@ -77,7 +77,7 @@ public final class InteractionDispatcher {
         }
     }
 
-    private static void runCommand(OBX plugin, Player viewer, String command, InteractDecoder.Decoded decoded) {
+    private static void runCommand(ObxPlugin plugin, Player viewer, String command, InteractDecoder.Decoded decoded) {
         if (command == null || command.isEmpty()) {
             return;
         }

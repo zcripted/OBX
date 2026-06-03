@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.moderation.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.moderation.service.ModerationService;
 import dev.zcripted.obx.feature.moderation.service.ModerationService.ActionHistoryEntry;
 import dev.zcripted.obx.feature.moderation.service.ModerationService.BanView;
@@ -26,7 +26,7 @@ public class ModerationStatusCommand extends AbstractObxCommand implements TabCo
 
     private final ModerationService moderationService;
 
-    public ModerationStatusCommand(OBX plugin) {
+    public ModerationStatusCommand(ObxPlugin plugin) {
         super(plugin);
         this.moderationService = plugin.getModerationService();
     }

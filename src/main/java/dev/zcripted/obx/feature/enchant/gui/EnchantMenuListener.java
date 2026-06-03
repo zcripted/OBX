@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.gui;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -18,9 +18,9 @@ import org.bukkit.inventory.InventoryHolder;
  */
 public final class EnchantMenuListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    public EnchantMenuListener(OBX plugin) {
+    public EnchantMenuListener(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

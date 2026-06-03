@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.module;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 
 /**
  * A self-contained feature of the plugin.
@@ -13,7 +13,7 @@ import dev.zcripted.obx.OBX;
  *
  * <p>Implementations should extend {@link AbstractModule}, which provides
  * book-keeping helpers ({@code listener(...)}, {@code command(...)}, {@code task(...)},
- * {@code service(...)}) and an automatic teardown so {@link #disable(OBX)} rarely
+ * {@code service(...)}) and an automatic teardown so {@link #disable(ObxPlugin)} rarely
  * needs to be written by hand.
  */
 public interface Module {
@@ -43,12 +43,12 @@ public interface Module {
     }
 
     /** Construct services, register listeners/commands, start tasks. */
-    void enable(OBX plugin);
+    void enable(ObxPlugin plugin);
 
     /** Tear down: unregister listeners, stop tasks, save state, drop services. */
-    void disable(OBX plugin);
+    void disable(ObxPlugin plugin);
 
     /** Re-read configuration for a live module. Default is a no-op. */
-    default void reload(OBX plugin) {
+    default void reload(ObxPlugin plugin) {
     }
 }

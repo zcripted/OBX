@@ -1,7 +1,7 @@
 package dev.zcripted.obx.feature.mail.pm.gui;
 
 import dev.zcripted.obx.feature.mail.pm.InboxMessage;
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -35,7 +35,7 @@ public final class InboxMenu {
     private InboxMenu() {
     }
 
-    public static void open(OBX plugin, Player player) {
+    public static void open(ObxPlugin plugin, Player player) {
         LanguageManager languages = plugin.getLanguageManager();
         List<InboxMessage> messages = plugin.getMessageService().inbox(player.getUniqueId());
 

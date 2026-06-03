@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.mail.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.mail.mail.MailService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -23,7 +23,7 @@ public class MailCommand extends AbstractObxCommand implements TabCompleter {
 
     private final MailService messageService;
 
-    public MailCommand(OBX plugin) {
+    public MailCommand(ObxPlugin plugin) {
         super(plugin);
         this.messageService = plugin.getMailService();
     }

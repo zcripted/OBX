@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.effect.CombatState;
 import dev.zcripted.obx.feature.enchant.service.EnchantService;
 import dev.zcripted.obx.feature.enchant.service.ReactiveSpecialsService;
@@ -27,12 +27,12 @@ import java.util.UUID;
  */
 public final class ReactiveSpecialsListener implements Listener {
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
     private final EnchantService service;
     private final CombatState combatState;
     private final ReactiveSpecialsService reactive;
 
-    public ReactiveSpecialsListener(OBX plugin, CombatState combatState, ReactiveSpecialsService reactive) {
+    public ReactiveSpecialsListener(ObxPlugin plugin, CombatState combatState, ReactiveSpecialsService reactive) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.combatState = combatState;

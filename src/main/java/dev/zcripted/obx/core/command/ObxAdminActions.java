@@ -1,6 +1,6 @@
 package dev.zcripted.obx.core.command;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.world.service.ServerControlActions;
 import org.bukkit.command.CommandSender;
 
@@ -23,9 +23,9 @@ final class ObxAdminActions {
     /** Internal {@code /obx} sub-token the chat buttons target. Not advertised. */
     static final String BRIDGE_TOKEN = "x-action";
 
-    private final OBX plugin;
+    private final ObxPlugin plugin;
 
-    ObxAdminActions(OBX plugin) {
+    ObxAdminActions(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 

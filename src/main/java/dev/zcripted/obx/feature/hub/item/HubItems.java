@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.hub.item;
 
-import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -84,11 +84,11 @@ public final class HubItems {
     private HubItems() {
     }
 
-    private static NamespacedKey idKey(OBX plugin) {
+    private static NamespacedKey idKey(ObxPlugin plugin) {
         return new NamespacedKey(plugin, "hub_item_id");
     }
 
-    private static NamespacedKey stateKey(OBX plugin) {
+    private static NamespacedKey stateKey(ObxPlugin plugin) {
         return new NamespacedKey(plugin, "hub_item_state");
     }
 
@@ -96,7 +96,7 @@ public final class HubItems {
      * Returns the hub item ID stored on {@code stack}, or {@code null} if the
      * stack isn't a tracked hub item.
      */
-    public static String getId(OBX plugin, ItemStack stack) {
+    public static String getId(ObxPlugin plugin, ItemStack stack) {
         if (stack == null || !stack.hasItemMeta()) {
             return null;
         }
@@ -109,7 +109,7 @@ public final class HubItems {
     }
 
     /** Returns the optional sub-state (e.g. visible/hidden) for two-state items. */
-    public static String getState(OBX plugin, ItemStack stack) {
+    public static String getState(ObxPlugin plugin, ItemStack stack) {
         if (stack == null || !stack.hasItemMeta()) {
             return null;
         }
@@ -121,13 +121,13 @@ public final class HubItems {
         return readFromLegacySentinel(meta, "state");
     }
 
-    public static boolean isHubItem(OBX plugin, ItemStack stack) {
+    public static boolean isHubItem(ObxPlugin plugin, ItemStack stack) {
         return getId(plugin, stack) != null;
     }
 
     // ── Builders ───────────────────────────────────────────────────────
 
-    public static ItemStack buildServerSelector(OBX plugin, HubService hub) {
+    public static ItemStack buildServerSelector(ObxPlugin plugin, HubService hub) {
         Material material = hub.itemMaterial("items.server-selector", Material.matchMaterial("COMPASS") != null
                 ? Material.matchMaterial("COMPASS") : Material.STONE);
         return buildHubItem(plugin, material,
@@ -136,7 +136,7 @@ public final class HubItems {
                 ID_SERVER_SELECTOR, null);
     }
 
-    public static ItemStack buildJumpRod(OBX plugin, HubService hub) {
+    public static ItemStack buildJumpRod(ObxPlugin plugin, HubService hub) {
         Material material = hub.itemMaterial("items.jump-rod", Material.matchMaterial("FISHING_ROD") != null
                 ? Material.matchMaterial("FISHING_ROD") : Material.STONE);
         return buildHubItem(plugin, material,
@@ -145,7 +145,7 @@ public final class HubItems {
                 ID_JUMP_ROD, null);
     }
 
-    public static ItemStack buildVanishAll(OBX plugin, HubService hub, boolean playersVisible) {
+    public static ItemStack buildVanishAll(ObxPlugin plugin, HubService hub, boolean playersVisible) {
         String stateKey = playersVisible ? STATE_VISIBLE : STATE_HIDDEN;
         String pathPrefix = "items.vanish-all." + stateKey;
         Material fallback = Material.matchMaterial(playersVisible ? "LIME_DYE" : "GRAY_DYE");
@@ -162,7 +162,7 @@ public final class HubItems {
                 ID_VANISH_ALL, stateKey);
     }
 
-    public static ItemStack buildLaunchpad(OBX plugin, HubService hub) {
+    public static ItemStack buildLaunchpad(ObxPlugin plugin, HubService hub) {
         Material fallback = Material.matchMaterial("FIREWORK_ROCKET");
         if (fallback == null) {
             fallback = Material.matchMaterial("FIREWORK");
@@ -182,7 +182,7 @@ public final class HubItems {
 
     // ── Core builder ───────────────────────────────────────────────────
 
-    private static ItemStack buildHubItem(OBX plugin, Material material, String name, List<String> lore,
+    private static ItemStack buildHubItem(ObxPlugin plugin, Material material, String name, List<String> lore,
                                           String id, String state) {
         if (material == null) {
             material = Material.STONE;
