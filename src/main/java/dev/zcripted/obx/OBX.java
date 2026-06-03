@@ -630,6 +630,7 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new ScoreboardModule());
         moduleManager.register(new TablistModule());
         moduleManager.register(new EconomyModule());
+        moduleManager.register(new dev.zcripted.obx.feature.item.ItemModule());
     }
 
     private void registerCommands() {
@@ -669,16 +670,6 @@ public class OBX extends JavaPlugin {
         bind("god", new GodCommand(this));
         bind("vanish", new VanishCommand(this));
         bind("invsee", new InvSeeCommand(this));
-        bind("craft", new CraftCommand(this));
-        bind("research", new ResearchCommand(this));
-        bind("anvil", new AnvilCommand(this));
-        bind("enchant", new EnchantCommand(this));
-        bind("smith", new SmithCommand(this));
-        bind("stonecut", new VirtualStationCommand(this, VirtualStationCommand.Station.STONECUTTER));
-        bind("loom", new VirtualStationCommand(this, VirtualStationCommand.Station.LOOM));
-        bind("grindstone", new VirtualStationCommand(this, VirtualStationCommand.Station.GRINDSTONE));
-        bind("cartography", new VirtualStationCommand(this, VirtualStationCommand.Station.CARTOGRAPHY));
-        bind("map", new MapCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
         bind("tpcancel", new dev.zcripted.obx.feature.teleport.command.TpCancelCommand(this));
@@ -704,20 +695,6 @@ public class OBX extends JavaPlugin {
         bind("flyspeed", new dev.zcripted.obx.feature.playerstate.command.FlySpeedCommand(this));
         bind("walkspeed", new dev.zcripted.obx.feature.playerstate.command.WalkSpeedCommand(this));
         bind("freeze", new dev.zcripted.obx.feature.staff.command.FreezeCommand(this));
-        bind("enderchest", new dev.zcripted.obx.feature.item.command.EnderchestCommand(this));
-        bind("disposal", new dev.zcripted.obx.feature.item.command.DisposalCommand(this));
-        bind("hat", new dev.zcripted.obx.feature.item.command.HatCommand(this));
-        bind("clearinv", new dev.zcripted.obx.feature.item.command.ClearInvCommand(this));
-        bind("repair", new dev.zcripted.obx.feature.item.command.RepairCommand(this));
-        bind("more", new dev.zcripted.obx.feature.item.command.MoreCommand(this));
-        bind("skull", new dev.zcripted.obx.feature.item.command.SkullCommand(this));
-        bind("itemname", new dev.zcripted.obx.feature.item.command.ItemNameCommand(this));
-        bind("itemlore", new dev.zcripted.obx.feature.item.command.ItemLoreCommand(this));
-        bind("unbreakable", new dev.zcripted.obx.feature.item.command.UnbreakableCommand(this));
-        bind("give", new dev.zcripted.obx.feature.item.command.GiveCommand(this));
-        bind("i", new dev.zcripted.obx.feature.item.command.ItemCommand(this));
-        bind("book", new dev.zcripted.obx.feature.item.command.BookCommand(this));
-        bind("nick", new dev.zcripted.obx.feature.nickname.command.NickCommand(this));
         bind("time", new dev.zcripted.obx.feature.world.command.TimeCommand(this));
         bind("day", new dev.zcripted.obx.feature.world.command.DayCommand(this, 1000L));
         bind("night", new dev.zcripted.obx.feature.world.command.DayCommand(this, 13000L));
