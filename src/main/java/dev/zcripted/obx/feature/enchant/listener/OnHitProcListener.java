@@ -358,7 +358,7 @@ public final class OnHitProcListener implements Listener {
         int periodTicks;
         double damage;
         UUID source;
-        SchedulerAdapter.CancellableTask task;
+        dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
     }
 
     private void applyBleed(Player attacker, final LivingEntity victim, CustomEnchant e, int level) {
@@ -496,7 +496,7 @@ public final class OnHitProcListener implements Listener {
 
         final long period = 12L;
         final int[] remaining = {Math.max(1, (int) (seconds * 20L / period))};
-        final SchedulerAdapter.CancellableTask[] taskRef = new SchedulerAdapter.CancellableTask[1];
+        final dev.zcripted.obx.core.platform.scheduler.CancellableTask[] taskRef = new dev.zcripted.obx.core.platform.scheduler.CancellableTask[1];
         taskRef[0] = scheduler.runRepeating(new Runnable() {
             @Override
             public void run() {

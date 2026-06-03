@@ -32,7 +32,7 @@ public final class PositionCommand extends AbstractObxCommand {
     private static final long PERIOD = 4L;
     private static final String[] CARDINALS = {"South", "South-West", "West", "North-West", "North", "North-East", "East", "South-East"};
 
-    private final Map<UUID, SchedulerAdapter.CancellableTask> trackers = new ConcurrentHashMap<UUID, SchedulerAdapter.CancellableTask>();
+    private final Map<UUID, dev.zcripted.obx.core.platform.scheduler.CancellableTask> trackers = new ConcurrentHashMap<UUID, dev.zcripted.obx.core.platform.scheduler.CancellableTask>();
 
     public PositionCommand(ObxPlugin plugin) {
         super(plugin);
@@ -84,12 +84,12 @@ public final class PositionCommand extends AbstractObxCommand {
         if (scheduler == null) {
             return;
         }
-        SchedulerAdapter.CancellableTask existing = trackers.remove(id);
+        dev.zcripted.obx.core.platform.scheduler.CancellableTask existing = trackers.remove(id);
         if (existing != null) {
             existing.cancel();
         }
         final int[] elapsed = {0};
-        final SchedulerAdapter.CancellableTask[] handle = new SchedulerAdapter.CancellableTask[1];
+        final dev.zcripted.obx.core.platform.scheduler.CancellableTask[] handle = new dev.zcripted.obx.core.platform.scheduler.CancellableTask[1];
         handle[0] = scheduler.runRepeating(new Runnable() {
             @Override
             public void run() {
@@ -114,7 +114,7 @@ public final class PositionCommand extends AbstractObxCommand {
         trackers.put(id, handle[0]);
     }
 
-    private void stop(UUID id, SchedulerAdapter.CancellableTask task) {
+    private void stop(UUID id, dev.zcripted.obx.core.platform.scheduler.CancellableTask task) {
         if (task != null) {
             task.cancel();
         }

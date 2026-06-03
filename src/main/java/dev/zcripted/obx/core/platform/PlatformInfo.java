@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * <p>The Minecraft version is parsed from {@code Bukkit.getBukkitVersion()} (e.g.
  * {@code 1.21.11-R0.1-SNAPSHOT} -&gt; major 1, minor 21, patch 11).
  */
-public final class PlatformInfo {
+public final class PlatformInfo implements Platform {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)(?:\\.(\\d+))?");
 

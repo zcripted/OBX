@@ -40,7 +40,7 @@ public final class EnchantTickTask implements Runnable {
     private final EnchantService service;
     private final EnchantStorage storage;
     private final BoundMovement boundMovement;
-    private SchedulerAdapter.CancellableTask task;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
 
     public EnchantTickTask(ObxPlugin plugin, BoundMovement boundMovement) {
         this.plugin = plugin;

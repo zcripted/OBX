@@ -24,7 +24,7 @@ public class AfkServiceImpl implements Listener, dev.zcripted.obx.api.playerstat
     private final ObxPlugin plugin;
     private final Map<UUID, Long> lastActivity = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> afkState = new ConcurrentHashMap<>();
-    private SchedulerAdapter.CancellableTask ticker;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask ticker;
 
     public AfkServiceImpl(ObxPlugin plugin) {
         this.plugin = plugin;

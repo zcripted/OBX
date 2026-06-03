@@ -111,7 +111,7 @@ public final class ReactiveSpecialsService {
             return;
         }
         final int[] elapsed = {0};
-        final SchedulerAdapter.CancellableTask[] handle = new SchedulerAdapter.CancellableTask[1];
+        final dev.zcripted.obx.core.platform.scheduler.CancellableTask[] handle = new dev.zcripted.obx.core.platform.scheduler.CancellableTask[1];
         handle[0] = scheduler.runRepeating(new Runnable() {
             @Override
             public void run() {
@@ -160,7 +160,7 @@ public final class ReactiveSpecialsService {
             return;
         }
         final int[] elapsed = {0};
-        final SchedulerAdapter.CancellableTask[] handle = new SchedulerAdapter.CancellableTask[1];
+        final dev.zcripted.obx.core.platform.scheduler.CancellableTask[] handle = new dev.zcripted.obx.core.platform.scheduler.CancellableTask[1];
         handle[0] = scheduler.runRepeating(new Runnable() {
             @Override
             public void run() {
@@ -237,7 +237,7 @@ public final class ReactiveSpecialsService {
             return;
         }
         final int[] elapsed = {0};
-        final SchedulerAdapter.CancellableTask[] handle = new SchedulerAdapter.CancellableTask[1];
+        final dev.zcripted.obx.core.platform.scheduler.CancellableTask[] handle = new dev.zcripted.obx.core.platform.scheduler.CancellableTask[1];
         handle[0] = scheduler.runRepeating(new Runnable() {
             @Override
             public void run() {

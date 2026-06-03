@@ -32,7 +32,7 @@ public final class TpsService {
     private long tickCounter;
     private long lastTickNanos;
     private long lastSampleNanos;
-    private SchedulerAdapter.CancellableTask task;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
 
     /**
      * Cached reflection probe for Paper's {@code Server.getAverageTickTime()}, which

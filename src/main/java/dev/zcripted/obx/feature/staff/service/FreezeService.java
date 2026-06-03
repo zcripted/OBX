@@ -20,7 +20,7 @@ public class FreezeService implements Listener {
     private final ObxPlugin plugin;
     private final LanguageManager languages;
     private final Set<UUID> frozen = ConcurrentHashMap.newKeySet();
-    private SchedulerAdapter.CancellableTask reminderTask;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask reminderTask;
 
     public FreezeService(ObxPlugin plugin) {
         this.plugin = plugin;

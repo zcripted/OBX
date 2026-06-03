@@ -17,7 +17,7 @@ public final class ScoreboardRefreshTask {
 
     private final ObxPlugin plugin;
     private final ScoreboardService service;
-    private SchedulerAdapter.CancellableTask task;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
 
     public ScoreboardRefreshTask(ObxPlugin plugin, ScoreboardService service) {
         this.plugin = plugin;

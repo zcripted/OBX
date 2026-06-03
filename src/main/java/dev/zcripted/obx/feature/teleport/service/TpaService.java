@@ -57,7 +57,7 @@ public final class TpaService implements Listener {
     // Players who toggled themselves off — incoming requests bounce.
     private final Set<UUID> toggledOff = ConcurrentHashMap.newKeySet();
 
-    private SchedulerAdapter.CancellableTask sweeper;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask sweeper;
 
     public TpaService(ObxPlugin plugin) {
         this.plugin = plugin;

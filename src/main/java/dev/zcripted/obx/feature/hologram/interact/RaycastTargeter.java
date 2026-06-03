@@ -28,7 +28,7 @@ public final class RaycastTargeter {
     private final ObxPlugin plugin;
     private final HologramService service;
     private final long periodTicks;
-    private SchedulerAdapter.CancellableTask handle;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask handle;
 
     // Tracks the timestamp at which each (player, hologram) hover started.
     private final ConcurrentHashMap<UUID, ConcurrentHashMap<UUID, Long>> hoverStart = new ConcurrentHashMap<>();

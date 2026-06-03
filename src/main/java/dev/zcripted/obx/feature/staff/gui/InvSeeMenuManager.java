@@ -34,7 +34,7 @@ public final class InvSeeMenuManager {
 
     private final ObxPlugin plugin;
     private final Map<UUID, InvSeeMenuHolder> openByViewer = new ConcurrentHashMap<UUID, InvSeeMenuHolder>();
-    private SchedulerAdapter.CancellableTask refreshTask;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask refreshTask;
 
     public InvSeeMenuManager(ObxPlugin plugin) {
         this.plugin = plugin;

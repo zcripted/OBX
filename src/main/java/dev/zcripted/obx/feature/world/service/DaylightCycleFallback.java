@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class DaylightCycleFallback {
 
     private static final Map<UUID, Long> frozenTimes = new ConcurrentHashMap<>();
-    private static volatile SchedulerAdapter.CancellableTask task;
+    private static volatile dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
 
     private DaylightCycleFallback() {
     }

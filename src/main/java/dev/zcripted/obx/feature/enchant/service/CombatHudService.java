@@ -51,7 +51,7 @@ public final class CombatHudService {
     private final ObxPlugin plugin;
     private final Map<UUID, EntitySession> entities = new ConcurrentHashMap<UUID, EntitySession>();
     private final Map<UUID, PlayerHud> playerHuds = new ConcurrentHashMap<UUID, PlayerHud>();
-    private SchedulerAdapter.CancellableTask task;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
     private int ticks;
 
     public CombatHudService(ObxPlugin plugin) {

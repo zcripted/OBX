@@ -18,7 +18,7 @@ public final class TablistRefreshTask {
 
     private final ObxPlugin plugin;
     private final TablistService service;
-    private SchedulerAdapter.CancellableTask task;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
 
     public TablistRefreshTask(ObxPlugin plugin, TablistService service) {
         this.plugin = plugin;

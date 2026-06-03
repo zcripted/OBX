@@ -18,7 +18,7 @@ public class TeleportManagerImpl implements Listener, dev.zcripted.obx.api.telep
 
     private final ObxPlugin plugin;
     private final LanguageManager languages;
-    private final Map<UUID, SchedulerAdapter.CancellableTask> pendingTeleports = new ConcurrentHashMap<>();
+    private final Map<UUID, dev.zcripted.obx.core.platform.scheduler.CancellableTask> pendingTeleports = new ConcurrentHashMap<>();
 
     public TeleportManagerImpl(ObxPlugin plugin, LanguageManager languages) {
         this.plugin = plugin;
@@ -46,7 +46,7 @@ public class TeleportManagerImpl implements Listener, dev.zcripted.obx.api.telep
         if (sendMessages) {
             languages.send(player, "teleport.warmup.start", Placeholders.merge(effectivePlaceholders, "seconds", warmupSeconds));
         }
-        SchedulerAdapter.CancellableTask task = plugin.getSchedulerAdapter().runAtEntity(player, () -> {
+        dev.zcripted.obx.core.platform.scheduler.CancellableTask task = plugin.getSchedulerAdapter().runAtEntity(player, () -> {
             pendingTeleports.remove(uuid);
             player.teleport(destination);
             if (sendMessages && messagePath != null) {
@@ -58,13 +58,13 @@ public class TeleportManagerImpl implements Listener, dev.zcripted.obx.api.telep
         if (task != null) {
             task.cancel();
         }
-        SchedulerAdapter.CancellableTask delayed = scheduleDelayedTeleport(player, destination, messagePath, effectivePlaceholders, warmupSeconds, sendMessages, uuid);
+        dev.zcripted.obx.core.platform.scheduler.CancellableTask delayed = scheduleDelayedTeleport(player, destination, messagePath, effectivePlaceholders, warmupSeconds, sendMessages, uuid);
         if (delayed != null) {
             pendingTeleports.put(uuid, delayed);
         }
     }
 
-    private SchedulerAdapter.CancellableTask scheduleDelayedTeleport(final Player player, final Location destination,
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask scheduleDelayedTeleport(final Player player, final Location destination,
                                                                      final String messagePath, final Map<String, String> placeholders,
                                                                      int warmupSeconds, final boolean sendMessages, final UUID uuid) {
         final long delayTicks = warmupSeconds * 20L;
@@ -88,7 +88,7 @@ public class TeleportManagerImpl implements Listener, dev.zcripted.obx.api.telep
     }
 
     public void cancelAll() {
-        for (SchedulerAdapter.CancellableTask task : pendingTeleports.values()) {
+        for (dev.zcripted.obx.core.platform.scheduler.CancellableTask task : pendingTeleports.values()) {
             if (task != null) {
                 task.cancel();
             }
@@ -97,7 +97,7 @@ public class TeleportManagerImpl implements Listener, dev.zcripted.obx.api.telep
     }
 
     private void cancelExisting(UUID uuid) {
-        SchedulerAdapter.CancellableTask pending = pendingTeleports.remove(uuid);
+        dev.zcripted.obx.core.platform.scheduler.CancellableTask pending = pendingTeleports.remove(uuid);
         if (pending != null) {
             pending.cancel();
         }

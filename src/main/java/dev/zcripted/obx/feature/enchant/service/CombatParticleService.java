@@ -20,21 +20,21 @@ public final class CombatParticleService {
 
     private final ObxPlugin plugin;
     /** Live timed-effect tasks, tracked so a flaky cancel can never leak them past disable. */
-    private final java.util.Set<SchedulerAdapter.CancellableTask> active =
-            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<SchedulerAdapter.CancellableTask, Boolean>());
+    private final java.util.Set<dev.zcripted.obx.core.platform.scheduler.CancellableTask> active =
+            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<dev.zcripted.obx.core.platform.scheduler.CancellableTask, Boolean>());
 
     public CombatParticleService(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 
-    private void track(SchedulerAdapter.CancellableTask task) {
+    private void track(dev.zcripted.obx.core.platform.scheduler.CancellableTask task) {
         if (task != null) {
             active.add(task);
         }
     }
 
     /** Cancels and forgets a finished timed effect. Safe to call repeatedly. */
-    private void stop(SchedulerAdapter.CancellableTask task) {
+    private void stop(dev.zcripted.obx.core.platform.scheduler.CancellableTask task) {
         if (task != null) {
             task.cancel();
             active.remove(task);
@@ -43,7 +43,7 @@ public final class CombatParticleService {
 
     /** Cancels every live timed effect (call on plugin disable). */
     public void clear() {
-        for (SchedulerAdapter.CancellableTask task : active) {
+        for (dev.zcripted.obx.core.platform.scheduler.CancellableTask task : active) {
             try {
                 task.cancel();
             } catch (Throwable ignored) {
@@ -145,7 +145,7 @@ public final class CombatParticleService {
         }
         final int ticks = Math.max(2, durationTicks);
         final int[] elapsed = {0};
-        final SchedulerAdapter.CancellableTask[] handle = new SchedulerAdapter.CancellableTask[1];
+        final dev.zcripted.obx.core.platform.scheduler.CancellableTask[] handle = new dev.zcripted.obx.core.platform.scheduler.CancellableTask[1];
         handle[0] = scheduler.runRepeating(new Runnable() {
             @Override
             public void run() {
@@ -180,7 +180,7 @@ public final class CombatParticleService {
         }
         final int ticks = Math.max(2, durationTicks);
         final int[] elapsed = {0};
-        final SchedulerAdapter.CancellableTask[] handle = new SchedulerAdapter.CancellableTask[1];
+        final dev.zcripted.obx.core.platform.scheduler.CancellableTask[] handle = new dev.zcripted.obx.core.platform.scheduler.CancellableTask[1];
         handle[0] = scheduler.runRepeating(new Runnable() {
             @Override
             public void run() {

@@ -35,7 +35,7 @@ public final class LaunchpadCooldownManager {
     private final Map<UUID, Long> cooldownEndMillis = new ConcurrentHashMap<>();
     private final Map<UUID, Long> launchExpiryMillis = new ConcurrentHashMap<>();
 
-    private SchedulerAdapter.CancellableTask refreshTask;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask refreshTask;
 
     public LaunchpadCooldownManager(ObxPlugin plugin, HubService hubService) {
         this.plugin = plugin;

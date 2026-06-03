@@ -106,7 +106,7 @@ public class VanishManager implements Listener, dev.zcripted.obx.api.staff.Vanis
     private final Method hidePlayerLegacy;
     private final Method showPlayerLegacy;
 
-    private SchedulerAdapter.CancellableTask actionBarTask;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask actionBarTask;
 
     public VanishManager(ObxPlugin plugin) {
         this.plugin = plugin;

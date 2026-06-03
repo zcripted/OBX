@@ -21,7 +21,7 @@ public final class TickLoop {
     private final ObxPlugin plugin;
     private final HologramRenderer renderer;
     private final long periodTicks;
-    private SchedulerAdapter.CancellableTask handle;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask handle;
 
     public TickLoop(ObxPlugin plugin, HologramRenderer renderer, long periodTicks) {
         this.plugin = plugin;

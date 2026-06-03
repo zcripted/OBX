@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * <p>The returned {@link CancellableTask} is intentionally minimal so callers don't have
  * to import {@link BukkitTask} (which doesn't exist on Folia for these methods).
  */
-public final class SchedulerAdapter {
+public final class SchedulerAdapter implements Scheduler {
 
     private final Plugin plugin;
     private final boolean folia;
@@ -139,17 +139,6 @@ public final class SchedulerAdapter {
 
     private static CancellableTask wrapFolia(Object foliaTask) {
         return new FoliaCancellableTask(foliaTask);
-    }
-
-    /**
-     * Minimal task handle returned by all scheduler methods. The Bukkit and Folia task
-     * types share no common interface, so this wrapper exposes the operations OBX
-     * actually needs (cancel + isCancelled).
-     */
-    public interface CancellableTask {
-        void cancel();
-
-        boolean isCancelled();
     }
 
     private static final class BukkitCancellableTask implements CancellableTask {

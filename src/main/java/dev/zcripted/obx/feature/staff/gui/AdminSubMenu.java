@@ -1159,7 +1159,7 @@ public final class AdminSubMenu {
         plugin.getLanguageManager().broadcast("admin.restart.countdown-start", placeholders);
 
         final int[] remaining = {seconds};
-        final dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter.CancellableTask[] taskRef = new dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter.CancellableTask[1];
+        final dev.zcripted.obx.core.platform.scheduler.CancellableTask[] taskRef = new dev.zcripted.obx.core.platform.scheduler.CancellableTask[1];
         Runnable tick = () -> {
             if (remaining[0] <= 0) {
                 placeholders.put("seconds", "0");

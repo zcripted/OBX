@@ -24,7 +24,7 @@ public final class AdminMenuRefreshTask {
     private static final long PERIOD_TICKS = 10L;
 
     private final ObxPlugin plugin;
-    private SchedulerAdapter.CancellableTask task;
+    private dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
 
     public AdminMenuRefreshTask(ObxPlugin plugin) {
         this.plugin = plugin;
