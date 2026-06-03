@@ -36,7 +36,7 @@
 -dontnote jdk.internal.jimage.**
 -dontnote jdk.internal.jrtfs.**
 -dontnote dev.zcripted.obx.feature.staff.gui.AdminSubMenu
--dontnote dev.zcripted.obx.feature.warp.gui.WarpMenuStyling
+-dontnote dev.zcripted.obx.core.gui.WarpMenuStyling
 -dontnote dev.zcripted.obx.util.text.ComponentMessenger
 -dontnote org.bukkit.scheduler.**
 -dontwarn java.**

@@ -1,6 +1,13 @@
+import proguard.gradle.ProGuardTask
+
+buildscript {
+    repositories { mavenCentral() }
+    dependencies { classpath("com.guardsquare:proguard-gradle:7.5.0") }
+}
+
 // :plugin — the aggregator. Holds the thin OBX bootstrap + resources, depends on
-// core + every feature, and Shadow-merges them all into one jar. ProGuard runs on
-// the merged jar in Phase 5 to produce the obfuscated + unobfuscated artifacts.
+// core + every feature. Shadow merges them into one jar; ProGuard then obfuscates
+// that merged jar, producing the shippable obfuscated + unobfuscated artifacts.
 plugins {
     id("obx.java-conventions")
     alias(libs.plugins.shadow)
@@ -16,12 +23,34 @@ dependencies {
     ).forEach { implementation(project(":features:$it")) }
 }
 
+// Shadow produces the UNOBFUSCATED merged jar: OBX-<version>-unobf.jar
 tasks.shadowJar {
     archiveBaseName.set("OBX")
-    archiveClassifier.set("")
+    archiveClassifier.set("unobf")
     archiveVersion.set(project.version.toString())
 }
 
+// ProGuard reads the shaded jar and writes the OBFUSCATED jar: OBX-<version>.jar
+tasks.register<ProGuardTask>("proguard") {
+    group = "build"
+    description = "Obfuscates the Shadow-merged jar into the shippable OBX jar."
+
+    dependsOn(tasks.shadowJar)
+    injars(tasks.shadowJar.get().archiveFile.get().asFile)
+    outjars(layout.buildDirectory.file("libs/OBX-${project.version}.jar").get().asFile)
+
+    // Library classpath: the JDK base module + the provided server APIs (not shaded).
+    libraryjars(
+        mapOf("jarfilter" to "!**.jar", "filter" to "!module-info.class"),
+        "${System.getProperty("java.home")}/jmods/java.base.jmod",
+    )
+    libraryjars(configurations.named("compileClasspath"))
+
+    configuration(rootProject.file("proguard.pro"))
+    printmapping(layout.buildDirectory.file("proguard/mapping.txt").get().asFile)
+}
+
+// `build` produces both jars (ProGuard depends on Shadow).
 tasks.named("build") {
-    dependsOn(tasks.named("shadowJar"))
+    dependsOn("proguard")
 }
