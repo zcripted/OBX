@@ -138,8 +138,6 @@ public class OBX extends JavaPlugin {
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
-    private dev.zcripted.obx.feature.hologram.service.HologramService hologramService;
-    private dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu hologramEditorMenu;
     private String releaseDate = "Unknown";
     private long lastLoadDurationMs;
     private final dev.zcripted.obx.core.service.ServiceRegistry serviceRegistry = new dev.zcripted.obx.core.service.ServiceRegistry();
@@ -177,12 +175,6 @@ public class OBX extends JavaPlugin {
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
 
-        // Holograms module. Dormant when systems/holograms.yml master enabled=false.
-        // Renders via real display entities on 1.19.4+, armor-stand fallback below.
-        hologramService = new dev.zcripted.obx.feature.hologram.service.HologramService(this);
-        hologramService.load();
-        hologramEditorMenu = new dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu(this);
-
         registerModules();
         moduleManager.enableAll();
 
@@ -203,10 +195,6 @@ public class OBX extends JavaPlugin {
         }
         if (dataService != null) {
             dataService.save();
-        }
-        if (hologramService != null) {
-            hologramService.shutdown();
-            hologramService.save();
         }
         printBanner(false);
     }
@@ -392,7 +380,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.hologram.service.HologramService getHologramService() {
-        return hologramService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.hologram.service.HologramService.class);
     }
 
     /**
@@ -428,9 +416,6 @@ public class OBX extends JavaPlugin {
             resourcePackManager.prepareHosting();
             times.put("resource-pack", System.nanoTime() - s);
         }
-        if (hologramService != null) {
-            s = System.nanoTime(); hologramService.reload(); times.put("holograms.yml", System.nanoTime() - s);
-        }
         s = System.nanoTime(); moduleManager.reloadAll(); times.put("modules", System.nanoTime() - s);
         return times;
     }
@@ -462,6 +447,7 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.staff.StaffModule());
         moduleManager.register(new dev.zcripted.obx.feature.hub.HubModule());
         moduleManager.register(new dev.zcripted.obx.feature.enchant.EnchantModule());
+        moduleManager.register(new dev.zcripted.obx.feature.hologram.HologramModule());
     }
 
     private void registerCommands() {
@@ -471,7 +457,6 @@ public class OBX extends JavaPlugin {
         bind("pl", new PluginListCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
-        bind("holo", new dev.zcripted.obx.feature.hologram.command.HologramCommand(this, hologramService));
     }
 
     private void registerListeners() {
@@ -485,19 +470,10 @@ public class OBX extends JavaPlugin {
         // so register for it explicitly — without this the server-list hover
         // (player sample) never gets set on Paper. No-op on base Spigot.
         motdPingListener.registerPaperPingListener();
-
-
-        // Holograms module listeners — re-shows holograms on join / respawn / world-change / resource-pack reload.
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.hologram.listener.HologramJoinListener(this, hologramService), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.hologram.listener.HologramResourcePackListener(this, hologramService), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.hologram.listener.HologramConnectionListener(this, hologramService), this);
-        if (hologramEditorMenu != null) {
-            getServer().getPluginManager().registerEvents(hologramEditorMenu, this);
-        }
     }
 
     public dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu getHologramEditorMenu() {
-        return hologramEditorMenu;
+        return serviceRegistry.get(dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu.class);
     }
 
     private void bind(String name, CommandExecutor executor) {
