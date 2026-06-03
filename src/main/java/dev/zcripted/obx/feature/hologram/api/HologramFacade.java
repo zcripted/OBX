@@ -1,4 +1,4 @@
-package dev.zcripted.obx.api.hologram;
+package dev.zcripted.obx.feature.hologram.api;
 
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.hologram.model.Hologram;
@@ -37,7 +37,7 @@ public final class HologramFacade {
             return null;
         }
         ObxPlugin main = (ObxPlugin) loaded;
-        HologramService svc = main.getHologramService();
+        HologramService svc = main.getServiceRegistry().get(dev.zcripted.obx.feature.hologram.service.HologramService.class);
         if (svc == null) {
             return null;
         }

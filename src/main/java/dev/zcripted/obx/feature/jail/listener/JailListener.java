@@ -27,7 +27,7 @@ public class JailListener implements Listener {
 
     public JailListener(ObxPlugin plugin) {
         this.plugin = plugin;
-        this.jailService = plugin.getJailService();
+        this.jailService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.jail.service.JailService.class);
         this.languages = plugin.getLanguageManager();
     }
 

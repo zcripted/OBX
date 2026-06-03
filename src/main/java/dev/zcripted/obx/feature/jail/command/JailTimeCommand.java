@@ -24,7 +24,7 @@ public class JailTimeCommand extends AbstractObxCommand implements TabCompleter 
 
     public JailTimeCommand(ObxPlugin plugin) {
         super(plugin);
-        this.jailService = plugin.getJailService();
+        this.jailService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.jail.service.JailService.class);
     }
 
     @Override

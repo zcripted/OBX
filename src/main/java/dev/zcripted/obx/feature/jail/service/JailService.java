@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.jail.service;
 
-import dev.zcripted.obx.feature.jail.model.Jail;
+import dev.zcripted.obx.api.jail.Jail;
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.storage.LocationSerializer;
 import dev.zcripted.obx.core.storage.SqliteDataStore;
@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class JailService {
+public class JailService implements dev.zcripted.obx.api.jail.JailApi {
 
     public static final class JailState {
         private final UUID uuid;

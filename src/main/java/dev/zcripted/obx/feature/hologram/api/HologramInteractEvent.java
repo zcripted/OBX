@@ -1,4 +1,4 @@
-package dev.zcripted.obx.api.hologram;
+package dev.zcripted.obx.feature.hologram.api;
 
 import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.packet.InteractDecoder;

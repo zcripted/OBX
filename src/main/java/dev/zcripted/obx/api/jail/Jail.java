@@ -1,4 +1,4 @@
-package dev.zcripted.obx.feature.jail.model;
+package dev.zcripted.obx.api.jail;
 
 import org.bukkit.Location;
 

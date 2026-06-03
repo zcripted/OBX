@@ -40,8 +40,8 @@ public final class InteractionDispatcher {
         }
         // Phase 7 public API event — third-party plugins can cancel this to
         // suppress the configured command.
-        dev.zcripted.obx.api.hologram.HologramInteractEvent event =
-                new dev.zcripted.obx.api.hologram.HologramInteractEvent(hologram, viewer, decoded.action);
+        dev.zcripted.obx.feature.hologram.api.HologramInteractEvent event =
+                new dev.zcripted.obx.feature.hologram.api.HologramInteractEvent(hologram, viewer, decoded.action);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             return;

@@ -104,11 +104,11 @@ public final class AdminSubMenu {
         holder.setInventory(inventory);
         fillWithFiller(inventory);
 
-        int jailCount = plugin.getJailService() == null ? 0 : plugin.getJailService().getJails().size();
+        int jailCount = plugin.getServiceRegistry().get(dev.zcripted.obx.api.jail.JailApi.class) == null ? 0 : plugin.getServiceRegistry().get(dev.zcripted.obx.api.jail.JailApi.class).getJails().size();
         StringBuilder jailList = new StringBuilder();
-        if (plugin.getJailService() != null) {
+        if (plugin.getServiceRegistry().get(dev.zcripted.obx.api.jail.JailApi.class) != null) {
             int i = 0;
-            for (dev.zcripted.obx.feature.jail.model.Jail jail : plugin.getJailService().getJails()) {
+            for (dev.zcripted.obx.api.jail.Jail jail : plugin.getServiceRegistry().get(dev.zcripted.obx.api.jail.JailApi.class).getJails()) {
                 if (i++ > 0) jailList.append(", ");
                 jailList.append(jail.getName());
             }

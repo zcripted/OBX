@@ -19,7 +19,7 @@ public class SetJailCommand extends AbstractObxCommand implements TabCompleter {
 
     public SetJailCommand(ObxPlugin plugin) {
         super(plugin);
-        this.jailService = plugin.getJailService();
+        this.jailService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.jail.service.JailService.class);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class SetJailCommand extends AbstractObxCommand implements TabCompleter {
         }
         String prefix = args[0].toLowerCase();
         List<String> matches = new java.util.ArrayList<>();
-        for (dev.zcripted.obx.feature.jail.model.Jail jail : jailService.getJails()) {
+        for (dev.zcripted.obx.api.jail.Jail jail : jailService.getJails()) {
             if (jail.getName().toLowerCase().startsWith(prefix)) matches.add(jail.getName());
         }
         return matches;

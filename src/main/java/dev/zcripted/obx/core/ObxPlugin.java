@@ -62,14 +62,12 @@ public interface ObxPlugin extends Plugin {
 
     dev.zcripted.obx.api.scoreboard.ScoreboardService getScoreboardService();
 
-    dev.zcripted.obx.feature.jail.service.JailService getJailService();
 
 
     dev.zcripted.obx.api.hub.HubKitApplier getHubKitApplier();
 
     dev.zcripted.obx.api.hub.HubItemUseListener getHubItemUseListener();
 
-    dev.zcripted.obx.feature.hologram.service.HologramService getHologramService();
 
     // ── OBX-specific operations not on Bukkit's Plugin interface ──────────────
     /** {@link org.bukkit.plugin.java.JavaPlugin#getCommand(String)} — declared here since {@link Plugin} lacks it. */

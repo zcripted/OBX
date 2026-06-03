@@ -27,6 +27,7 @@ public final class JailModule extends AbstractModule {
     @Override
     protected void onEnable(ObxPlugin plugin) {
         JailService service = service(JailService.class, new JailService(plugin));
+        service(dev.zcripted.obx.api.jail.JailApi.class, service);
         service.load();
         command("jail", new JailCommand(plugin));
         command("unjail", new UnjailCommand(plugin));
@@ -34,7 +35,7 @@ public final class JailModule extends AbstractModule {
         command("setjail", new SetJailCommand(plugin));
         command("deljail", new DelJailCommand(plugin));
         command("jailtime", new JailTimeCommand(plugin));
-        // Confinement listener — resolves JailService via plugin.getJailService(),
+        // Confinement listener — resolves JailService via plugin.getServiceRegistry().get(dev.zcripted.obx.feature.jail.service.JailService.class),
         // so it must be constructed after the service is registered above.
         listener(new JailListener(plugin));
     }

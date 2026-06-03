@@ -22,7 +22,7 @@ public class UnjailCommand extends AbstractObxCommand implements TabCompleter {
 
     public UnjailCommand(ObxPlugin plugin) {
         super(plugin);
-        this.jailService = plugin.getJailService();
+        this.jailService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.jail.service.JailService.class);
     }
 
     @Override
