@@ -21,6 +21,7 @@ public final class ModerationModule extends AbstractModule {
     @Override
     protected void onEnable(ObxPlugin plugin) {
         ModerationService service = service(ModerationService.class, new ModerationService(plugin));
+        service(dev.zcripted.obx.api.moderation.ModerationApi.class, service);
         service.load();
         command("ban", new ModerationCommand(plugin, ModerationCommand.Action.BAN));
         command("unban", new ModerationCommand(plugin, ModerationCommand.Action.UNBAN));
@@ -36,7 +37,7 @@ public final class ModerationModule extends AbstractModule {
 
     @Override
     public void reload(ObxPlugin plugin) {
-        ModerationService service = plugin.getModerationService();
+        ModerationService service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.moderation.service.ModerationService.class);
         if (service != null) {
             service.reload();
         }

@@ -29,6 +29,7 @@ public final class HubModule extends AbstractModule {
     @Override
     protected void onEnable(ObxPlugin plugin) {
         HubService hub = service(HubService.class, new HubService(plugin));
+        service(dev.zcripted.obx.api.hub.HubApi.class, hub);
         hub.load();
         HubKitApplier kitApplier = service(HubKitApplier.class, new dev.zcripted.obx.feature.hub.kit.HubKitApplierImpl(plugin, hub));
         LaunchpadCooldownManager launchpad = service(LaunchpadCooldownManager.class, new LaunchpadCooldownManager(plugin, hub));
@@ -56,7 +57,7 @@ public final class HubModule extends AbstractModule {
 
     @Override
     public void reload(ObxPlugin plugin) {
-        HubService hub = plugin.getHubService();
+        HubService hub = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.hub.service.HubService.class);
         if (hub != null) {
             hub.reload();
         }

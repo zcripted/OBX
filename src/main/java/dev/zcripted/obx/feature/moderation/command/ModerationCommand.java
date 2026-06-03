@@ -52,7 +52,7 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
 
     public ModerationCommand(ObxPlugin plugin, Action action) {
         super(plugin);
-        this.moderationService = plugin.getModerationService();
+        this.moderationService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.moderation.service.ModerationService.class);
         this.action = action;
     }
 

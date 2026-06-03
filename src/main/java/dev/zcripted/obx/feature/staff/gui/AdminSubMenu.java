@@ -445,13 +445,13 @@ public final class AdminSubMenu {
         holder.setInventory(inventory);
         fillWithFiller(inventory);
 
-        boolean hubEnabled = plugin.getHubService() != null && plugin.getHubService().isEnabled();
-        List<String> worlds = plugin.getHubService() == null
+        boolean hubEnabled = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isEnabled();
+        List<String> worlds = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) == null
                 ? java.util.Collections.<String>emptyList()
-                : plugin.getHubService().getHubWorlds();
+                : plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).getHubWorlds();
         int worldCount = worlds.size();
         String worldSummary = worldCount == 0 ? "—" : String.join(", ", worlds);
-        int cdSeconds = plugin.getHubService() == null ? 3 : plugin.getHubService().launchpadCooldownSeconds();
+        int cdSeconds = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) == null ? 3 : plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).launchpadCooldownSeconds();
 
         place(inventory, 10, createMenuItem(
                 new String[]{hubEnabled ? "LIME_DYE" : "GRAY_DYE", "INK_SACK", "DYE"},
@@ -499,8 +499,8 @@ public final class AdminSubMenu {
         place(inventory, 23, createMenuItem(new String[]{"FISHING_ROD"}, ChatColor.DARK_PURPLE + "Jump-To Rod",
                 loreLines(
                         statusLine("Enabled",
-                                plugin.getHubService() != null
-                                        && plugin.getHubService().isItemEnabled(
+                                plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null
+                                        && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isItemEnabled(
                                                 dev.zcripted.obx.feature.hub.item.HubItems.ID_JUMP_ROD)),
                         ChatColor.GRAY + "Edit in systems/hub.yml → items.jump-rod"
                 )));
@@ -509,8 +509,8 @@ public final class AdminSubMenu {
                 ChatColor.DARK_PURPLE + "Players-Visibility Toggle",
                 loreLines(
                         statusLine("Enabled",
-                                plugin.getHubService() != null
-                                        && plugin.getHubService().isItemEnabled(
+                                plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null
+                                        && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isItemEnabled(
                                                 dev.zcripted.obx.feature.hub.item.HubItems.ID_VANISH_ALL)),
                         ChatColor.GRAY + "Edit in systems/hub.yml → items.vanish-all"
                 )));
@@ -527,12 +527,12 @@ public final class AdminSubMenu {
      */
     public static void handleHubMenuClick(ObxPlugin plugin, Player player, int slot,
                                           org.bukkit.event.inventory.ClickType click) {
-        if (plugin.getHubService() == null) {
+        if (plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) == null) {
             return;
         }
         switch (slot) {
             case 10: {
-                boolean next = plugin.getHubService().toggleEnabled();
+                boolean next = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).toggleEnabled();
                 if (next) {
                     if (plugin.getHubKitApplier() != null) {
                         plugin.getHubKitApplier().applyToAllInHubWorlds();
@@ -558,12 +558,12 @@ public final class AdminSubMenu {
                 placeholders.put("world", worldName);
                 if (click == org.bukkit.event.inventory.ClickType.RIGHT
                         || click == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) {
-                    boolean removed = plugin.getHubService().removeHubWorld(worldName);
+                    boolean removed = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).removeHubWorld(worldName);
                     plugin.getLanguageManager().send(player,
                             removed ? "hub.admin.world.removed" : "hub.admin.world.not-listed",
                             placeholders);
                 } else {
-                    boolean added = plugin.getHubService().addHubWorld(worldName);
+                    boolean added = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).addHubWorld(worldName);
                     plugin.getLanguageManager().send(player,
                             added ? "hub.admin.world.added" : "hub.admin.world.already-listed",
                             placeholders);
@@ -576,7 +576,7 @@ public final class AdminSubMenu {
                 dev.zcripted.obx.feature.hub.gui.ServerSelectorMenu.open(plugin, player);
                 return;
             case 16:
-                plugin.getHubService().reload();
+                plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).reload();
                 plugin.getLanguageManager().send(player, "hub.admin.reloaded");
                 openHubMenu(plugin, player);
                 return;
@@ -1433,7 +1433,7 @@ public final class AdminSubMenu {
                 case JOIN_MOTD:
                     return plugin.getJoinLeaveService() != null && plugin.getJoinLeaveService().isJoinMotdEnabled();
                 case HUB:
-                    return plugin.getHubService() != null && plugin.getHubService().isEnabled();
+                    return plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isEnabled();
                 default:
                     return false;
             }
@@ -1460,7 +1460,7 @@ public final class AdminSubMenu {
                     if (plugin.getJoinLeaveService() != null) plugin.getJoinLeaveService().setJoinMotdEnabled(value);
                     break;
                 case HUB:
-                    if (plugin.getHubService() != null) plugin.getHubService().setEnabled(value);
+                    if (plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null) plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).setEnabled(value);
                     break;
                 default:
                     break;

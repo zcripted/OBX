@@ -18,7 +18,7 @@ public class BanListCommand extends AbstractObxCommand {
 
     public BanListCommand(ObxPlugin plugin) {
         super(plugin);
-        this.moderationService = plugin.getModerationService();
+        this.moderationService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.moderation.service.ModerationService.class);
     }
 
     @Override

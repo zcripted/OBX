@@ -27,7 +27,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * <p>Hub-mode is per-world (the {@code worlds} list). Outside those worlds
  * the entire system is dormant — listeners early-exit before doing work.
  */
-public final class HubService {
+public final class HubService implements dev.zcripted.obx.api.hub.HubApi {
 
     private static final String RESOURCE_PATH = "systems/hub.yml";
 

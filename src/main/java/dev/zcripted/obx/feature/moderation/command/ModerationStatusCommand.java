@@ -28,7 +28,7 @@ public class ModerationStatusCommand extends AbstractObxCommand implements TabCo
 
     public ModerationStatusCommand(ObxPlugin plugin) {
         super(plugin);
-        this.moderationService = plugin.getModerationService();
+        this.moderationService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.moderation.service.ModerationService.class);
     }
 
     @Override

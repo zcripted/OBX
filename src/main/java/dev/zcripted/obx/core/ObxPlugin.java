@@ -53,7 +53,6 @@ public interface ObxPlugin extends Plugin {
     dev.zcripted.obx.api.playerstate.AfkService getAfkService();
 
 
-    dev.zcripted.obx.feature.moderation.service.ModerationService getModerationService();
 
     dev.zcripted.obx.api.playerinfo.JoinLeaveService getJoinLeaveService();
 
@@ -65,7 +64,6 @@ public interface ObxPlugin extends Plugin {
 
     dev.zcripted.obx.feature.jail.service.JailService getJailService();
 
-    dev.zcripted.obx.feature.hub.service.HubService getHubService();
 
     dev.zcripted.obx.api.hub.HubKitApplier getHubKitApplier();
 

@@ -250,7 +250,7 @@ public final class StaffMenu {
     private static ItemStack buildPlayerHead(ObxPlugin plugin, Player viewer, LanguageRegistry registry,
                                              Player subject, String keyPrefix) {
         LanguageManager languages = plugin.getLanguageManager();
-        ModerationService moderation = plugin.getModerationService();
+        ModerationService moderation = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.moderation.service.ModerationService.class);
         StaffSessionTracker tracker = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.service.StaffSessionTracker.class);
 
         String firstJoined = formatJoinDate(subject);

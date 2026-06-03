@@ -125,8 +125,8 @@ public final class AdminMenu {
         ItemStack hubControls = new ItemStack(hubMaterial);
         ItemMeta hubMeta = hubControls.getItemMeta();
         if (hubMeta != null) {
-            boolean hubEnabled = plugin.getHubService() != null && plugin.getHubService().isEnabled();
-            int worldCount = plugin.getHubService() == null ? 0 : plugin.getHubService().getHubWorlds().size();
+            boolean hubEnabled = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isEnabled();
+            int worldCount = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) == null ? 0 : plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).getHubWorlds().size();
             if (canManageHub) {
                 hubMeta.setDisplayName(WarpMenuStyling.gradientTitle("Hub / Lobby Controls"));
                 hubMeta.setLore(Arrays.asList(

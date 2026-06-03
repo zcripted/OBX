@@ -40,9 +40,9 @@ public final class ChatManagementListener implements Listener {
     public void onChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
 
-        if (plugin.getModerationService() != null && plugin.getModerationService().isMuted(player.getName())) {
+        if (plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class) != null && plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class).isMuted(player.getName())) {
             event.setCancelled(true);
-            String reason = plugin.getModerationService().getMuteReason(player.getName());
+            String reason = plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class).getMuteReason(player.getName());
             plugin.getLanguageManager().send(player, "player.moderation.mute.chat-blocked", Placeholders.with("reason", reason));
             return;
         }

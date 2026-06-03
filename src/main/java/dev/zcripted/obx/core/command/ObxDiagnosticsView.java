@@ -50,8 +50,8 @@ class ObxDiagnosticsView {
             plugin.reloadConfig();
             languages.reload();
             plugin.getDataService().reload();
-            if (plugin.getModerationService() != null) {
-                plugin.getModerationService().reload();
+            if (plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class) != null) {
+                plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class).reload();
             }
             if (plugin.getMotdService() != null) {
                 plugin.getMotdService().reload();

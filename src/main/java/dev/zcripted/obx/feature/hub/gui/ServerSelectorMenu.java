@@ -40,7 +40,7 @@ public final class ServerSelectorMenu {
      * click and the inventory appearing.
      */
     public static void open(ObxPlugin plugin, Player player) {
-        HubService hub = plugin.getHubService();
+        HubService hub = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.hub.service.HubService.class);
         BungeeMessenger messenger = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.hub.messaging.BungeeMessenger.class);
         if (hub == null) {
             return;

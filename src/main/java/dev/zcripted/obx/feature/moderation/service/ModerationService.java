@@ -35,7 +35,7 @@ import java.util.UUID;
  * SQLite on first boot (and the file renamed). All external API entry points
  * stayed the same so command/GUI callers don't need updates.
  */
-public class ModerationService {
+public class ModerationService implements dev.zcripted.obx.api.moderation.ModerationApi {
     private static final String DEFAULT_REASON = "No reason provided.";
     private static final String DEFAULT_TEMPBAN_DURATION = "7d";
     private static final long DEFAULT_TEMPBAN_MILLIS = 7L * 24L * 60L * 60L * 1000L;
