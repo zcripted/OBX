@@ -1,0 +1,44 @@
+package dev.zcripted.obx.feature.moderation;
+
+import dev.zcripted.obx.OBX;
+import dev.zcripted.obx.core.module.AbstractModule;
+import dev.zcripted.obx.feature.moderation.command.BanListCommand;
+import dev.zcripted.obx.feature.moderation.command.ModerationCommand;
+import dev.zcripted.obx.feature.moderation.command.ModerationStatusCommand;
+import dev.zcripted.obx.feature.moderation.service.ModerationService;
+
+/**
+ * Moderation feature: ban/unban/kick/mute/unmute/tempban/warn + banlist/status,
+ * backed by {@link ModerationService}.
+ */
+public final class ModerationModule extends AbstractModule {
+
+    @Override
+    public String id() {
+        return "moderation";
+    }
+
+    @Override
+    protected void onEnable(OBX plugin) {
+        ModerationService service = service(ModerationService.class, new ModerationService(plugin));
+        service.load();
+        command("ban", new ModerationCommand(plugin, ModerationCommand.Action.BAN));
+        command("unban", new ModerationCommand(plugin, ModerationCommand.Action.UNBAN));
+        command("kick", new ModerationCommand(plugin, ModerationCommand.Action.KICK));
+        command("mute", new ModerationCommand(plugin, ModerationCommand.Action.MUTE));
+        command("unmute", new ModerationCommand(plugin, ModerationCommand.Action.UNMUTE));
+        command("tempban", new ModerationCommand(plugin, ModerationCommand.Action.TEMPBAN));
+        command("warn", new ModerationCommand(plugin, ModerationCommand.Action.WARN));
+        command("banlist", new BanListCommand(plugin));
+        command("status", new ModerationStatusCommand(plugin));
+        onDisable(service::save);
+    }
+
+    @Override
+    public void reload(OBX plugin) {
+        ModerationService service = plugin.getModerationService();
+        if (service != null) {
+            service.reload();
+        }
+    }
+}
