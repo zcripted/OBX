@@ -34,7 +34,7 @@ public class VanishCommand extends AbstractObxCommand implements TabCompleter {
 
     public VanishCommand(ObxPlugin plugin) {
         super(plugin);
-        this.vanishManager = plugin.getVanishManager();
+        this.vanishManager = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.service.VanishManager.class);
     }
 
     @Override

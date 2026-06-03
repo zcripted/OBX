@@ -59,8 +59,8 @@ public class WhoisCommand extends AbstractObxCommand implements TabCompleter {
             placeholders.put("health", String.format("%.1f", online.getHealth()));
             placeholders.put("food", String.valueOf(online.getFoodLevel()));
             placeholders.put("xpLevel", String.valueOf(online.getLevel()));
-            placeholders.put("vanished", plugin.getVanishManager() != null
-                    && plugin.getVanishManager().isVanished(online.getUniqueId()) ? "yes" : "no");
+            placeholders.put("vanished", plugin.getServiceRegistry().get(dev.zcripted.obx.api.staff.VanishApi.class) != null
+                    && plugin.getServiceRegistry().get(dev.zcripted.obx.api.staff.VanishApi.class).isVanished(online.getUniqueId()) ? "yes" : "no");
             placeholders.put("afk", plugin.getAfkService() != null
                     && plugin.getAfkService().isAfk(online.getUniqueId()) ? "yes" : "no");
             languages.send(sender, "info.whois.online", placeholders);

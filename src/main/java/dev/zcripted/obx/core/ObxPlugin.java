@@ -52,7 +52,6 @@ public interface ObxPlugin extends Plugin {
 
     dev.zcripted.obx.api.playerstate.AfkService getAfkService();
 
-    dev.zcripted.obx.feature.staff.service.VanishManager getVanishManager();
 
     dev.zcripted.obx.feature.moderation.service.ModerationService getModerationService();
 

@@ -71,7 +71,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * having to reopen any menu — the "clean / modern / organized" running
  * indicator the design calls for.
  */
-public class VanishManager implements Listener {
+public class VanishManager implements Listener, dev.zcripted.obx.api.staff.VanishApi {
 
     /** Permission strings — kept centralised so command + manager agree. */
     public static final String PERM_VANISH = "obx.vanish";

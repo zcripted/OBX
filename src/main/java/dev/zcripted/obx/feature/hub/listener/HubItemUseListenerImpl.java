@@ -216,7 +216,7 @@ public final class HubItemUseListenerImpl implements Listener, dev.zcripted.obx.
         boolean nextHidden = !currentlyHidden;
         vanishAllState.put(uuid, nextHidden);
 
-        VanishManager vanishManager = plugin.getVanishManager();
+        dev.zcripted.obx.api.staff.VanishApi vanishManager = plugin.getServiceRegistry().get(dev.zcripted.obx.api.staff.VanishApi.class);
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other == null || other.getUniqueId().equals(uuid)) {
                 continue;
@@ -258,7 +258,7 @@ public final class HubItemUseListenerImpl implements Listener, dev.zcripted.obx.
      * them permanently hidden after the system is disabled.
      */
     public void resetVisibilityForAll() {
-        VanishManager vanishManager = plugin.getVanishManager();
+        dev.zcripted.obx.api.staff.VanishApi vanishManager = plugin.getServiceRegistry().get(dev.zcripted.obx.api.staff.VanishApi.class);
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             for (Player target : Bukkit.getOnlinePlayers()) {
                 if (viewer == null || target == null || viewer.getUniqueId().equals(target.getUniqueId())) {

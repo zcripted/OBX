@@ -32,6 +32,7 @@ public final class StaffModule extends AbstractModule {
     @Override
     protected void onEnable(ObxPlugin plugin) {
         VanishManager vanish = service(VanishManager.class, new VanishManager(plugin));
+        service(dev.zcripted.obx.api.staff.VanishApi.class, vanish);
         service(FreezeService.class, new FreezeService(plugin));
         StaffSessionTracker sessions = service(StaffSessionTracker.class, new StaffSessionTracker());
         StaffMenuInputManager staffInput = service(StaffMenuInputManager.class, new StaffMenuInputManager(plugin));

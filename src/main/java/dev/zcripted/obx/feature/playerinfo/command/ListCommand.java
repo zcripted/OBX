@@ -21,12 +21,12 @@ import java.util.Map;
 public class ListCommand extends AbstractObxCommand implements TabCompleter {
 
     private final AfkService afkService;
-    private final VanishManager vanishManager;
+    private final dev.zcripted.obx.api.staff.VanishApi vanishManager;
 
     public ListCommand(ObxPlugin plugin) {
         super(plugin);
         this.afkService = plugin.getAfkService();
-        this.vanishManager = plugin.getVanishManager();
+        this.vanishManager = plugin.getServiceRegistry().get(dev.zcripted.obx.api.staff.VanishApi.class);
     }
 
     @Override
