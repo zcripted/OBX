@@ -17,7 +17,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "OBX"
 
-include(":api", ":core", ":plugin")
+include(":api", ":core", ":plugin", ":platform:paper")
 
 listOf(
     "chat", "economy", "enchant", "hologram", "hub", "item", "jail", "kit", "mail",

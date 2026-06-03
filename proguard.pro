@@ -133,3 +133,9 @@
 -keepclassmembers class dev.zcripted.obx.core.language.MessageDefaults {
     public static *;
 }
+# --- Paper-native bootstrap (paper-plugin.yml references these by name) ---------
+-keep class dev.zcripted.obx.bootstrap.OBXBootstrap { *; }
+-keep class dev.zcripted.obx.bootstrap.OBXPaperLoader { *; }
+-dontwarn io.papermc.paper.**
+-dontwarn org.eclipse.aether.**
+-dontwarn org.jetbrains.annotations.**

@@ -86,9 +86,18 @@ individually-committed phases.
 - **Spanish is English-fallback + a translated starter set** (the 1087 `def()` keys
   are not machine-translated wholesale). Full ES coverage is a translator task —
   add to `spanishOverrides()` or edit `lang/es.yml`.
-- **`paper-plugin.yml` not added** — it needs a Paper plugin-loader bootstrap class and
-  changes plugin loading; deferred to avoid an unverifiable behavior change.
-  `folia-supported: true` already provides Folia support.
+- **`paper-plugin.yml` added (Paper-native loading).** New `:platform:paper` module
+  (compiled against the native Paper API, Java 17) provides `OBXBootstrap`
+  (`PluginBootstrap`) + `OBXPaperLoader` (`PluginLoader`, resolves the SQLite driver
+  via Paper's Maven library loader). `paper-plugin.yml` mirrors `plugin.yml`'s
+  commands/permissions, sets `api-version: '1.20'`, and is bundled into the Shadow
+  jar (via `zipTree`, since a Java-8 → Java-17 project dependency is rejected by
+  Gradle's JVM-version check); ProGuard `-keep`s both classes.
+  **Loading change:** on **Paper ≥ 1.20** the server uses `paper-plugin.yml`
+  *exclusively* (ignores `plugin.yml`); Paper < 1.20 and Spigot still use
+  `plugin.yml` (`api-version '1.13'`). This needs a real Paper + Folia smoke test —
+  Paper plugins get an isolated classloader and the library loader differs, neither
+  verifiable here.
 - A split package (`core.command`, `core.gui.main`) spans `:core` + `:plugin` for the
   three relocated aggregator classes — fine on the classpath/Shadow (no JPMS).
 

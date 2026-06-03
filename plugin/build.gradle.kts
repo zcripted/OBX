@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.bundling.Jar
 import proguard.gradle.ProGuardTask
 
 buildscript {
@@ -28,6 +29,10 @@ tasks.shadowJar {
     archiveBaseName.set("OBX")
     archiveClassifier.set("unobf")
     archiveVersion.set(project.version.toString())
+    // Bundle the Java-17 Paper-native bootstrap/loader classes by merging the
+    // :platform:paper jar directly (a plain project dependency is rejected by
+    // Gradle's JVM-version compatibility check: 8 consumer vs 17 producer).
+    from(zipTree(project(":platform:paper").tasks.named<Jar>("jar").flatMap { it.archiveFile }))
 }
 
 // ProGuard reads the shaded jar and writes the OBFUSCATED jar: OBX-<version>.jar
