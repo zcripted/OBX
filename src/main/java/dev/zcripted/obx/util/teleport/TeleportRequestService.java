@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.teleport;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
@@ -22,12 +22,12 @@ public final class TeleportRequestService {
 
     private static final long EXPIRE_MS = 60_000L;
 
-    private final Main plugin;
+    private final OBX plugin;
     private final LanguageManager languages;
     /** target UUID → pending request from a requester. Most-recent wins. */
     private final Map<UUID, Request> pending = new ConcurrentHashMap<UUID, Request>();
 
-    public TeleportRequestService(Main plugin) {
+    public TeleportRequestService(OBX plugin) {
         this.plugin = plugin;
         this.languages = plugin.getLanguageManager();
     }

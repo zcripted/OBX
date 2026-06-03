@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.effect.EffectUtil;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
 import dev.zcripted.obx.enchant.service.EnchantService;
@@ -49,7 +49,7 @@ public final class ToolEnchantListener implements Listener {
     private final LanguageManager languages;
     private final Set<java.util.UUID> processing = new HashSet<java.util.UUID>();
 
-    public ToolEnchantListener(Main plugin) {
+    public ToolEnchantListener(OBX plugin) {
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();
         this.languages = plugin.getLanguageManager();

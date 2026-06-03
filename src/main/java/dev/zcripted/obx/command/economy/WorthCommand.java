@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.economy;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.economy.EconomyService;
 import dev.zcripted.obx.economy.WorthService;
 import dev.zcripted.obx.util.text.Placeholders;
@@ -23,7 +23,7 @@ public class WorthCommand extends AbstractObxCommand implements TabCompleter {
     private final EconomyService economy;
     private final WorthService worth;
 
-    public WorthCommand(Main plugin) {
+    public WorthCommand(OBX plugin) {
         super(plugin);
         this.economy = plugin.getEconomyService();
         this.worth = plugin.getWorthService();

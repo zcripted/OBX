@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.info;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.perf.PlaytimeService;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import dev.zcripted.obx.util.text.ComponentMessenger.InteractiveMessagePart;
@@ -25,7 +25,7 @@ public class InfoCommand extends AbstractObxCommand implements TabCompleter {
 
     private final PlaytimeService playtime;
 
-    public InfoCommand(Main plugin) {
+    public InfoCommand(OBX plugin) {
         super(plugin);
         this.playtime = plugin.getPlaytimeService();
     }

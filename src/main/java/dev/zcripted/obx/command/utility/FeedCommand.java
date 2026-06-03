@@ -1,13 +1,13 @@
 package dev.zcripted.obx.command.utility;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.command.PlayerActionCommand;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
 public class FeedCommand extends PlayerActionCommand {
 
-    public FeedCommand(Main plugin) {
+    public FeedCommand(OBX plugin) {
         super(plugin, "obx.feed");
     }
 

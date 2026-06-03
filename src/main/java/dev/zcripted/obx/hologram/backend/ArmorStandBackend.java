@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.backend;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hologram.model.Hologram;
 import dev.zcripted.obx.hologram.model.HologramLine;
 import dev.zcripted.obx.hologram.model.HologramSettings;
@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ArmorStandBackend implements HologramBackend {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final String description;
 
     private final Map<UUID, List<Entity>> spawnedByHologram = new ConcurrentHashMap<>();
@@ -45,7 +45,7 @@ public final class ArmorStandBackend implements HologramBackend {
     private static final Method PLAYER_HIDE_ENTITY = resolveHide();
     private static final Method PLAYER_SHOW_ENTITY = resolveShow();
 
-    public ArmorStandBackend(Main plugin, String description) {
+    public ArmorStandBackend(OBX plugin, String description) {
         this.plugin = plugin;
         this.description = description;
     }
@@ -270,7 +270,7 @@ public final class ArmorStandBackend implements HologramBackend {
         }
     }
 
-    Main getPlugin() {
+    OBX getPlugin() {
         return plugin;
     }
 }

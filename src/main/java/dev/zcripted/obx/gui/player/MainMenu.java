@@ -1,6 +1,6 @@
 package dev.zcripted.obx.gui.player;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.gui.shared.WarpMenuStyling;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,9 +21,9 @@ public final class MainMenu {
     private MainMenu() {
     }
 
-    public static void open(Main plugin, Player player) {
+    public static void open(OBX plugin, Player player) {
         MainMenuHolder holder = new MainMenuHolder();
-        String title = ChatColor.DARK_PURPLE.toString() + ChatColor.BOLD + "Main "
+        String title = ChatColor.DARK_PURPLE.toString() + ChatColor.BOLD + "OBX "
                 + ChatColor.YELLOW.toString() + ChatColor.BOLD + "Menu";
         Inventory inventory = Bukkit.createInventory(holder, 36, title);
         holder.setInventory(inventory);

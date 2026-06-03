@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.service;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.util.Particles;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Location;
@@ -18,12 +18,12 @@ import org.bukkit.entity.Player;
  */
 public final class CombatParticleService {
 
-    private final Main plugin;
+    private final OBX plugin;
     /** Live timed-effect tasks, tracked so a flaky cancel can never leak them past disable. */
     private final java.util.Set<SchedulerAdapter.CancellableTask> active =
             java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<SchedulerAdapter.CancellableTask, Boolean>());
 
-    public CombatParticleService(Main plugin) {
+    public CombatParticleService(OBX plugin) {
         this.plugin = plugin;
     }
 

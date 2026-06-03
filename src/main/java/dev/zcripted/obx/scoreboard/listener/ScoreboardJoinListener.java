@@ -1,6 +1,6 @@
 package dev.zcripted.obx.scoreboard.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.scoreboard.format.ScoreboardRenderer;
 import dev.zcripted.obx.scoreboard.service.ScoreboardService;
 import org.bukkit.event.EventHandler;
@@ -15,10 +15,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
  */
 public final class ScoreboardJoinListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final ScoreboardService service;
 
-    public ScoreboardJoinListener(Main plugin, ScoreboardService service) {
+    public ScoreboardJoinListener(OBX plugin, ScoreboardService service) {
         this.plugin = plugin;
         this.service = service;
     }

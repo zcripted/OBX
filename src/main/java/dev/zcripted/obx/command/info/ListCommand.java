@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.info;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.control.AfkService;
 import dev.zcripted.obx.util.control.VanishManager;
 import org.bukkit.Bukkit;
@@ -23,7 +23,7 @@ public class ListCommand extends AbstractObxCommand implements TabCompleter {
     private final AfkService afkService;
     private final VanishManager vanishManager;
 
-    public ListCommand(Main plugin) {
+    public ListCommand(OBX plugin) {
         super(plugin);
         this.afkService = plugin.getAfkService();
         this.vanishManager = plugin.getVanishManager();

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.listener.player;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hub.HubService;
 import dev.zcripted.obx.hub.kit.HubKitApplier;
 import org.bukkit.entity.Player;
@@ -18,11 +18,11 @@ import org.bukkit.event.player.PlayerRespawnEvent;
  */
 public final class HubJoinListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final HubService hub;
     private final HubKitApplier applier;
 
-    public HubJoinListener(Main plugin, HubService hub, HubKitApplier applier) {
+    public HubJoinListener(OBX plugin, HubService hub, HubKitApplier applier) {
         this.plugin = plugin;
         this.hub = hub;
         this.applier = applier;

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.command.utility;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.command.PlayerActionCommand;
 import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;
@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 
 public class HealCommand extends PlayerActionCommand {
 
-    public HealCommand(Main plugin) {
+    public HealCommand(OBX plugin) {
         super(plugin, "obx.heal");
     }
 

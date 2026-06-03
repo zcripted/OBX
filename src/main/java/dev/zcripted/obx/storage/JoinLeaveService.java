@@ -1,6 +1,6 @@
 package dev.zcripted.obx.storage;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageRegistry;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -27,7 +27,7 @@ import java.util.List;
  */
 public final class JoinLeaveService {
 
-    private final Main plugin;
+    private final OBX plugin;
 
     private volatile boolean joinLeaveEnabled;
     private volatile boolean suppressVanilla;
@@ -42,7 +42,7 @@ public final class JoinLeaveService {
     private volatile List<String> joinMotdLines = Collections.emptyList();
     private volatile List<String> firstJoinMotdLines = Collections.emptyList();
 
-    public JoinLeaveService(Main plugin) {
+    public JoinLeaveService(OBX plugin) {
         this.plugin = plugin;
         cacheSnapshot();
     }

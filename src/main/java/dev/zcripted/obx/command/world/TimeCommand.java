@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.world;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -18,7 +18,7 @@ import java.util.List;
 public class TimeCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public TimeCommand(Main plugin) {
+    public TimeCommand(OBX plugin) {
         super(plugin);
     }
 

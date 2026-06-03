@@ -1,6 +1,6 @@
 package dev.zcripted.obx.storage;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -21,10 +21,10 @@ import java.util.UUID;
  */
 public class DataService {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final SqliteDataStore store;
 
-    public DataService(Main plugin) {
+    public DataService(OBX plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
     }

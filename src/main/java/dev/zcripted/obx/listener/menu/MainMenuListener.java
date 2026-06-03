@@ -1,6 +1,6 @@
 package dev.zcripted.obx.listener.menu;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.gui.admin.AdminMenuHolder;
 import dev.zcripted.obx.gui.admin.AdminMenu;
 import dev.zcripted.obx.gui.admin.AdminSubMenu;
@@ -23,9 +23,9 @@ import org.bukkit.inventory.InventoryHolder;
  */
 public final class MainMenuListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
 
-    public MainMenuListener(Main plugin) {
+    public MainMenuListener(OBX plugin) {
         this.plugin = plugin;
     }
 

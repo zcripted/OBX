@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.moderation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.moderation.ModerationService;
 import dev.zcripted.obx.moderation.ModerationService.ResolvedProfile;
 import dev.zcripted.obx.util.text.Placeholders;
@@ -50,7 +50,7 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
     private final ModerationService moderationService;
     private final Action action;
 
-    public ModerationCommand(Main plugin, Action action) {
+    public ModerationCommand(OBX plugin, Action action) {
         super(plugin);
         this.moderationService = plugin.getModerationService();
         this.action = action;

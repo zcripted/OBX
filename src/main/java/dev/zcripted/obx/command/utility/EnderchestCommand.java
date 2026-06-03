@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -17,7 +17,7 @@ import java.util.List;
 public class EnderchestCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public EnderchestCommand(Main plugin) {
+    public EnderchestCommand(OBX plugin) {
         super(plugin);
     }
 

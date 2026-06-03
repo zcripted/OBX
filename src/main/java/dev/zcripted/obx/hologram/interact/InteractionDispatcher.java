@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.interact;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hologram.model.Hologram;
 import dev.zcripted.obx.hologram.model.HologramId;
 import dev.zcripted.obx.hologram.model.HologramLine;
@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Main-thread dispatcher for hologram interactions. Called both by the
+ * OBX-thread dispatcher for hologram interactions. Called both by the
  * packet handler (when the Netty layer is available) and by the raycast
  * targeter (fallback). Enforces per-hologram per-player cooldowns and runs
  * the CText action — either as console or as the player based on the
@@ -30,7 +30,7 @@ public final class InteractionDispatcher {
     private InteractionDispatcher() {
     }
 
-    public static void dispatch(Main plugin, HologramService service, Player viewer, HologramId id, InteractDecoder.Decoded decoded) {
+    public static void dispatch(OBX plugin, HologramService service, Player viewer, HologramId id, InteractDecoder.Decoded decoded) {
         if (plugin == null || service == null || viewer == null || id == null) {
             return;
         }
@@ -77,7 +77,7 @@ public final class InteractionDispatcher {
         }
     }
 
-    private static void runCommand(Main plugin, Player viewer, String command, InteractDecoder.Decoded decoded) {
+    private static void runCommand(OBX plugin, Player viewer, String command, InteractDecoder.Decoded decoded) {
         if (command == null || command.isEmpty()) {
             return;
         }

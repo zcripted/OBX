@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.packet;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hologram.interact.InteractionDispatcher;
 import dev.zcripted.obx.hologram.model.HologramId;
 import dev.zcripted.obx.hologram.service.HologramService;
@@ -21,11 +21,11 @@ import org.bukkit.entity.Player;
  */
 public final class HologramPacketHandler extends ChannelDuplexHandler {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final HologramService service;
     private final Player viewer;
 
-    public HologramPacketHandler(Main plugin, HologramService service, Player viewer) {
+    public HologramPacketHandler(OBX plugin, HologramService service, Player viewer) {
         this.plugin = plugin;
         this.service = service;
         this.viewer = viewer;

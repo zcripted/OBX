@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.effect.CombatState;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
 import dev.zcripted.obx.enchant.service.CombatHudService;
@@ -74,7 +74,7 @@ public final class RangedListener implements Listener {
         }
     }
 
-    private final Main plugin;
+    private final OBX plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final CombatState combatState;
@@ -82,7 +82,7 @@ public final class RangedListener implements Listener {
     private final ReactiveSpecialsService reactive;
     private final CombatHudService hud;
 
-    public RangedListener(Main plugin, CombatState combatState, CombatParticleService particles, ReactiveSpecialsService reactive, CombatHudService hud) {
+    public RangedListener(OBX plugin, CombatState combatState, CombatParticleService particles, ReactiveSpecialsService reactive, CombatHudService hud) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.interact;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hologram.model.Hologram;
 import dev.zcripted.obx.hologram.packet.InteractDecoder;
 import dev.zcripted.obx.hologram.packet.PacketAvailability;
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class RaycastTargeter {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final HologramService service;
     private final long periodTicks;
     private SchedulerAdapter.CancellableTask handle;
@@ -33,7 +33,7 @@ public final class RaycastTargeter {
     // Tracks the timestamp at which each (player, hologram) hover started.
     private final ConcurrentHashMap<UUID, ConcurrentHashMap<UUID, Long>> hoverStart = new ConcurrentHashMap<>();
 
-    public RaycastTargeter(Main plugin, HologramService service, long periodTicks) {
+    public RaycastTargeter(OBX plugin, HologramService service, long periodTicks) {
         this.plugin = plugin;
         this.service = service;
         this.periodTicks = Math.max(1L, periodTicks);

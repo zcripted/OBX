@@ -2,7 +2,7 @@ package dev.zcripted.obx.hologram.command;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hologram.command.sub.AimGuiSub;
 import dev.zcripted.obx.hologram.command.sub.AlignmentSub;
 import dev.zcripted.obx.hologram.command.sub.AnimSub;
@@ -70,7 +70,7 @@ public final class HologramCommand extends AbstractObxCommand implements TabComp
     private final HoloContext ctx;
     private final Map<String, HoloSubCommand> subs = new LinkedHashMap<>();
 
-    public HologramCommand(Main plugin, HologramService service) {
+    public HologramCommand(OBX plugin, HologramService service) {
         super(plugin);
         this.service = service;
         this.ctx = new HoloContext(plugin, service);
@@ -105,7 +105,7 @@ public final class HologramCommand extends AbstractObxCommand implements TabComp
         register(new ViewSub(ctx));
         register(new HideSub(ctx));
         register(new ShowSub(ctx));
-        // GUI editor menu is owned by Main; we wire it in via late binding
+        // GUI editor menu is owned by OBX; we wire it in via late binding
         // because the listener also needs to be registered exactly once.
         dev.zcripted.obx.hologram.gui.HologramEditorMenu editorMenu = plugin.getHologramEditorMenu();
         if (editorMenu != null) {

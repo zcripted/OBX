@@ -1,6 +1,6 @@
 package dev.zcripted.obx.nickname;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.SqliteDataStore;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -11,11 +11,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NicknameService {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final SqliteDataStore store;
     private final Map<UUID, String> cache = new ConcurrentHashMap<>();
 
-    public NicknameService(Main plugin) {
+    public NicknameService(OBX plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
     }

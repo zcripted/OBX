@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.service;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -27,11 +27,11 @@ public final class CombatPrefs {
 
     private static final String RESOURCE_PATH = "enchants/combat_prefs.yml";
 
-    private final Main plugin;
+    private final OBX plugin;
     private final File file;
     private final Set<UUID> disabled = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
-    public CombatPrefs(Main plugin) {
+    public CombatPrefs(OBX plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), RESOURCE_PATH);
     }

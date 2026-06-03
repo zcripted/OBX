@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -21,7 +21,7 @@ import java.util.List;
 public class ItemLoreCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public ItemLoreCommand(Main plugin) {
+    public ItemLoreCommand(OBX plugin) {
         super(plugin);
     }
 

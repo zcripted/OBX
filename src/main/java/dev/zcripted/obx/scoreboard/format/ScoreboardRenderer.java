@@ -1,6 +1,6 @@
 package dev.zcripted.obx.scoreboard.format;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.scoreboard.service.ScoreboardService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -52,7 +52,7 @@ public final class ScoreboardRenderer {
     private ScoreboardRenderer() {
     }
 
-    public static void apply(Main plugin, ScoreboardService service, Player player) {
+    public static void apply(OBX plugin, ScoreboardService service, Player player) {
         if (plugin == null || service == null || player == null || !service.isEnabled()) {
             return;
         }
@@ -280,7 +280,7 @@ public final class ScoreboardRenderer {
         return team;
     }
 
-    private static Map<String, String> buildPlaceholders(Main plugin, ScoreboardService service, Player player) {
+    private static Map<String, String> buildPlaceholders(OBX plugin, ScoreboardService service, Player player) {
         Map<String, String> placeholders = new HashMap<>();
         Server server = Bukkit.getServer();
         double health = safeHealth(player);

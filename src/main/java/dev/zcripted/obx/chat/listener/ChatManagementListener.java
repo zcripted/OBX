@@ -1,6 +1,6 @@
 package dev.zcripted.obx.chat.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.chat.format.ChatFormatter;
 import dev.zcripted.obx.chat.service.ChatService;
 import dev.zcripted.obx.util.message.AdventureMessageUtil;
@@ -28,10 +28,10 @@ import java.util.Map;
  */
 public final class ChatManagementListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final ChatService service;
 
-    public ChatManagementListener(Main plugin, ChatService service) {
+    public ChatManagementListener(OBX plugin, ChatService service) {
         this.plugin = plugin;
         this.service = service;
     }

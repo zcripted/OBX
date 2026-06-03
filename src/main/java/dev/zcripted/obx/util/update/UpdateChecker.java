@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.update;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -41,9 +41,9 @@ public final class UpdateChecker {
     private static final Pattern TAG_NAME = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
     private static final int TIMEOUT_MS = 5000;
 
-    private final Main plugin;
+    private final OBX plugin;
 
-    public UpdateChecker(Main plugin) {
+    public UpdateChecker(OBX plugin) {
         this.plugin = plugin;
     }
 

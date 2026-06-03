@@ -1,6 +1,6 @@
 package dev.zcripted.obx.kit;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.SqliteDataStore;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -22,14 +22,14 @@ import java.util.UUID;
 
 public class KitService {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final SqliteDataStore store;
     private final File kitsFile;
     private YamlConfiguration kitsConfig;
 
     private final Map<String, Kit> kits = new LinkedHashMap<>();
 
-    public KitService(Main plugin) {
+    public KitService(OBX plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
         this.kitsFile = new File(plugin.getDataFolder(), "kits.yml");

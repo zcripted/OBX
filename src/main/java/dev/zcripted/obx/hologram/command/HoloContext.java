@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.command;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hologram.model.Hologram;
 import dev.zcripted.obx.hologram.model.HologramId;
 import dev.zcripted.obx.hologram.service.HologramService;
@@ -11,21 +11,21 @@ import java.util.Map;
 
 /**
  * Shared dependencies + helper methods for every {@link HoloSubCommand}.
- * Holds references to {@link Main} / {@link HologramService} and centralises
+ * Holds references to {@link OBX} / {@link HologramService} and centralises
  * the language-key feedback patterns ("hologram not found", "invalid id",
  * etc.) so each subcommand stays focused on its own logic.
  */
 public final class HoloContext {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final HologramService service;
 
-    public HoloContext(Main plugin, HologramService service) {
+    public HoloContext(OBX plugin, HologramService service) {
         this.plugin = plugin;
         this.service = service;
     }
 
-    public Main plugin() {
+    public OBX plugin() {
         return plugin;
     }
 

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.render;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 
 /**
@@ -18,12 +18,12 @@ import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
  */
 public final class TickLoop {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final HologramRenderer renderer;
     private final long periodTicks;
     private SchedulerAdapter.CancellableTask handle;
 
-    public TickLoop(Main plugin, HologramRenderer renderer, long periodTicks) {
+    public TickLoop(OBX plugin, HologramRenderer renderer, long periodTicks) {
         this.plugin = plugin;
         this.renderer = renderer;
         this.periodTicks = Math.max(1L, periodTicks);

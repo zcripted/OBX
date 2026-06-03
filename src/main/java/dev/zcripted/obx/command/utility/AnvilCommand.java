@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 public class AnvilCommand extends AbstractObxCommand {
 
 
-    public AnvilCommand(Main plugin) {
+    public AnvilCommand(OBX plugin) {
         super(plugin);
     }
 

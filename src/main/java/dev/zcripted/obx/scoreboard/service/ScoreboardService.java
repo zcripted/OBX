@@ -1,6 +1,6 @@
 package dev.zcripted.obx.scoreboard.service;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -19,11 +19,11 @@ public final class ScoreboardService {
 
     private static final String RESOURCE_PATH = "systems/scoreboard.yml";
 
-    private final Main plugin;
+    private final OBX plugin;
     private final File configFile;
     private YamlConfiguration config;
 
-    public ScoreboardService(Main plugin) {
+    public ScoreboardService(OBX plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
     }

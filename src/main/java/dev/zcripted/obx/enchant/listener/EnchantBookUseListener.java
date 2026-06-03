@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.item.EnchantItems;
 import dev.zcripted.obx.enchant.item.ScrollKind;
 import dev.zcripted.obx.enchant.service.EnchantService;
@@ -28,7 +28,7 @@ public final class EnchantBookUseListener implements Listener {
     private final EnchantItems items;
     private final LanguageManager languages;
 
-    public EnchantBookUseListener(Main plugin) {
+    public EnchantBookUseListener(OBX plugin) {
         this.service = plugin.getEnchantService();
         this.items = plugin.getEnchantItems();
         this.languages = plugin.getLanguageManager();

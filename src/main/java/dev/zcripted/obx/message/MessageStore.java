@@ -1,6 +1,6 @@
 package dev.zcripted.obx.message;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -20,11 +20,11 @@ public final class MessageStore {
     /** Max messages kept per player (oldest dropped beyond this). */
     private static final int CAP = 28;
 
-    private final Main plugin;
+    private final OBX plugin;
     private final File file;
     private YamlConfiguration config;
 
-    public MessageStore(Main plugin) {
+    public MessageStore(OBX plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "messages.yml");
     }

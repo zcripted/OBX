@@ -1,6 +1,6 @@
 package dev.zcripted.obx.storage;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.perf.AsyncYamlSaver;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -30,7 +30,7 @@ public class WarpService {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]{1," + MAX_NAME_LENGTH + "}$");
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
 
-    private final Main plugin;
+    private final OBX plugin;
     private final File dataFile;
     private YamlConfiguration data;
     private AsyncYamlSaver saver;
@@ -44,7 +44,7 @@ public class WarpService {
      */
     private volatile Map<String, WarpEntry> warpsCache = Collections.emptyMap();
 
-    public WarpService(Main plugin) {
+    public WarpService(OBX plugin) {
         this.plugin = plugin;
         this.dataFile = new File(plugin.getDataFolder(), "warps.yml");
     }

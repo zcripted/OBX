@@ -1,6 +1,6 @@
 package dev.zcripted.obx.gui.admin;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.gui.shared.CustomHeadUtil;
 import dev.zcripted.obx.gui.shared.WarpMenuStyling;
 import dev.zcripted.obx.language.LanguageManager;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Main {@code /staff} GUI: a 6-row inventory listing every online player
+ * OBX {@code /staff} GUI: a 6-row inventory listing every online player
  * (alphabetical, self excluded) as a player-skull head. The bottom row is
  * filler glass plus a search head and a custom red-X close head.
  *
@@ -76,7 +76,7 @@ public final class StaffMenu {
     private StaffMenu() {
     }
 
-    public static void open(Main plugin, Player viewer) {
+    public static void open(OBX plugin, Player viewer) {
         open(plugin, viewer, 0);
     }
 
@@ -97,7 +97,7 @@ public final class StaffMenu {
      * marker — shows who is operating this management interface), {@code ?}
      * is the search head, and {@code ✖} is the red-X close head.
      */
-    public static void open(Main plugin, Player viewer, int requestedPage) {
+    public static void open(OBX plugin, Player viewer, int requestedPage) {
         LanguageManager languages = plugin.getLanguageManager();
         LanguageRegistry registry = languages.getLanguage(viewer.getUniqueId());
 
@@ -186,7 +186,7 @@ public final class StaffMenu {
      * total-active / current-session time ticking live. Driven by
      * {@link AdminMenuRefreshTask} several times a second.
      */
-    public static void refresh(Main plugin, Player viewer, StaffMenuHolder holder) {
+    public static void refresh(OBX plugin, Player viewer, StaffMenuHolder holder) {
         Inventory inv = holder.getInventory();
         if (inv == null) {
             return;
@@ -247,7 +247,7 @@ public final class StaffMenu {
      * ({@code admin.staff.viewer-head}); both share the same placeholder
      * surface so a single profile lookup feeds either lore template.
      */
-    private static ItemStack buildPlayerHead(Main plugin, Player viewer, LanguageRegistry registry,
+    private static ItemStack buildPlayerHead(OBX plugin, Player viewer, LanguageRegistry registry,
                                              Player subject, String keyPrefix) {
         LanguageManager languages = plugin.getLanguageManager();
         ModerationService moderation = plugin.getModerationService();
@@ -457,7 +457,7 @@ public final class StaffMenu {
         }
     }
 
-    private static String resolvePlayerLanguage(Main plugin, Player player) {
+    private static String resolvePlayerLanguage(OBX plugin, Player player) {
         try {
             LanguageRegistry registry = plugin.getLanguageManager().getLanguage(player.getUniqueId());
             if (registry == null) {

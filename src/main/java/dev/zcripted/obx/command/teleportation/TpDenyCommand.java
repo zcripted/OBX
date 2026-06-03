@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.teleportation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.teleport.TpaService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -18,7 +18,7 @@ public class TpDenyCommand extends AbstractObxCommand implements TabCompleter {
 
     private final TpaService tpaService;
 
-    public TpDenyCommand(Main plugin) {
+    public TpDenyCommand(OBX plugin) {
         super(plugin);
         this.tpaService = plugin.getTpaService();
     }

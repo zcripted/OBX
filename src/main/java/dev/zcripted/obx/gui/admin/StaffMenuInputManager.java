@@ -1,6 +1,6 @@
 package dev.zcripted.obx.gui.admin;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -19,12 +19,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class StaffMenuInputManager {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final Map<UUID, Long> pending = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> pendingPage = new ConcurrentHashMap<>();
     private final Map<UUID, PendingAction> pendingActions = new ConcurrentHashMap<>();
 
-    public StaffMenuInputManager(Main plugin) {
+    public StaffMenuInputManager(OBX plugin) {
         this.plugin = plugin;
     }
 

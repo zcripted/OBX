@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.gui;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.item.EnchantItems;
 import dev.zcripted.obx.enchant.item.ScrollKind;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
@@ -55,12 +55,12 @@ public final class EnchantAdminMenu {
     private static final int SLOT_NEXT = 50;
     private static final int SLOT_CLOSE = 53;
 
-    private final Main plugin;
+    private final OBX plugin;
     private final EnchantService service;
     private final EnchantItems items;
     private final EnchantFeedback feedback;
 
-    public EnchantAdminMenu(Main plugin) {
+    public EnchantAdminMenu(OBX plugin) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.items = plugin.getEnchantItems();

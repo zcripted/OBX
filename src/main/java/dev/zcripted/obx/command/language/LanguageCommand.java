@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.language;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageRegistry;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.command.Command;
@@ -21,7 +21,7 @@ public class LanguageCommand extends AbstractObxCommand implements TabCompleter 
     private static final List<String> OPTIONS = Arrays.asList("English", "EN", "German", "DE", "Englisch", "Deutsch");
 
 
-    public LanguageCommand(Main plugin) {
+    public LanguageCommand(OBX plugin) {
         super(plugin);
     }
 

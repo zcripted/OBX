@@ -1,6 +1,6 @@
 package dev.zcripted.obx.storage;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 
 import java.io.File;
 import java.sql.Connection;
@@ -41,7 +41,7 @@ public final class SqliteDataStore {
         void run(Connection connection) throws SQLException;
     }
 
-    private final Main plugin;
+    private final OBX plugin;
     private final File databaseFile;
     // Serializes all access to the single shared connection. SQLite's serialized
     // mode is internally thread-safe per-statement, but transactions and
@@ -50,7 +50,7 @@ public final class SqliteDataStore {
     private Connection connection;
     private boolean available;
 
-    public SqliteDataStore(Main plugin) {
+    public SqliteDataStore(OBX plugin) {
         this.plugin = plugin;
         this.databaseFile = new File(plugin.getDataFolder(), "obx.db");
     }

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.listener.teleport;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -8,9 +8,9 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class BackListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
 
-    public BackListener(Main plugin) {
+    public BackListener(OBX plugin) {
         this.plugin = plugin;
     }
 

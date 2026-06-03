@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.item.EnchantItems;
 import dev.zcripted.obx.enchant.service.EnchantService;
 import org.bukkit.Material;
@@ -41,7 +41,7 @@ public final class EnchantLoreListener implements Listener {
     private final EnchantService service;
     private final EnchantItems items;
 
-    public EnchantLoreListener(Main plugin) {
+    public EnchantLoreListener(OBX plugin) {
         this.service = plugin.getEnchantService();
         this.items = plugin.getEnchantItems();
     }

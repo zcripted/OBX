@@ -1,6 +1,6 @@
 package dev.zcripted.obx.platform.bukkit.resourcepack;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -8,10 +8,10 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
 public class ResourcePackListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final AutoResourcePackManager manager;
 
-    public ResourcePackListener(Main plugin, AutoResourcePackManager manager) {
+    public ResourcePackListener(OBX plugin, AutoResourcePackManager manager) {
         this.plugin = plugin;
         this.manager = manager;
     }

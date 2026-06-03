@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.effect.EffectUtil;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
 import dev.zcripted.obx.enchant.service.EnchantService;
@@ -24,7 +24,7 @@ public final class UtilityEnchantListener implements Listener {
     private final EnchantService service;
     private final EnchantStorage storage;
 
-    public UtilityEnchantListener(Main plugin) {
+    public UtilityEnchantListener(OBX plugin) {
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();
     }

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.tablist.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.tablist.format.TablistRenderer;
 import dev.zcripted.obx.tablist.format.TablistTeams;
 import dev.zcripted.obx.tablist.service.TablistService;
@@ -19,10 +19,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
  */
 public final class TablistJoinListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final TablistService service;
 
-    public TablistJoinListener(Main plugin, TablistService service) {
+    public TablistJoinListener(OBX plugin, TablistService service) {
         this.plugin = plugin;
         this.service = service;
     }

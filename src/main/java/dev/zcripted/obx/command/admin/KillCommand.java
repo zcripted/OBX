@@ -1,12 +1,12 @@
 package dev.zcripted.obx.command.admin;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.command.PlayerActionCommand;
 import org.bukkit.entity.Player;
 
 public class KillCommand extends PlayerActionCommand {
 
-    public KillCommand(Main plugin) {
+    public KillCommand(OBX plugin) {
         super(plugin, "obx.kill");
     }
 

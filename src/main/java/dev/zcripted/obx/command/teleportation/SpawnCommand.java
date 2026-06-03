@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.teleportation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.DataService;
 import dev.zcripted.obx.storage.DataService.SpawnInfo;
 import dev.zcripted.obx.util.text.ComponentMessenger;
@@ -35,7 +35,7 @@ public class SpawnCommand extends AbstractObxCommand implements TabCompleter, Li
     /** Player UUID → request timestamp of a pending /spawn delete confirmation. */
     private final Map<UUID, Long> deleteConfirmations = new ConcurrentHashMap<>();
 
-    public SpawnCommand(Main plugin) {
+    public SpawnCommand(OBX plugin) {
         super(plugin);
         this.dataService = plugin.getDataService();
     }

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.admin;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.jail.JailService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -20,7 +20,7 @@ public class UnjailCommand extends AbstractObxCommand implements TabCompleter {
 
     private final JailService jailService;
 
-    public UnjailCommand(Main plugin) {
+    public UnjailCommand(OBX plugin) {
         super(plugin);
         this.jailService = plugin.getJailService();
     }

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.message;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
@@ -33,14 +33,14 @@ public final class MessageService implements Listener {
     private static final UUID CONSOLE_ID = new UUID(0L, 0L);
     private static final long DRAFT_MS = 60_000L;
 
-    private final Main plugin;
+    private final OBX plugin;
     private final LanguageManager languages;
     private final MessageStore store;
     private final Map<UUID, UUID> replyTarget = new ConcurrentHashMap<UUID, UUID>();
     private final Map<UUID, String> replyTargetName = new ConcurrentHashMap<UUID, String>();
     private final Map<UUID, Draft> drafts = new ConcurrentHashMap<UUID, Draft>();
 
-    public MessageService(Main plugin, MessageStore store) {
+    public MessageService(OBX plugin, MessageStore store) {
         this.plugin = plugin;
         this.languages = plugin.getLanguageManager();
         this.store = store;

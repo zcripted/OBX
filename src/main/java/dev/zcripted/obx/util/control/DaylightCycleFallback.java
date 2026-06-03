@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.control;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -21,7 +21,7 @@ public final class DaylightCycleFallback {
         return world != null && frozenTimes.containsKey(world.getUID());
     }
 
-    public static void setFrozen(Main plugin, World world, boolean frozen) {
+    public static void setFrozen(OBX plugin, World world, boolean frozen) {
         if (plugin == null || world == null) {
             return;
         }
@@ -34,7 +34,7 @@ public final class DaylightCycleFallback {
         stopTaskIfIdle();
     }
 
-    private static void ensureTask(Main plugin) {
+    private static void ensureTask(OBX plugin) {
         if (task != null && !task.isCancelled()) {
             return;
         }

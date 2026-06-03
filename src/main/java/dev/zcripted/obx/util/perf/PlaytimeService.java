@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.perf;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.SqliteDataStore;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -26,11 +26,11 @@ public class PlaytimeService implements Listener {
     private static final DateTimeFormatter DISPLAY_TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a z")
             .withZone(ZoneId.of("America/Detroit"));
 
-    private final Main plugin;
+    private final OBX plugin;
     private final SqliteDataStore store;
     private final Map<UUID, Long> sessionStarts = new ConcurrentHashMap<>();
 
-    public PlaytimeService(Main plugin) {
+    public PlaytimeService(OBX plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
     }

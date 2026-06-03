@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.message;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -22,7 +22,7 @@ import java.util.Locale;
 public final class MsgCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public MsgCommand(Main plugin) {
+    public MsgCommand(OBX plugin) {
         super(plugin);
     }
 

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.core;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.ChatColor;
@@ -34,7 +34,7 @@ import java.util.Map;
 public final class ListCommand extends AbstractObxCommand {
 
 
-    public ListCommand(Main plugin) {
+    public ListCommand(OBX plugin) {
         super(plugin);
     }
 

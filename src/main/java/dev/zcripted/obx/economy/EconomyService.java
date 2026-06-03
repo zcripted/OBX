@@ -1,6 +1,6 @@
 package dev.zcripted.obx.economy;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.SqliteDataStore;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
@@ -31,10 +31,10 @@ public class EconomyService {
         public double getBalance() { return balance; }
     }
 
-    private final Main plugin;
+    private final OBX plugin;
     private final SqliteDataStore store;
 
-    public EconomyService(Main plugin) {
+    public EconomyService(OBX plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
     }

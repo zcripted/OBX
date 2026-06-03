@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.teleportation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -28,7 +28,7 @@ public final class TeleportCommand extends AbstractObxCommand implements TabComp
 
     private final Mode mode;
 
-    public TeleportCommand(Main plugin, Mode mode) {
+    public TeleportCommand(OBX plugin, Mode mode) {
         super(plugin);
         this.mode = mode;
     }

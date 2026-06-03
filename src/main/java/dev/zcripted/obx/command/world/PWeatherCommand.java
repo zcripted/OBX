@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.world;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.WeatherType;
 import org.bukkit.command.Command;
@@ -18,7 +18,7 @@ import java.util.List;
 public class PWeatherCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public PWeatherCommand(Main plugin) {
+    public PWeatherCommand(OBX plugin) {
         super(plugin);
     }
 

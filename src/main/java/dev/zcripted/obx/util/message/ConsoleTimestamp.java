@@ -8,7 +8,7 @@ import java.util.logging.Level;
 
 /**
  * Builds a Paper-style timestamp prefix for lines written through
- * {@code Main.writeConsoleLine}. Used by both the chat mirror and the
+ * {@code OBX.writeConsoleLine}. Used by both the chat mirror and the
  * join/leave broadcast mirror so the two share a single source of truth.
  *
  * <p>The pattern is a {@link DateTimeFormatter} format string. Wrap any

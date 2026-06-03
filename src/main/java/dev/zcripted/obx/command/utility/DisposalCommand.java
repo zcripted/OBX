@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,7 +16,7 @@ import java.util.List;
 public class DisposalCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public DisposalCommand(Main plugin) {
+    public DisposalCommand(OBX plugin) {
         super(plugin);
     }
 

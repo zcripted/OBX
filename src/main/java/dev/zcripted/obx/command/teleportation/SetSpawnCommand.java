@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.teleportation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.DataService;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -13,7 +13,7 @@ public class SetSpawnCommand extends AbstractObxCommand {
 
     private final DataService dataService;
 
-    public SetSpawnCommand(Main plugin) {
+    public SetSpawnCommand(OBX plugin) {
         super(plugin);
         this.dataService = plugin.getDataService();
     }

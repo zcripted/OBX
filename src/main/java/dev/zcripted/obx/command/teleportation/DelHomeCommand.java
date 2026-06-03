@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.teleportation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.DataService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.ChatColor;
@@ -19,7 +19,7 @@ public class DelHomeCommand extends AbstractObxCommand implements TabCompleter {
 
     private final DataService dataService;
 
-    public DelHomeCommand(Main plugin) {
+    public DelHomeCommand(OBX plugin) {
         super(plugin);
         this.dataService = plugin.getDataService();
     }

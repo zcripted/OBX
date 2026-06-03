@@ -1,6 +1,6 @@
 package dev.zcripted.obx.command.core;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.command.AbstractObxCommand;
 import dev.zcripted.obx.gui.admin.AdminMenu;
 import dev.zcripted.obx.gui.player.MainMenu;
@@ -27,7 +27,7 @@ public class ObxCommand extends AbstractObxCommand implements TabCompleter {
     private final ObxModulesView modulesView;
     private final ObxAdminActions adminActions;
 
-    public ObxCommand(Main plugin, LanguageManager languages) {
+    public ObxCommand(OBX plugin, LanguageManager languages) {
         super(plugin);
         this.updateChecker = new UpdateChecker(plugin);
         this.helpView = new ObxHelpView(plugin, languages);

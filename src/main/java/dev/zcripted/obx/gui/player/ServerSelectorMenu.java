@@ -1,6 +1,6 @@
 package dev.zcripted.obx.gui.player;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hub.HubService;
 import dev.zcripted.obx.hub.messaging.BungeeMessenger;
 import org.bukkit.Bukkit;
@@ -39,7 +39,7 @@ public final class ServerSelectorMenu {
      * the interact tick keeps the menu instant with no delayed window between the
      * click and the inventory appearing.
      */
-    public static void open(Main plugin, Player player) {
+    public static void open(OBX plugin, Player player) {
         HubService hub = plugin.getHubService();
         BungeeMessenger messenger = plugin.getBungeeMessenger();
         if (hub == null) {
@@ -57,7 +57,7 @@ public final class ServerSelectorMenu {
         renderAndOpen(plugin, player, hub, messenger, entries);
     }
 
-    private static void renderAndOpen(Main plugin, Player player, HubService hub, BungeeMessenger messenger,
+    private static void renderAndOpen(OBX plugin, Player player, HubService hub, BungeeMessenger messenger,
                                       List<HubService.ServerEntry> entries) {
         if (!player.isOnline()) {
             return;
@@ -113,7 +113,7 @@ public final class ServerSelectorMenu {
         player.openInventory(inventory);
     }
 
-    private static ItemStack buildCloseButton(Main plugin, Player player, HubService hub) {
+    private static ItemStack buildCloseButton(OBX plugin, Player player, HubService hub) {
         Material material = hub.selectorCloseMaterial();
         if (material == null || material == Material.AIR) {
             material = Material.STONE;
@@ -134,7 +134,7 @@ public final class ServerSelectorMenu {
         return stack;
     }
 
-    private static ItemStack buildServerIcon(Main plugin, HubService hub, BungeeMessenger messenger,
+    private static ItemStack buildServerIcon(OBX plugin, HubService hub, BungeeMessenger messenger,
                                              HubService.ServerEntry entry) {
         Material material = entry.getMaterial();
         if (material == null) {

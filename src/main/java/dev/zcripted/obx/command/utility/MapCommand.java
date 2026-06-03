@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -32,7 +32,7 @@ import java.util.Map;
 public final class MapCommand extends AbstractObxCommand {
 
 
-    public MapCommand(Main plugin) {
+    public MapCommand(OBX plugin) {
         super(plugin);
     }
 

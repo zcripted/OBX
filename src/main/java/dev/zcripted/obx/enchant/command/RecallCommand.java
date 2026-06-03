@@ -2,7 +2,7 @@ package dev.zcripted.obx.enchant.command;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.effect.EnchantState;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
 import dev.zcripted.obx.enchant.util.Sounds;
@@ -22,7 +22,7 @@ public final class RecallCommand extends AbstractObxCommand {
 
     private final EnchantState state;
 
-    public RecallCommand(Main plugin, EnchantState state) {
+    public RecallCommand(OBX plugin, EnchantState state) {
         super(plugin);
         this.state = state;
     }

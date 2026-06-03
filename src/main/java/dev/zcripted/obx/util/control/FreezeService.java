@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.control;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.util.text.ComponentMessenger;
@@ -17,12 +17,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class FreezeService implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final LanguageManager languages;
     private final Set<UUID> frozen = ConcurrentHashMap.newKeySet();
     private SchedulerAdapter.CancellableTask reminderTask;
 
-    public FreezeService(Main plugin) {
+    public FreezeService(OBX plugin) {
         this.plugin = plugin;
         this.languages = plugin.getLanguageManager();
     }

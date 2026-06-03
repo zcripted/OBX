@@ -1,6 +1,6 @@
 package dev.zcripted.obx.gui.admin;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -32,11 +32,11 @@ public final class InvSeeMenuManager {
     /** Refresh cadence in server ticks. 5 ticks = ~250 ms = visually instant. */
     private static final long REFRESH_PERIOD_TICKS = 5L;
 
-    private final Main plugin;
+    private final OBX plugin;
     private final Map<UUID, InvSeeMenuHolder> openByViewer = new ConcurrentHashMap<UUID, InvSeeMenuHolder>();
     private SchedulerAdapter.CancellableTask refreshTask;
 
-    public InvSeeMenuManager(Main plugin) {
+    public InvSeeMenuManager(OBX plugin) {
         this.plugin = plugin;
     }
 

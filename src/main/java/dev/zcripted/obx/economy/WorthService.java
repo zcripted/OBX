@@ -1,6 +1,6 @@
 package dev.zcripted.obx.economy;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -11,11 +11,11 @@ import java.util.Locale;
 
 public class WorthService {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final File file;
     private YamlConfiguration config;
 
-    public WorthService(Main plugin) {
+    public WorthService(OBX plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "worth.yml");
     }

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.economy;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -14,7 +14,7 @@ public class SellAllCommand extends AbstractObxCommand implements TabCompleter {
 
     private final SellCommand delegate;
 
-    public SellAllCommand(Main plugin) {
+    public SellAllCommand(OBX plugin) {
         super(plugin);
         this.delegate = new SellCommand(plugin);
     }

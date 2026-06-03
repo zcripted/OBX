@@ -2,7 +2,7 @@ package dev.zcripted.obx.enchant.command;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.item.EnchantGuideBook;
 import dev.zcripted.obx.enchant.item.EnchantItems;
 import dev.zcripted.obx.enchant.item.ScrollKind;
@@ -44,7 +44,7 @@ public final class ObxEnchantCommand extends AbstractObxCommand implements TabCo
     private final EnchantItems items;
     private final EnchantFeedback feedback;
 
-    public ObxEnchantCommand(Main plugin) {
+    public ObxEnchantCommand(OBX plugin) {
         super(plugin);
         this.service = plugin.getEnchantService();
         this.items = plugin.getEnchantItems();

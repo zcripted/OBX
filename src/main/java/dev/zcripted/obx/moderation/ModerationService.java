@@ -1,6 +1,6 @@
 package dev.zcripted.obx.moderation;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.SqliteDataStore;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.BanEntry;
@@ -42,11 +42,11 @@ public class ModerationService {
     private static final DateTimeFormatter DISPLAY_TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a z")
             .withZone(ZoneId.of("America/Detroit"));
 
-    private final Main plugin;
+    private final OBX plugin;
     private final SqliteDataStore store;
     private boolean missingWebhookWarningSent;
 
-    public ModerationService(Main plugin) {
+    public ModerationService(OBX plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
     }

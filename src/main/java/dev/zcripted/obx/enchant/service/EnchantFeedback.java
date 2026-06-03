@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.service;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
 import dev.zcripted.obx.enchant.model.ItemTag;
 import dev.zcripted.obx.enchant.util.EnchantHover;
@@ -26,7 +26,7 @@ public final class EnchantFeedback {
 
     private final LanguageManager languages;
 
-    public EnchantFeedback(Main plugin) {
+    public EnchantFeedback(OBX plugin) {
         this.languages = plugin.getLanguageManager();
     }
 

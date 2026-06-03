@@ -1,6 +1,6 @@
 package dev.zcripted.obx.economy;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
@@ -22,7 +22,7 @@ public final class VaultEconomyProvider {
 
     private VaultEconomyProvider() {}
 
-    public static boolean register(Main plugin, EconomyService economy) {
+    public static boolean register(OBX plugin, EconomyService economy) {
         Plugin vault = Bukkit.getPluginManager().getPlugin("Vault");
         if (vault == null) {
             return false;
@@ -49,10 +49,10 @@ public final class VaultEconomyProvider {
     }
 
     private static final class EconomyHandler implements InvocationHandler {
-        private final Main plugin;
+        private final OBX plugin;
         private final EconomyService economy;
 
-        EconomyHandler(Main plugin, EconomyService economy) {
+        EconomyHandler(OBX plugin, EconomyService economy) {
             this.plugin = plugin;
             this.economy = economy;
         }

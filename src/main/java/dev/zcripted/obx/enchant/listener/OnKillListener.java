@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.effect.CombatState;
 import dev.zcripted.obx.enchant.effect.EndlessHunger;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
@@ -33,14 +33,14 @@ public final class OnKillListener implements Listener {
 
     private static final String[] FEAR_SOUND = {"ENTITY_RAVAGER_ROAR", "ENTITY_ENDER_DRAGON_GROWL", "ENTITY_WOLF_GROWL"};
 
-    private final Main plugin;
+    private final OBX plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final CombatState combatState;
     private final CombatParticleService particles;
     private final HoloFXService holo;
 
-    public OnKillListener(Main plugin, CombatState combatState, CombatParticleService particles, HoloFXService holo) {
+    public OnKillListener(OBX plugin, CombatState combatState, CombatParticleService particles, HoloFXService holo) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

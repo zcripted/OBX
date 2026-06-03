@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.control;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Location;
@@ -25,11 +25,11 @@ public class KillModeManager implements Listener {
 
     private static final double STEP = 0.2;
 
-    private final Main plugin;
+    private final OBX plugin;
     private final LanguageManager languages;
     private final Set<UUID> enabled = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
-    public KillModeManager(Main plugin) {
+    public KillModeManager(OBX plugin) {
         this.plugin = plugin;
         this.languages = plugin.getLanguageManager();
     }

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.moderation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.moderation.ModerationService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.command.Command;
@@ -16,7 +16,7 @@ public class BanListCommand extends AbstractObxCommand {
 
     private final ModerationService moderationService;
 
-    public BanListCommand(Main plugin) {
+    public BanListCommand(OBX plugin) {
         super(plugin);
         this.moderationService = plugin.getModerationService();
     }

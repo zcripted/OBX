@@ -1,6 +1,6 @@
 package dev.zcripted.obx.listener.player;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hub.HubService;
 import dev.zcripted.obx.hub.item.HubItems;
 import org.bukkit.entity.HumanEntity;
@@ -26,10 +26,10 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class HubItemProtectionListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final HubService hub;
 
-    public HubItemProtectionListener(Main plugin, HubService hub) {
+    public HubItemProtectionListener(OBX plugin, HubService hub) {
         this.plugin = plugin;
         this.hub = hub;
     }

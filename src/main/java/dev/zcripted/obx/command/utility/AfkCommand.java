@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.control.AfkService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -19,7 +19,7 @@ public class AfkCommand extends AbstractObxCommand implements TabCompleter {
 
     private final AfkService afkService;
 
-    public AfkCommand(Main plugin) {
+    public AfkCommand(OBX plugin) {
         super(plugin);
         this.afkService = plugin.getAfkService();
     }

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.admin;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,7 +19,7 @@ import java.util.List;
 public class SmiteCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public SmiteCommand(Main plugin) {
+    public SmiteCommand(OBX plugin) {
         super(plugin);
     }
 

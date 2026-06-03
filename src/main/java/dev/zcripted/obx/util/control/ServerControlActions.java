@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.control;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import dev.zcripted.obx.util.message.ConsoleLog;
 import dev.zcripted.obx.util.text.ComponentMessenger;
@@ -39,11 +39,11 @@ public final class ServerControlActions {
 
     // ── Whitelist ────────────────────────────────────────────────────────────
 
-    public static void toggleWhitelist(Main plugin, CommandSender actor) {
+    public static void toggleWhitelist(OBX plugin, CommandSender actor) {
         setWhitelist(plugin, actor, !Bukkit.hasWhitelist());
     }
 
-    public static void setWhitelist(Main plugin, CommandSender actor, boolean enabled) {
+    public static void setWhitelist(OBX plugin, CommandSender actor, boolean enabled) {
         Bukkit.setWhitelist(enabled);
         LanguageManager lang = plugin.getLanguageManager();
         String state = lang.get(actor, enabled ? "admin.whitelist.state.enabled" : "admin.whitelist.state.disabled");
@@ -56,11 +56,11 @@ public final class ServerControlActions {
 
     // ── Join lock ────────────────────────────────────────────────────────────
 
-    public static void toggleJoinLock(Main plugin, CommandSender actor) {
+    public static void toggleJoinLock(OBX plugin, CommandSender actor) {
         setJoinLock(plugin, actor, !ServerControlState.isJoinLocked());
     }
 
-    public static void setJoinLock(Main plugin, CommandSender actor, boolean locked) {
+    public static void setJoinLock(OBX plugin, CommandSender actor, boolean locked) {
         ServerControlState.setJoinLocked(locked);
         LanguageManager lang = plugin.getLanguageManager();
         if (locked) {
@@ -80,7 +80,7 @@ public final class ServerControlActions {
 
     // ── Clear entities ───────────────────────────────────────────────────────
 
-    public static int clearEntities(Main plugin, CommandSender actor, ClearMode mode) {
+    public static int clearEntities(OBX plugin, CommandSender actor, ClearMode mode) {
         int removed = 0;
         for (World world : Bukkit.getWorlds()) {
             for (Entity entity : world.getEntities()) {
@@ -122,7 +122,7 @@ public final class ServerControlActions {
 
     // ── Kick non-ops ─────────────────────────────────────────────────────────
 
-    public static void kickNonOps(Main plugin, CommandSender actor) {
+    public static void kickNonOps(OBX plugin, CommandSender actor) {
         LanguageManager lang = plugin.getLanguageManager();
         List<String> kicked = new ArrayList<>();
         for (Player target : new ArrayList<>(Bukkit.getOnlinePlayers())) {
@@ -146,7 +146,7 @@ public final class ServerControlActions {
 
     // ── Spectator-only ───────────────────────────────────────────────────────
 
-    public static void forceSpectator(Main plugin, CommandSender actor) {
+    public static void forceSpectator(OBX plugin, CommandSender actor) {
         LanguageManager lang = plugin.getLanguageManager();
         List<String[]> switched = new ArrayList<>(); // [name, fromMode]
         for (Player target : Bukkit.getOnlinePlayers()) {
@@ -180,7 +180,7 @@ public final class ServerControlActions {
      * the same styled layout as the {@code /ban} usage messages. Used by the
      * weather / redstone / TPS handlers.
      */
-    public static void boxMessage(Main plugin, CommandSender actor, String boxName, String bodyKey, java.util.Map<String, String> placeholders) {
+    public static void boxMessage(OBX plugin, CommandSender actor, String boxName, String bodyKey, java.util.Map<String, String> placeholders) {
         LanguageManager lang = plugin.getLanguageManager();
         String body = placeholders == null ? lang.get(actor, bodyKey) : lang.get(actor, bodyKey, placeholders);
         frameTop(actor, boxName);
@@ -218,7 +218,7 @@ public final class ServerControlActions {
         return b.toString();
     }
 
-    private static void sendWithToggle(Main plugin, CommandSender actor, String body, String command, String hoverKey) {
+    private static void sendWithToggle(OBX plugin, CommandSender actor, String body, String command, String hoverKey) {
         LanguageManager lang = plugin.getLanguageManager();
         actor.sendMessage(legacy(body));
         sendButtonRow(actor, Arrays.asList(
@@ -252,7 +252,7 @@ public final class ServerControlActions {
      * for every weather event. Used by both the Weather Control GUI and
      * {@code /weather}. The buttons run {@code /weather <mode>}.
      */
-    public static void weatherMessage(Main plugin, CommandSender actor, String mode) {
+    public static void weatherMessage(OBX plugin, CommandSender actor, String mode) {
         LanguageManager lang = plugin.getLanguageManager();
         String typeName = lang.get(actor, "admin.weather.type." + mode);
         frameTop(actor, "Weather");
@@ -294,7 +294,7 @@ public final class ServerControlActions {
         return org.bukkit.ChatColor.translateAlternateColorCodes('&', text);
     }
 
-    private static void console(Main plugin, String message) {
+    private static void console(OBX plugin, String message) {
         ConsoleLog.info(plugin, message);
     }
 

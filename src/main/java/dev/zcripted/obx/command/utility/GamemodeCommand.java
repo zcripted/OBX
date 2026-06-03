@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageRegistry;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import dev.zcripted.obx.util.text.Placeholders;
@@ -23,7 +23,7 @@ public class GamemodeCommand extends AbstractObxCommand implements TabCompleter 
     private static final Map<String, GameMode> LABEL_ALIASES = createLabelAliases();
 
 
-    public GamemodeCommand(Main plugin) {
+    public GamemodeCommand(OBX plugin) {
         super(plugin);
     }
 

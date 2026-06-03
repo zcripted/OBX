@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -17,7 +17,7 @@ import java.util.List;
 public class MoreCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public MoreCommand(Main plugin) {
+    public MoreCommand(OBX plugin) {
         super(plugin);
     }
 

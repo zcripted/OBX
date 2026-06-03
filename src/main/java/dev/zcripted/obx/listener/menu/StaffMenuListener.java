@@ -1,6 +1,6 @@
 package dev.zcripted.obx.listener.menu;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.gui.admin.StaffActionMenu;
 import dev.zcripted.obx.gui.admin.StaffActionMenuHolder;
 import dev.zcripted.obx.gui.admin.StaffMenu;
@@ -29,9 +29,9 @@ import java.util.UUID;
  */
 public final class StaffMenuListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
 
-    public StaffMenuListener(Main plugin) {
+    public StaffMenuListener(OBX plugin) {
         this.plugin = plugin;
     }
 

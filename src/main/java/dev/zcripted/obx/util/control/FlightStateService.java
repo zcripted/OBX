@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.control;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.storage.SqliteDataStore;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,10 +13,10 @@ public class FlightStateService implements Listener {
 
     private static final float DEFAULT_SPEED = 0.1f;
 
-    private final Main plugin;
+    private final OBX plugin;
     private final SqliteDataStore store;
 
-    public FlightStateService(Main plugin) {
+    public FlightStateService(OBX plugin) {
         this.plugin = plugin;
         this.store = plugin.getDataStore();
     }

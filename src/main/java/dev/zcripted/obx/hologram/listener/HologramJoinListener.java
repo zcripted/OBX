@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hologram.service.HologramService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,10 +22,10 @@ import org.bukkit.event.player.PlayerRespawnEvent;
  */
 public final class HologramJoinListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final HologramService service;
 
-    public HologramJoinListener(Main plugin, HologramService service) {
+    public HologramJoinListener(OBX plugin, HologramService service) {
         this.plugin = plugin;
         this.service = service;
     }

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.listener.player;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -64,9 +64,9 @@ public final class CommandOverrideListener implements Listener {
     private static final Set<String> KNOWN_NAMESPACES = new HashSet<>(Arrays.asList(
             "bukkit", "minecraft", "essentials", "obx", "obx", "paper", "purpur", "spigot"));
 
-    private final Main plugin;
+    private final OBX plugin;
 
-    public CommandOverrideListener(Main plugin) {
+    public CommandOverrideListener(OBX plugin) {
         this.plugin = plugin;
     }
 

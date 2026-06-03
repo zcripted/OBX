@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.admin;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.control.VanishManager;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -32,7 +32,7 @@ public class VanishCommand extends AbstractObxCommand implements TabCompleter {
     private final VanishManager vanishManager;
     private final SimpleDateFormat timestamp = new SimpleDateFormat("HH:mm:ss");
 
-    public VanishCommand(Main plugin) {
+    public VanishCommand(OBX plugin) {
         super(plugin);
         this.vanishManager = plugin.getVanishManager();
     }
@@ -103,7 +103,7 @@ public class VanishCommand extends AbstractObxCommand implements TabCompleter {
      * Emits a single colour-coded staff-action line to the console. Every piece
      * of the line — template, state label, detail label — is sourced from the
      * language file so the format can be customised or translated without code
-     * changes. Goes through {@link Main#writeConsoleLine(String)} which
+     * changes. Goes through {@link OBX#writeConsoleLine(String)} which
      * translates the legacy {@code §} codes to ANSI escapes for terminals.
      */
     private void writeStaffLog(CommandSender sender, Player target, boolean nowVanished) {

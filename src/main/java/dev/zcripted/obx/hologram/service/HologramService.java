@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.service;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.hologram.backend.BackendSelector;
 import dev.zcripted.obx.hologram.backend.HologramBackend;
 import dev.zcripted.obx.hologram.interact.RaycastTargeter;
@@ -33,7 +33,7 @@ import java.io.IOException;
  *   <li>Resolves the appropriate {@link HologramBackend} via
  *       {@link BackendSelector};</li>
  *   <li>Probes for the optional packet layer via
- *       {@link PacketAvailability#probe(Main)} and logs the result;</li>
+ *       {@link PacketAvailability#probe(OBX)} and logs the result;</li>
  *   <li>Owns the {@link HologramRegistry} — populated by storage in Phase 2;</li>
  *   <li>Defers tick / listener / command wiring to later phases (Phase 1
  *       brings the renderer + listeners, Phase 2 brings the command tree).</li>
@@ -47,7 +47,7 @@ public final class HologramService {
 
     private static final String RESOURCE_PATH = "systems/holograms.yml";
 
-    private final Main plugin;
+    private final OBX plugin;
     private final File configFile;
     private final HologramRegistry registry = new HologramRegistry();
     private final HologramStorage storage;
@@ -59,7 +59,7 @@ public final class HologramService {
     private volatile RaycastTargeter raycastTargeter;
     private volatile boolean active;
 
-    public HologramService(Main plugin) {
+    public HologramService(OBX plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
         this.storage = new YamlHologramStorage(plugin);
@@ -192,7 +192,7 @@ public final class HologramService {
         return config;
     }
 
-    /** Called from Main#onDisable to tear down live entities cleanly. */
+    /** Called from OBX#onDisable to tear down live entities cleanly. */
     public void shutdown() {
         if (raycastTargeter != null) {
             raycastTargeter.stop();

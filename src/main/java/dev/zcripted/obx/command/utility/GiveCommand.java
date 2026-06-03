@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -21,7 +21,7 @@ import java.util.Map;
 public class GiveCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public GiveCommand(Main plugin) {
+    public GiveCommand(OBX plugin) {
         super(plugin);
     }
 

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.info;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class NearCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public NearCommand(Main plugin) {
+    public NearCommand(OBX plugin) {
         super(plugin);
     }
 

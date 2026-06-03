@@ -1,6 +1,6 @@
 package dev.zcripted.obx.gui.admin;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.gui.shared.WarpMenuStyling;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -51,7 +51,7 @@ public final class AdminMenu {
     private AdminMenu() {
     }
 
-    public static void open(Main plugin, Player player) {
+    public static void open(OBX plugin, Player player) {
         AdminMenuHolder holder = new AdminMenuHolder();
         Inventory inventory = Bukkit.createInventory(holder, 54, ADMIN_TITLE_TEXT);
         holder.setInventory(inventory);

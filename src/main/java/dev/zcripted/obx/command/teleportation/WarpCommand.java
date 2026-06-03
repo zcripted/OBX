@@ -1,6 +1,6 @@
 package dev.zcripted.obx.command.teleportation;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.command.AbstractObxCommand;
 import dev.zcripted.obx.gui.player.WarpMenu;
 import dev.zcripted.obx.gui.player.WarpMenuHolder;
@@ -30,7 +30,7 @@ public class WarpCommand extends AbstractObxCommand implements TabCompleter {
     private final WarpQueryCommands query;
     private final WarpAdminCommands admin;
 
-    public WarpCommand(Main plugin) {
+    public WarpCommand(OBX plugin) {
         super(plugin);
         this.warpService = plugin.getWarpService();
         this.query = new WarpQueryCommands(plugin, warpService, languages,

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.message;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 public final class ReplyCommand extends AbstractObxCommand {
 
 
-    public ReplyCommand(Main plugin) {
+    public ReplyCommand(OBX plugin) {
         super(plugin);
     }
 

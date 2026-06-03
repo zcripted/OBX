@@ -1,7 +1,7 @@
 
 package dev.zcripted.obx.listener.menu;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.gui.admin.AdminMenu;
 import dev.zcripted.obx.gui.player.MainMenu;
 import dev.zcripted.obx.gui.player.WarpMenu;
@@ -29,9 +29,9 @@ public class WarpMenuListener implements Listener {
     private static final int SLOT_MANAGER_VISIBILITY = 30;
     private static final int SLOT_MANAGER_HIDDEN_TOGGLE = 32;
 
-    private final Main plugin;
+    private final OBX plugin;
 
-    public WarpMenuListener(Main plugin) {
+    public WarpMenuListener(OBX plugin) {
         this.plugin = plugin;
     }
 

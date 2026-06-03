@@ -1,6 +1,6 @@
 package dev.zcripted.obx.gui.player;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -206,11 +206,11 @@ public final class HelpGuiMenu {
     private HelpGuiMenu() {
     }
 
-    public static void open(Main plugin, Player player, int page) {
+    public static void open(OBX plugin, Player player, int page) {
         open(plugin, player, page, CATEGORY_ALL);
     }
 
-    public static void open(Main plugin, Player player, int page, String category) {
+    public static void open(OBX plugin, Player player, int page, String category) {
         String resolvedCategory = normalizeCategory(category);
         List<HelpEntry> allEntries = collectVisibleCommands(player);
         List<HelpEntry> entries = filterByCategory(allEntries, resolvedCategory);

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.teleportation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
@@ -34,7 +34,7 @@ public final class PositionCommand extends AbstractObxCommand {
 
     private final Map<UUID, SchedulerAdapter.CancellableTask> trackers = new ConcurrentHashMap<UUID, SchedulerAdapter.CancellableTask>();
 
-    public PositionCommand(Main plugin) {
+    public PositionCommand(OBX plugin) {
         super(plugin);
     }
 

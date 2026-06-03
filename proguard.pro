@@ -56,7 +56,7 @@
 # Bukkit reads plugin.yml, then loads our Main class by name and invokes its
 # public lifecycle methods. Keep both the class and every public member so
 # nothing gets renamed underneath the platform.
--keep public class dev.zcripted.obx.Main {
+-keep public class dev.zcripted.obx.OBX {
     public *;
 }
 

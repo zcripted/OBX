@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.service;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -46,10 +46,10 @@ public final class HoloFXService {
         }
     }
 
-    private final Main plugin;
+    private final OBX plugin;
     private final ConcurrentLinkedQueue<ArmorStand> active = new ConcurrentLinkedQueue<ArmorStand>();
 
-    public HoloFXService(Main plugin) {
+    public HoloFXService(OBX plugin) {
         this.plugin = plugin;
     }
 

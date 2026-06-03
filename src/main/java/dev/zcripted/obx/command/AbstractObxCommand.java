@@ -1,6 +1,6 @@
 package dev.zcripted.obx.command;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
  * Common base for every OBX command executor.
  *
  * <p>Captures the boilerplate that was previously copy-pasted into each command:
- * the {@link Main} handle, the shared {@link LanguageManager}, and the two guard
+ * the {@link OBX} handle, the shared {@link LanguageManager}, and the two guard
  * clauses that virtually every command repeats — "this is player-only" and
  * "you lack the permission node". Subclasses keep implementing
  * {@link CommandExecutor#onCommand} as before, but can now lean on
@@ -24,10 +24,10 @@ import org.bukkit.entity.Player;
  */
 public abstract class AbstractObxCommand implements CommandExecutor {
 
-    protected final Main plugin;
+    protected final OBX plugin;
     protected final LanguageManager languages;
 
-    protected AbstractObxCommand(Main plugin) {
+    protected AbstractObxCommand(OBX plugin) {
         this.plugin = plugin;
         this.languages = plugin.getLanguageManager();
     }

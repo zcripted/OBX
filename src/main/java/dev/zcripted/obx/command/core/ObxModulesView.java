@@ -1,6 +1,6 @@
 package dev.zcripted.obx.command.core;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import dev.zcripted.obx.util.update.UpdateChecker;
 import org.bukkit.command.CommandSender;
@@ -19,12 +19,12 @@ import java.util.Set;
  */
 class ObxModulesView {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final LanguageManager languages;
     private final UpdateChecker updateChecker;
     private final Set<String> updateNotificationToggles = new HashSet<>();
 
-    ObxModulesView(Main plugin, LanguageManager languages, UpdateChecker updateChecker) {
+    ObxModulesView(OBX plugin, LanguageManager languages, UpdateChecker updateChecker) {
         this.plugin = plugin;
         this.languages = languages;
         this.updateChecker = updateChecker;

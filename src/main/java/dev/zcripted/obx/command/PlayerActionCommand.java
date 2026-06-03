@@ -1,6 +1,6 @@
 package dev.zcripted.obx.command;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,7 +19,7 @@ public abstract class PlayerActionCommand extends AbstractObxCommand {
 
     private final String permission;
 
-    protected PlayerActionCommand(Main plugin, String permission) {
+    protected PlayerActionCommand(OBX plugin, String permission) {
         super(plugin);
         this.permission = permission;
     }

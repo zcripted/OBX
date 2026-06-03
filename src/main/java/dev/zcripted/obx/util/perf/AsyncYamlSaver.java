@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.perf;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -37,7 +37,7 @@ public final class AsyncYamlSaver {
     private static final long DEBOUNCE_TICKS = 12L; // ~600 ms
     private static final long RECHECK_TICKS = 6L;   // ~300 ms
 
-    private final Main plugin;
+    private final OBX plugin;
     private final FileConfiguration data;
     private final File targetFile;
     private final String label;
@@ -45,7 +45,7 @@ public final class AsyncYamlSaver {
     private final AtomicBoolean writeScheduled = new AtomicBoolean(false);
     private volatile long debounceDeadlineNanos;
 
-    public AsyncYamlSaver(Main plugin, FileConfiguration data, File targetFile, String label) {
+    public AsyncYamlSaver(OBX plugin, FileConfiguration data, File targetFile, String label) {
         this.plugin = plugin;
         this.data = data;
         this.targetFile = targetFile;

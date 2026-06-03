@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -22,7 +22,7 @@ import java.util.Map;
 public class VitalCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public VitalCommand(Main plugin) {
+    public VitalCommand(OBX plugin) {
         super(plugin);
     }
 

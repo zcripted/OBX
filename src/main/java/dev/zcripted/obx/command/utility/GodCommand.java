@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.control.GodModeManager;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -22,7 +22,7 @@ public class GodCommand extends AbstractObxCommand implements TabCompleter {
 
     private final GodModeManager godModeManager;
 
-    public GodCommand(Main plugin) {
+    public GodCommand(OBX plugin) {
         super(plugin);
         this.godModeManager = plugin.getGodModeManager();
     }

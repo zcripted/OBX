@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.info;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.perf.PlaytimeService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
@@ -24,7 +24,7 @@ public class WhoisCommand extends AbstractObxCommand implements TabCompleter {
 
     private final PlaytimeService playtime;
 
-    public WhoisCommand(Main plugin) {
+    public WhoisCommand(OBX plugin) {
         super(plugin);
         this.playtime = plugin.getPlaytimeService();
     }

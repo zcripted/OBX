@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.service;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
 import dev.zcripted.obx.enchant.model.ItemTag;
 import dev.zcripted.obx.enchant.registry.EnchantRegistry;
@@ -36,7 +36,7 @@ public final class EnchantService {
 
     private static final String CONFIG_RESOURCE = "enchants/config.yml";
 
-    private final Main plugin;
+    private final OBX plugin;
     private final EnchantRegistry registry;
     private final EnchantStorage storage;
     private final ScrollSettings scrollSettings;
@@ -58,7 +58,7 @@ public final class EnchantService {
     /** Admins with proc-debug logging enabled. */
     private final Set<java.util.UUID> debugListeners = new CopyOnWriteArraySet<java.util.UUID>();
 
-    public EnchantService(Main plugin) {
+    public EnchantService(OBX plugin) {
         this.plugin = plugin;
         this.registry = new EnchantRegistry(plugin);
         this.storage = new EnchantStorage(registry);

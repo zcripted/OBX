@@ -124,7 +124,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-public class Main extends JavaPlugin {
+public class OBX extends JavaPlugin {
 
     private DataService dataService;
     private WarpService warpService;

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.admin;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.language.LanguageManager;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import dev.zcripted.obx.util.text.ComponentMessenger.InteractiveMessagePart;
@@ -62,7 +62,7 @@ public final class PluginListCommand extends AbstractObxCommand {
     ));
 
 
-    public PluginListCommand(Main plugin) {
+    public PluginListCommand(OBX plugin) {
         super(plugin);
     }
 

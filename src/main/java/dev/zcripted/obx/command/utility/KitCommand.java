@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.utility;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.kit.Kit;
 import dev.zcripted.obx.kit.KitService;
 import dev.zcripted.obx.util.text.Placeholders;
@@ -24,7 +24,7 @@ public class KitCommand extends AbstractObxCommand implements TabCompleter {
 
     private final KitService kitService;
 
-    public KitCommand(Main plugin) {
+    public KitCommand(OBX plugin) {
         super(plugin);
         this.kitService = plugin.getKitService();
     }

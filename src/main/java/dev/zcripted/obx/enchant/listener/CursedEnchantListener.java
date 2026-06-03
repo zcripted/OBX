@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.listener;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.effect.BoundMovement;
 import dev.zcripted.obx.enchant.effect.EffectUtil;
 import dev.zcripted.obx.enchant.model.CustomEnchant;
@@ -26,12 +26,12 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class CursedEnchantListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final BoundMovement boundMovement;
 
-    public CursedEnchantListener(Main plugin, BoundMovement boundMovement) {
+    public CursedEnchantListener(OBX plugin, BoundMovement boundMovement) {
         this.plugin = plugin;
         this.service = plugin.getEnchantService();
         this.storage = service.getStorage();

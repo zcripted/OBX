@@ -1,6 +1,6 @@
 package dev.zcripted.obx.enchant.service;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.enchant.model.EnchantRarity;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public final class ScrollSettings {
 
-    private final Main plugin;
+    private final OBX plugin;
 
     private final Map<EnchantRarity, Double> successRates = new EnumMap<EnchantRarity, Double>(EnchantRarity.class);
     private final Map<EnchantRarity, Integer> anvilXpCost = new EnumMap<EnchantRarity, Integer>(EnchantRarity.class);
@@ -25,7 +25,7 @@ public final class ScrollSettings {
     private int extractionLevelPenalty = 1;
     private boolean destroyOnFailure = true;
 
-    public ScrollSettings(Main plugin) {
+    public ScrollSettings(OBX plugin) {
         this.plugin = plugin;
     }
 

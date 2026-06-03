@@ -1,6 +1,6 @@
 package dev.zcripted.obx.hologram.backend;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.platform.PlatformInfo;
 
 /**
@@ -23,7 +23,7 @@ public final class BackendSelector {
     private BackendSelector() {
     }
 
-    public static HologramBackend choose(Main plugin, PlatformInfo platform) {
+    public static HologramBackend choose(OBX plugin, PlatformInfo platform) {
         if (platform != null && platform.isAtLeast(1, 19, 4) && hasClass("org.bukkit.entity.TextDisplay")) {
             String label = "Display-entity backend (TextDisplay, " + platform.getServerName()
                     + " " + platform.getMinecraftVersion() + ")";

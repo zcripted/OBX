@@ -1,6 +1,6 @@
 package dev.zcripted.obx.listener.menu;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.message.InboxMenu;
 import dev.zcripted.obx.message.InboxMenuHolder;
 import dev.zcripted.obx.message.InboxMessage;
@@ -19,9 +19,9 @@ import org.bukkit.inventory.Inventory;
  */
 public final class InboxMenuListener implements Listener {
 
-    private final Main plugin;
+    private final OBX plugin;
 
-    public InboxMenuListener(Main plugin) {
+    public InboxMenuListener(OBX plugin) {
         this.plugin = plugin;
     }
 

@@ -2,7 +2,7 @@ package dev.zcripted.obx.command.teleportation;
 
 import dev.zcripted.obx.command.AbstractObxCommand;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,7 +21,7 @@ import java.util.Map;
 public class TpPosCommand extends AbstractObxCommand implements TabCompleter {
 
 
-    public TpPosCommand(Main plugin) {
+    public TpPosCommand(OBX plugin) {
         super(plugin);
     }
 

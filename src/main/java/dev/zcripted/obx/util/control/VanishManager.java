@@ -1,6 +1,6 @@
 package dev.zcripted.obx.util.control;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
@@ -98,7 +98,7 @@ public class VanishManager implements Listener {
         HIGHER
     }
 
-    private final Main plugin;
+    private final OBX plugin;
     private final Map<UUID, Tier> vanished = new ConcurrentHashMap<UUID, Tier>();
 
     private final Method hidePlayerWithPlugin;
@@ -108,7 +108,7 @@ public class VanishManager implements Listener {
 
     private SchedulerAdapter.CancellableTask actionBarTask;
 
-    public VanishManager(Main plugin) {
+    public VanishManager(OBX plugin) {
         this.plugin = plugin;
         this.hidePlayerWithPlugin = lookup(Player.class, "hidePlayer", Plugin.class, Player.class);
         this.showPlayerWithPlugin = lookup(Player.class, "showPlayer", Plugin.class, Player.class);

@@ -1,6 +1,6 @@
 package dev.zcripted.obx.listener.player;
 
-import dev.zcripted.obx.Main;
+import dev.zcripted.obx.OBX;
 import dev.zcripted.obx.gui.player.ServerSelectorMenu;
 import dev.zcripted.obx.hub.HubService;
 import dev.zcripted.obx.hub.item.HubItems;
@@ -57,7 +57,7 @@ public final class HubItemUseListener implements Listener {
     /** Window within which a repeat fire of the SAME hub item is treated as a duplicate. */
     private static final long DUPLICATE_FIRE_WINDOW_MS = 150L;
 
-    private final Main plugin;
+    private final OBX plugin;
     private final HubService hub;
 
     /** Per-player "are other players hidden by my vanish-all toggle?" state. */
@@ -66,7 +66,7 @@ public final class HubItemUseListener implements Listener {
     /** Last action time per {@code uuid|itemId} — debounces duplicate interact fires. */
     private final Map<String, Long> lastActionAt = new ConcurrentHashMap<>();
 
-    public HubItemUseListener(Main plugin, HubService hub) {
+    public HubItemUseListener(OBX plugin, HubService hub) {
         this.plugin = plugin;
         this.hub = hub;
     }
