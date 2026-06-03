@@ -138,20 +138,6 @@ public class OBX extends JavaPlugin {
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
-    private EnchantService enchantService;
-    private EnchantItems enchantItems;
-    private EnchantFeedback enchantFeedback;
-    private EnchantAdminMenu enchantAdminMenu;
-    private ScrollApplyService scrollApplyService;
-    private EnchantLoot enchantLoot;
-    private EnchantState enchantState;
-    private EnchantTickTask enchantTickTask;
-    private BoundMovement enchantBoundMovement;
-    private dev.zcripted.obx.feature.enchant.effect.CombatState combatState;
-    private dev.zcripted.obx.feature.enchant.service.CombatParticleService combatParticles;
-    private dev.zcripted.obx.feature.enchant.service.HoloFXService holoFX;
-    private dev.zcripted.obx.feature.enchant.service.ReactiveSpecialsService reactiveSpecials;
-    private dev.zcripted.obx.feature.enchant.service.CombatHudService combatHud;
     private dev.zcripted.obx.feature.hologram.service.HologramService hologramService;
     private dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu hologramEditorMenu;
     private String releaseDate = "Unknown";
@@ -191,26 +177,6 @@ public class OBX extends JavaPlugin {
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
 
-        // Arcanum custom-enchantment module. The service loads the roster and
-        // config; the GUI/items/feedback depend on it being constructed first.
-        enchantService = new EnchantService(this);
-        enchantService.load();
-        enchantItems = new EnchantItems(enchantService);
-        enchantFeedback = new EnchantFeedback(this);
-        enchantAdminMenu = new EnchantAdminMenu(this);
-        scrollApplyService = new ScrollApplyService(this);
-        enchantLoot = new EnchantLoot(this);
-        enchantLoot.register();
-        enchantState = new EnchantState(this);
-        combatState = new dev.zcripted.obx.feature.enchant.effect.CombatState();
-        combatParticles = new dev.zcripted.obx.feature.enchant.service.CombatParticleService(this);
-        holoFX = new dev.zcripted.obx.feature.enchant.service.HoloFXService(this);
-        reactiveSpecials = new dev.zcripted.obx.feature.enchant.service.ReactiveSpecialsService(this, combatState, combatParticles);
-        combatHud = new dev.zcripted.obx.feature.enchant.service.CombatHudService(this);
-        combatHud.start();
-        enchantBoundMovement = new BoundMovement(enchantService.getStorage());
-        enchantTickTask = new EnchantTickTask(this, enchantBoundMovement);
-
         // Holograms module. Dormant when systems/holograms.yml master enabled=false.
         // Renders via real display entities on 1.19.4+, armor-stand fallback below.
         hologramService = new dev.zcripted.obx.feature.hologram.service.HologramService(this);
@@ -224,9 +190,6 @@ public class OBX extends JavaPlugin {
         registerListeners();
 
         tpsService.start();
-        if (enchantTickTask != null) {
-            enchantTickTask.start();
-        }
 
         lastLoadDurationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - enableStart);
         printBanner(true);
@@ -235,28 +198,6 @@ public class OBX extends JavaPlugin {
     @Override
     public void onDisable() {
         moduleManager.disableAll();
-        if (enchantTickTask != null) {
-            enchantTickTask.stop();
-        }
-        if (enchantState != null) {
-            enchantState.saveAll();
-        }
-        if (holoFX != null) {
-            holoFX.clear();
-        }
-        if (combatParticles != null) {
-            combatParticles.clear();
-        }
-        if (combatHud != null) {
-            combatHud.clear();
-        }
-        // Clear Curse of the Bound toughness modifiers and speed throttle so nothing persists past unload.
-        for (org.bukkit.entity.Player online : getServer().getOnlinePlayers()) {
-            dev.zcripted.obx.feature.enchant.effect.EffectUtil.setBoundToughness(online, 0.0);
-            if (enchantBoundMovement != null) {
-                enchantBoundMovement.restore(online);
-            }
-        }
         if (tpsService != null) {
             tpsService.stop();
         }
@@ -435,19 +376,19 @@ public class OBX extends JavaPlugin {
     }
 
     public EnchantService getEnchantService() {
-        return enchantService;
+        return serviceRegistry.get(EnchantService.class);
     }
 
     public EnchantItems getEnchantItems() {
-        return enchantItems;
+        return serviceRegistry.get(EnchantItems.class);
     }
 
     public EnchantFeedback getEnchantFeedback() {
-        return enchantFeedback;
+        return serviceRegistry.get(EnchantFeedback.class);
     }
 
     public EnchantAdminMenu getEnchantAdminMenu() {
-        return enchantAdminMenu;
+        return serviceRegistry.get(EnchantAdminMenu.class);
     }
 
     public dev.zcripted.obx.feature.hologram.service.HologramService getHologramService() {
@@ -460,6 +401,8 @@ public class OBX extends JavaPlugin {
      * {@code /obxench loot reload} command remains valid.
      */
     public void reloadEnchantLoot() {
+        dev.zcripted.obx.feature.enchant.loot.EnchantLoot enchantLoot =
+                serviceRegistry.get(dev.zcripted.obx.feature.enchant.loot.EnchantLoot.class);
         if (enchantLoot != null) {
             enchantLoot.reload();
         }
@@ -484,12 +427,6 @@ public class OBX extends JavaPlugin {
             resourcePackManager.installBundledPack();
             resourcePackManager.prepareHosting();
             times.put("resource-pack", System.nanoTime() - s);
-        }
-        if (enchantService != null) {
-            s = System.nanoTime(); enchantService.reload(); times.put("enchants", System.nanoTime() - s);
-        }
-        if (enchantLoot != null) {
-            s = System.nanoTime(); enchantLoot.reload(); times.put("enchant-loot", System.nanoTime() - s);
         }
         if (hologramService != null) {
             s = System.nanoTime(); hologramService.reload(); times.put("holograms.yml", System.nanoTime() - s);
@@ -524,6 +461,7 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.warp.WarpModule());
         moduleManager.register(new dev.zcripted.obx.feature.staff.StaffModule());
         moduleManager.register(new dev.zcripted.obx.feature.hub.HubModule());
+        moduleManager.register(new dev.zcripted.obx.feature.enchant.EnchantModule());
     }
 
     private void registerCommands() {
@@ -533,10 +471,6 @@ public class OBX extends JavaPlugin {
         bind("pl", new PluginListCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
-        bind("obxench", new ObxEnchantCommand(this));
-        bind("enchants", new EnchantsBrowseCommand(this));
-        bind("recall", new RecallCommand(this, enchantState));
-        bind("satchel", new SatchelCommand(this, enchantState));
         bind("holo", new dev.zcripted.obx.feature.hologram.command.HologramCommand(this, hologramService));
     }
 
@@ -552,26 +486,6 @@ public class OBX extends JavaPlugin {
         // (player sample) never gets set on Paper. No-op on base Spigot.
         motdPingListener.registerPaperPingListener();
 
-        // Arcanum enchantment module listeners (combat effects + GUI routing).
-        getServer().getPluginManager().registerEvents(new CombatEnchantListener(this, enchantService, combatHud), this);
-        getServer().getPluginManager().registerEvents(new EnchantMenuListener(this), this);
-        getServer().getPluginManager().registerEvents(new AnvilEnchantListener(this, scrollApplyService), this);
-        getServer().getPluginManager().registerEvents(new ScrollDragListener(this, scrollApplyService), this);
-        getServer().getPluginManager().registerEvents(new DefenseEnchantListener(this, enchantState), this);
-        getServer().getPluginManager().registerEvents(new ToolEnchantListener(this), this);
-        getServer().getPluginManager().registerEvents(new FarmingEnchantListener(this), this);
-        getServer().getPluginManager().registerEvents(new UtilityEnchantListener(this), this);
-        getServer().getPluginManager().registerEvents(new MovementEnchantListener(this, enchantState), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.effect.SatchelCloseListener(enchantState), this);
-        getServer().getPluginManager().registerEvents(new CursedEnchantListener(this, enchantBoundMovement), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.EnchantLoreListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.EnchantBookUseListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.OnHitDamageListener(this, combatState, combatParticles, holoFX, combatHud), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.OnKillListener(this, combatState, combatParticles, holoFX), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.OnHitProcListener(this, combatState, combatParticles, combatHud), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.OnDeathListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.RangedListener(this, combatState, combatParticles, reactiveSpecials, combatHud), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.enchant.listener.ReactiveSpecialsListener(this, combatState, reactiveSpecials), this);
 
         // Holograms module listeners — re-shows holograms on join / respawn / world-change / resource-pack reload.
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.hologram.listener.HologramJoinListener(this, hologramService), this);
