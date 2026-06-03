@@ -132,16 +132,10 @@ public class OBX extends JavaPlugin {
 
     private DataService dataService;
     private LanguageManager languageManager;
-    private VanishManager vanishManager;
     private MotdService motdService;
-    private dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask adminMenuRefreshTask;
     private AutoResourcePackManager resourcePackManager;
-    private dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager staffMenuInputManager;
-    private dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager invSeeMenuManager;
-    private dev.zcripted.obx.feature.staff.service.StaffSessionTracker staffSessionTracker;
     private TpsService tpsService;
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
-    private dev.zcripted.obx.feature.staff.service.FreezeService freezeService;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
     private HubService hubService;
@@ -197,16 +191,10 @@ public class OBX extends JavaPlugin {
         dataService.load();
         motdService = new MotdService(this);
         motdService.load();
-        adminMenuRefreshTask = new dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask(this);
-        staffMenuInputManager = new dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager(this);
-        invSeeMenuManager = new dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager(this);
-        staffSessionTracker = new dev.zcripted.obx.feature.staff.service.StaffSessionTracker();
-        vanishManager = new VanishManager(this);
         resourcePackManager = new AutoResourcePackManager(this);
         resourcePackManager.installBundledPack();
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
-        freezeService = new dev.zcripted.obx.feature.staff.service.FreezeService(this);
 
         // Hub / lobby system — service must exist before listeners or
         // command registration since they reference it. Dormant when the
@@ -251,16 +239,7 @@ public class OBX extends JavaPlugin {
         registerCommands();
         registerListeners();
 
-        if (adminMenuRefreshTask != null) {
-            adminMenuRefreshTask.start();
-        }
         tpsService.start();
-        if (vanishManager != null) {
-            vanishManager.start();
-        }
-        if (invSeeMenuManager != null) {
-            invSeeMenuManager.start();
-        }
         if (launchpadCooldownManager != null) {
             launchpadCooldownManager.start();
         }
@@ -306,17 +285,8 @@ public class OBX extends JavaPlugin {
         if (hubService != null) {
             hubService.save();
         }
-        if (invSeeMenuManager != null) {
-            invSeeMenuManager.stop();
-        }
-        if (vanishManager != null) {
-            vanishManager.stop();
-        }
         if (tpsService != null) {
             tpsService.stop();
-        }
-        if (adminMenuRefreshTask != null) {
-            adminMenuRefreshTask.cancel();
         }
         if (dataService != null) {
             dataService.save();
@@ -361,11 +331,11 @@ public class OBX extends JavaPlugin {
     }
 
     public VanishManager getVanishManager() {
-        return vanishManager;
+        return serviceRegistry.get(VanishManager.class);
     }
 
     public dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager getInvSeeMenuManager() {
-        return invSeeMenuManager;
+        return serviceRegistry.get(dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager.class);
     }
 
     public ModerationService getModerationService() {
@@ -401,11 +371,11 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager getStaffMenuInputManager() {
-        return staffMenuInputManager;
+        return serviceRegistry.get(dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager.class);
     }
 
     public dev.zcripted.obx.feature.staff.service.StaffSessionTracker getStaffSessionTracker() {
-        return staffSessionTracker;
+        return serviceRegistry.get(dev.zcripted.obx.feature.staff.service.StaffSessionTracker.class);
     }
 
     public TpsService getTpsService() {
@@ -449,7 +419,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.staff.service.FreezeService getFreezeService() {
-        return freezeService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.staff.service.FreezeService.class);
     }
 
     public dev.zcripted.obx.feature.nickname.service.NicknameService getNicknameService() {
@@ -583,6 +553,7 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.teleport.TeleportModule());
         moduleManager.register(new dev.zcripted.obx.feature.mail.MailModule());
         moduleManager.register(new dev.zcripted.obx.feature.warp.WarpModule());
+        moduleManager.register(new dev.zcripted.obx.feature.staff.StaffModule());
     }
 
     private void registerCommands() {
@@ -590,12 +561,8 @@ public class OBX extends JavaPlugin {
         bind("help", new HelpGuiCommand(this));
         bind("tps", new TpsCommand(this));
         bind("pl", new PluginListCommand(this));
-        bind("vanish", new VanishCommand(this));
-        bind("invsee", new InvSeeCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
-        bind("freeze", new dev.zcripted.obx.feature.staff.command.FreezeCommand(this));
-        bind("staff", new dev.zcripted.obx.feature.staff.command.StaffCommand(this));
         bind("hub", new HubCommand(this, hubService, hubKitApplier));
         bind("obxench", new ObxEnchantCommand(this));
         bind("enchants", new EnchantsBrowseCommand(this));
@@ -605,15 +572,10 @@ public class OBX extends JavaPlugin {
     }
 
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(vanishManager, this);
         getServer().getPluginManager().registerEvents(new CommandOverrideListener(this), this);
         getServer().getPluginManager().registerEvents(new MainMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new HelpGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new ResourcePackListener(this, resourcePackManager), this);
-        getServer().getPluginManager().registerEvents(staffSessionTracker, this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.InvSeeMenuListener(this), this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuInputListener(staffMenuInputManager), this);
         MotdPingListener motdPingListener = new MotdPingListener(this);
         getServer().getPluginManager().registerEvents(motdPingListener, this);
         // Paper (and forks) fire PaperServerListPingEvent on its own HandlerList,
