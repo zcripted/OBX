@@ -138,7 +138,6 @@ public class OBX extends JavaPlugin {
     private dev.zcripted.obx.feature.mail.pm.PrivateMessageService messageService;
     private VanishManager vanishManager;
     private MotdService motdService;
-    private JoinLeaveService joinLeaveService;
     private dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask adminMenuRefreshTask;
     private AutoResourcePackManager resourcePackManager;
     private WarpMenuInputManager warpMenuInputManager;
@@ -148,7 +147,6 @@ public class OBX extends JavaPlugin {
     private TpsService tpsService;
     private dev.zcripted.obx.feature.teleport.service.TpaService tpaService;
     private dev.zcripted.obx.feature.mail.mail.MailService mailService;
-    private dev.zcripted.obx.feature.playerinfo.service.PlaytimeService playtimeService;
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
     private dev.zcripted.obx.feature.staff.service.FreezeService freezeService;
     private SchedulerAdapter scheduler;
@@ -208,7 +206,6 @@ public class OBX extends JavaPlugin {
         warpService.load();
         motdService = new MotdService(this);
         motdService.load();
-        joinLeaveService = new JoinLeaveService(this);
         adminMenuRefreshTask = new dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask(this);
         warpMenuInputManager = new WarpMenuInputManager(this);
         staffMenuInputManager = new dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager(this);
@@ -227,8 +224,6 @@ public class OBX extends JavaPlugin {
         tpaService = new dev.zcripted.obx.feature.teleport.service.TpaService(this);
         mailService = new dev.zcripted.obx.feature.mail.mail.MailService(this);
         mailService.load();
-        playtimeService = new dev.zcripted.obx.feature.playerinfo.service.PlaytimeService(this);
-        playtimeService.load();
         freezeService = new dev.zcripted.obx.feature.staff.service.FreezeService(this);
 
         // Hub / lobby system — service must exist before listeners or
@@ -347,9 +342,6 @@ public class OBX extends JavaPlugin {
         if (tpaService != null) {
             tpaService.stop();
         }
-        if (playtimeService != null) {
-            playtimeService.save();
-        }
         if (dataService != null) {
             dataService.save();
         }
@@ -409,7 +401,7 @@ public class OBX extends JavaPlugin {
     }
 
     public JoinLeaveService getJoinLeaveService() {
-        return joinLeaveService;
+        return serviceRegistry.get(JoinLeaveService.class);
     }
 
     public ChatService getChatService() {
@@ -469,7 +461,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.playerinfo.service.PlaytimeService getPlaytimeService() {
-        return playtimeService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.playerinfo.service.PlaytimeService.class);
     }
 
     public dev.zcripted.obx.core.storage.SqliteDataStore getDataStore() {
@@ -569,9 +561,6 @@ public class OBX extends JavaPlugin {
         if (motdService != null) {
             s = System.nanoTime(); motdService.reload(); times.put("motd.yml", System.nanoTime() - s);
         }
-        if (joinLeaveService != null) {
-            s = System.nanoTime(); joinLeaveService.reload(); times.put("join-leave", System.nanoTime() - s);
-        }
         if (resourcePackManager != null) {
             s = System.nanoTime();
             resourcePackManager.refreshConfig();
@@ -615,6 +604,7 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.item.ItemModule());
         moduleManager.register(new dev.zcripted.obx.feature.world.WorldModule());
         moduleManager.register(new dev.zcripted.obx.feature.playerstate.PlayerStateModule());
+        moduleManager.register(new dev.zcripted.obx.feature.playerinfo.PlayerInfoModule());
     }
 
     private void registerCommands() {
@@ -622,7 +612,6 @@ public class OBX extends JavaPlugin {
         WarpCommand warpCommand = new WarpCommand(this);
         bind("obx", new ObxCommand(this, languageManager));
         bind("help", new HelpGuiCommand(this));
-        bind("list", new ListCommand(this));
         bind("home", new HomeCommand(this));
         bind("sethome", new SetHomeCommand(this));
         bind("delhome", new DelHomeCommand(this));
@@ -660,14 +649,6 @@ public class OBX extends JavaPlugin {
         bind("me", new dev.zcripted.obx.feature.mail.command.MeCommand(this));
         bind("broadcast", new dev.zcripted.obx.feature.mail.command.BroadcastCommand(this));
         bind("staffchat", new dev.zcripted.obx.feature.mail.command.StaffChatCommand(this));
-        bind("seen", new dev.zcripted.obx.feature.playerinfo.command.SeenCommand(this));
-        bind("firstseen", new dev.zcripted.obx.feature.playerinfo.command.FirstSeenCommand(this));
-        bind("playtime", new dev.zcripted.obx.feature.playerinfo.command.PlaytimeCommand(this));
-        bind("list", new dev.zcripted.obx.feature.playerinfo.command.ListCommand(this));
-        bind("near", new dev.zcripted.obx.feature.playerinfo.command.NearCommand(this));
-        bind("whois", new dev.zcripted.obx.feature.playerinfo.command.WhoisCommand(this));
-        bind("realname", new dev.zcripted.obx.feature.playerinfo.command.RealnameCommand(this));
-        bind("info", new dev.zcripted.obx.feature.playerinfo.command.InfoCommand(this));
         bind("freeze", new dev.zcripted.obx.feature.staff.command.FreezeCommand(this));
         bind("staff", new dev.zcripted.obx.feature.staff.command.StaffCommand(this));
         bind("hub", new HubCommand(this, hubService, hubKitApplier));
@@ -682,8 +663,6 @@ public class OBX extends JavaPlugin {
         getServer().getPluginManager().registerEvents(teleportManager, this);
         getServer().getPluginManager().registerEvents(vanishManager, this);
         getServer().getPluginManager().registerEvents(new BackListener(this), this);
-        getServer().getPluginManager().registerEvents(new JoinListener(this), this);
-        getServer().getPluginManager().registerEvents(new JoinLeaveListener(this, joinLeaveService), this);
         getServer().getPluginManager().registerEvents(new CommandOverrideListener(this), this);
         getServer().getPluginManager().registerEvents(new MainMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new HelpGuiListener(this), this);
