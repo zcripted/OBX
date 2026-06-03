@@ -24,7 +24,7 @@ public class GodCommand extends AbstractObxCommand implements TabCompleter {
 
     public GodCommand(ObxPlugin plugin) {
         super(plugin);
-        this.godModeManager = plugin.getGodModeManager();
+        this.godModeManager = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.playerstate.service.GodModeManager.class);
     }
 
     @Override

@@ -23,7 +23,7 @@ public class IgnoreCommand extends AbstractObxCommand implements TabCompleter {
 
     public IgnoreCommand(ObxPlugin plugin) {
         super(plugin);
-        this.messageService = plugin.getMailService();
+        this.messageService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.mail.MailService.class);
     }
 
     @Override

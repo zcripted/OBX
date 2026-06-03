@@ -45,10 +45,10 @@ public final class EnchantMenuListener implements Listener {
         if (event.getRawSlot() < 0 || event.getRawSlot() >= top.getSize()) {
             return;
         }
-        if (plugin.getEnchantAdminMenu() == null) {
+        if (plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu.class) == null) {
             return;
         }
-        plugin.getEnchantAdminMenu().handleClick((Player) who, (EnchantMenuHolder) holder, event.getRawSlot(), event.getClick());
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu.class).handleClick((Player) who, (EnchantMenuHolder) holder, event.getRawSlot(), event.getClick());
     }
 
     @EventHandler

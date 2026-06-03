@@ -9,6 +9,6 @@ public final class WarpCreateInputFlow {
     }
 
     public static void start(ObxPlugin plugin, Player player, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm) {
-        plugin.getWarpMenuInputManager().promptCreate(player, backTarget, returnPage, categoryFilter, searchTerm);
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptCreate(player, backTarget, returnPage, categoryFilter, searchTerm);
     }
 }

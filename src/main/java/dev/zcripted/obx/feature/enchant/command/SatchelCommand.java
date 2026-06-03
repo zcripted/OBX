@@ -24,7 +24,7 @@ public final class SatchelCommand extends AbstractObxCommand {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        EnchantService service = plugin.getEnchantService();
+        EnchantService service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         if (!service.isEnabled()) {
             plugin.getLanguageManager().send(sender, "enchant.module-disabled");
             return true;

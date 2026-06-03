@@ -29,7 +29,7 @@ public final class RecallCommand extends AbstractObxCommand {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!plugin.getEnchantService().isEnabled()) {
+        if (!plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class).isEnabled()) {
             plugin.getLanguageManager().send(sender, "enchant.module-disabled");
             return true;
         }
@@ -39,7 +39,7 @@ public final class RecallCommand extends AbstractObxCommand {
         }
         Player player = (Player) sender;
         ItemStack boots = player.getInventory().getBoots();
-        int level = plugin.getEnchantService().getStorage().level(boots, "beacons_memory");
+        int level = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class).getStorage().level(boots, "beacons_memory");
         if (level <= 0) {
             plugin.getLanguageManager().send(player, "enchant.recall.no-enchant");
             return true;
@@ -54,7 +54,7 @@ public final class RecallCommand extends AbstractObxCommand {
                     Collections.singletonMap("seconds", Long.toString(state.remainingSeconds(player, "recall"))));
             return true;
         }
-        CustomEnchant enchant = plugin.getEnchantService().getRegistry().get("beacons_memory");
+        CustomEnchant enchant = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class).getRegistry().get("beacons_memory");
         player.teleport(target);
         state.setCooldown(player, "recall", enchant.levelInt(level, "cooldown_seconds", 600));
         plugin.getLanguageManager().send(player, "enchant.recall.teleported");

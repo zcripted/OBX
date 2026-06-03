@@ -50,7 +50,7 @@ public final class ToolEnchantListener implements Listener {
     private final Set<java.util.UUID> processing = new HashSet<java.util.UUID>();
 
     public ToolEnchantListener(ObxPlugin plugin) {
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
         this.languages = plugin.getLanguageManager();
     }

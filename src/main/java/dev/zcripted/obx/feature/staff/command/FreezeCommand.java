@@ -21,7 +21,7 @@ public class FreezeCommand extends AbstractObxCommand implements TabCompleter {
 
     public FreezeCommand(ObxPlugin plugin) {
         super(plugin);
-        this.freeze = plugin.getFreezeService();
+        this.freeze = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.service.FreezeService.class);
     }
 
     @Override

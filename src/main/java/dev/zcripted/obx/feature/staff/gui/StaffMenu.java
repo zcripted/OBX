@@ -251,7 +251,7 @@ public final class StaffMenu {
                                              Player subject, String keyPrefix) {
         LanguageManager languages = plugin.getLanguageManager();
         ModerationService moderation = plugin.getModerationService();
-        StaffSessionTracker tracker = plugin.getStaffSessionTracker();
+        StaffSessionTracker tracker = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.service.StaffSessionTracker.class);
 
         String firstJoined = formatJoinDate(subject);
         long activeMillis = activePlayMillis(subject);

@@ -152,7 +152,7 @@ public final class HubItemUseListener implements Listener {
                 // directly so it works on a plain right-click as well as the
                 // double-tap-space path in HubLaunchpadListener.
                 if (hub.isItemEnabled(HubItems.ID_LAUNCHPAD) && player.hasPermission("obx.hub.launchpad")) {
-                    HubLaunchpadListener.launch(hub, plugin.getLaunchpadCooldownManager(), player);
+                    HubLaunchpadListener.launch(hub, plugin.getServiceRegistry().get(dev.zcripted.obx.feature.hub.launchpad.LaunchpadCooldownManager.class), player);
                 }
                 return;
             case HubItems.ID_JUMP_ROD:

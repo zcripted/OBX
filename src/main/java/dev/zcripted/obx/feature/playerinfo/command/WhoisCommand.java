@@ -26,7 +26,7 @@ public class WhoisCommand extends AbstractObxCommand implements TabCompleter {
 
     public WhoisCommand(ObxPlugin plugin) {
         super(plugin);
-        this.playtime = plugin.getPlaytimeService();
+        this.playtime = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.playerinfo.service.PlaytimeService.class);
     }
 
     @Override

@@ -143,7 +143,7 @@ public class WarpMenuInputManager {
     }
 
     private void handleCreate(Player player, PendingInput input, String message) {
-        WarpService warpService = plugin.getWarpService();
+        WarpService warpService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class);
         String normalized = warpService.normalizeName(message);
         if (normalized == null) {
             plugin.getLanguageManager().send(player, "teleport.warp.invalid-name");
@@ -163,7 +163,7 @@ public class WarpMenuInputManager {
     }
 
     private void handleRename(Player player, PendingInput input, String message) {
-        WarpService warpService = plugin.getWarpService();
+        WarpService warpService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class);
         WarpService.WarpEntry entry = warpService.getWarp(input.getWarpKey() != null ? input.getWarpKey() : input.getWarpName());
         if (entry == null) {
             plugin.getLanguageManager().send(player, "teleport.warp.not-found", Placeholders.with("warp", input.getWarpName() == null ? "?" : input.getWarpName()));

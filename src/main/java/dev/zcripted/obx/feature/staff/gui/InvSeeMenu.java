@@ -96,8 +96,8 @@ public final class InvSeeMenu {
         // visual language operators are already used to.
         inv.setItem(CLOSE_SLOT, StaffMenu.buildCloseHead(viewer, languages));
 
-        if (plugin.getInvSeeMenuManager() != null) {
-            plugin.getInvSeeMenuManager().register(viewer, holder);
+        if (plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager.class) != null) {
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager.class).register(viewer, holder);
         }
         viewer.openInventory(inv);
     }

@@ -33,7 +33,7 @@ public final class CursedEnchantListener implements Listener {
 
     public CursedEnchantListener(ObxPlugin plugin, BoundMovement boundMovement) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
         this.boundMovement = boundMovement;
     }

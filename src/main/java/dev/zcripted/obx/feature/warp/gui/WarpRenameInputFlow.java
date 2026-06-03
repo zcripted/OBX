@@ -10,6 +10,6 @@ public final class WarpRenameInputFlow {
     }
 
     public static void start(ObxPlugin plugin, Player player, WarpService.WarpEntry entry, WarpMenuHolder.BackTarget backTarget, int returnPage, String categoryFilter, String searchTerm, WarpMenuHolder.AdminAction adminAction) {
-        plugin.getWarpMenuInputManager().promptRename(player, entry, backTarget, returnPage, categoryFilter, searchTerm, adminAction);
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptRename(player, entry, backTarget, returnPage, categoryFilter, searchTerm, adminAction);
     }
 }

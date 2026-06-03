@@ -84,7 +84,7 @@ public final class RangedListener implements Listener {
 
     public RangedListener(ObxPlugin plugin, CombatState combatState, CombatParticleService particles, ReactiveSpecialsService reactive, CombatHudService hud) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
         this.combatState = combatState;
         this.particles = particles;

@@ -107,7 +107,7 @@ public final class HologramCommand extends AbstractObxCommand implements TabComp
         register(new ShowSub(ctx));
         // GUI editor menu is owned by OBX; we wire it in via late binding
         // because the listener also needs to be registered exactly once.
-        dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu editorMenu = plugin.getHologramEditorMenu();
+        dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu editorMenu = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu.class);
         if (editorMenu != null) {
             register(new GuiSub(ctx, editorMenu));
         }

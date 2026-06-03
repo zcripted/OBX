@@ -41,7 +41,7 @@ public final class ServerSelectorMenu {
      */
     public static void open(ObxPlugin plugin, Player player) {
         HubService hub = plugin.getHubService();
-        BungeeMessenger messenger = plugin.getBungeeMessenger();
+        BungeeMessenger messenger = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.hub.messaging.BungeeMessenger.class);
         if (hub == null) {
             return;
         }

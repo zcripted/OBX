@@ -23,7 +23,7 @@ public class FlySpeedCommand extends AbstractObxCommand implements TabCompleter 
 
     public FlySpeedCommand(ObxPlugin plugin) {
         super(plugin);
-        this.flight = plugin.getFlightStateService();
+        this.flight = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.playerstate.service.FlightStateService.class);
     }
 
     @Override

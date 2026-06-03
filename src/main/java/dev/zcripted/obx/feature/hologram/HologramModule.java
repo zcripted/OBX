@@ -43,7 +43,7 @@ public final class HologramModule extends AbstractModule {
 
     @Override
     public void reload(ObxPlugin plugin) {
-        HologramService holo = plugin.getHologramService();
+        HologramService holo = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.hologram.service.HologramService.class);
         if (holo != null) {
             holo.reload();
         }

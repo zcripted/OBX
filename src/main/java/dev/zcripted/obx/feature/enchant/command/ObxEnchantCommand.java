@@ -46,9 +46,9 @@ public final class ObxEnchantCommand extends AbstractObxCommand implements TabCo
 
     public ObxEnchantCommand(ObxPlugin plugin) {
         super(plugin);
-        this.service = plugin.getEnchantService();
-        this.items = plugin.getEnchantItems();
-        this.feedback = plugin.getEnchantFeedback();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
+        this.items = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.item.EnchantItems.class);
+        this.feedback = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantFeedback.class);
     }
 
     @Override
@@ -70,7 +70,7 @@ public final class ObxEnchantCommand extends AbstractObxCommand implements TabCo
                 languages.send(sender, "core.player-only");
                 return true;
             }
-            plugin.getEnchantAdminMenu().open((Player) sender, false);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu.class).open((Player) sender, false);
             return true;
         }
         if (sub.equals("apply")) {

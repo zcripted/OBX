@@ -32,11 +32,11 @@ public final class EnchantsBrowseCommand extends AbstractObxCommand {
                 return true;
             }
             Player player = (Player) sender;
-            boolean enabled = plugin.getEnchantService().getCombatPrefs().toggle(player.getUniqueId());
+            boolean enabled = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class).getCombatPrefs().toggle(player.getUniqueId());
             plugin.getLanguageManager().send(player, enabled ? "enchant.settings.enabled" : "enchant.settings.disabled");
             return true;
         }
-        if (!plugin.getEnchantService().isEnabled()) {
+        if (!plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class).isEnabled()) {
             plugin.getLanguageManager().send(sender, "enchant.module-disabled");
             return true;
         }
@@ -48,7 +48,7 @@ public final class EnchantsBrowseCommand extends AbstractObxCommand {
             plugin.getLanguageManager().send(sender, "core.player-only");
             return true;
         }
-        plugin.getEnchantAdminMenu().open((Player) sender, true);
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu.class).open((Player) sender, true);
         return true;
     }
 }

@@ -64,7 +64,7 @@ public final class OnHitProcListener implements Listener {
 
     public OnHitProcListener(ObxPlugin plugin, CombatState combatState, CombatParticleService particles, CombatHudService hud) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
         this.combatState = combatState;
         this.particles = particles;

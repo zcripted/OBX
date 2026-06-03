@@ -101,7 +101,7 @@ public final class PrivateMessageService implements Listener {
     private void deliverLive(CommandSender sender, UUID fromId, String fromName, Player to, String message) {
         // Ignore enforcement: if the recipient has /ignore'd the sender, the PM is
         // blocked (console can't be ignored). Senders with bypass perm get through.
-        dev.zcripted.obx.feature.mail.mail.MailService mail = plugin.getMailService();
+        dev.zcripted.obx.feature.mail.mail.MailService mail = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.mail.MailService.class);
         boolean bypass = sender instanceof Player && sender.hasPermission("obx.message.ignore.bypass");
         if (!fromId.equals(CONSOLE_ID) && !bypass && mail != null
                 && mail.isIgnoring(to.getUniqueId(), fromId)) {
@@ -141,7 +141,7 @@ public final class PrivateMessageService implements Listener {
 
     /** Broadcasts a copy of a delivered PM to online social-spy staff (never the sender or recipient). */
     private void notifySpies(UUID fromId, String fromName, UUID toId, String toName, String message) {
-        dev.zcripted.obx.feature.mail.mail.MailService mail = plugin.getMailService();
+        dev.zcripted.obx.feature.mail.mail.MailService mail = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.mail.MailService.class);
         if (mail == null) {
             return;
         }

@@ -54,7 +54,7 @@ public final class CombatParticleService {
     }
 
     private CombatSettings settings() {
-        return plugin.getEnchantService() == null ? null : plugin.getEnchantService().getCombatSettings();
+        return plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class) == null ? null : plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class).getCombatSettings();
     }
 
     private boolean off() {

@@ -74,7 +74,7 @@ public final class WarpMenu {
         LanguageManager languages = plugin.getLanguageManager();
         boolean includeHidden = shouldIncludeHidden(player, adminMode);
         boolean manageBypass = adminMode && player.hasPermission("obx.warp.manage");
-        List<WarpService.WarpEntry> warps = collectWarps(plugin.getWarpService(), player, categoryFilter, searchTerm, includeHidden, manageBypass);
+        List<WarpService.WarpEntry> warps = collectWarps(plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class), player, categoryFilter, searchTerm, includeHidden, manageBypass);
         if (warps.isEmpty()) {
             if (searchTerm != null && !searchTerm.isEmpty()) {
                 languages.send(player, "teleport.warp.gui.search-empty");
@@ -112,7 +112,7 @@ public final class WarpMenu {
     }
 
     public static void openCategories(ObxPlugin plugin, Player player, int page, boolean adminMode, WarpMenuHolder.BackTarget backTarget) {
-        List<String> categories = new ArrayList<>(plugin.getWarpService().categories());
+        List<String> categories = new ArrayList<>(plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).categories());
         if (categories.isEmpty()) {
             plugin.getLanguageManager().send(player, "teleport.warp.categories.none");
             return;
@@ -131,7 +131,7 @@ public final class WarpMenu {
 
         int startIndex = safePage * PAGE_SIZE;
         int slot = CONTENT_START;
-        Map<String, Integer> counts = plugin.getWarpService().categoryCounts();
+        Map<String, Integer> counts = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).categoryCounts();
         for (int index = startIndex; index < categories.size() && slot <= CONTENT_END; index++, slot++) {
             String category = categories.get(index);
             int count = counts.getOrDefault(category, 0);
@@ -202,7 +202,7 @@ public final class WarpMenu {
     public static void openManageSelection(ObxPlugin plugin, Player player, int page, String categoryFilter, String searchTerm, WarpMenuHolder.BackTarget backTarget, WarpMenuHolder.AdminAction action) {
         boolean includeHidden = shouldIncludeHidden(player, true);
         boolean manageBypass = player.hasPermission("obx.warp.manage");
-        List<WarpService.WarpEntry> warps = collectWarps(plugin.getWarpService(), player, categoryFilter, searchTerm, includeHidden, manageBypass);
+        List<WarpService.WarpEntry> warps = collectWarps(plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class), player, categoryFilter, searchTerm, includeHidden, manageBypass);
         if (warps.isEmpty()) {
             plugin.getLanguageManager().send(player, "teleport.warp.no-warps");
             return;

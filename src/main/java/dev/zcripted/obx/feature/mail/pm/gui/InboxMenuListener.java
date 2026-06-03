@@ -39,7 +39,7 @@ public final class InboxMenuListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         int slot = event.getRawSlot();
         if (slot == InboxMenu.CLEAR_SLOT) {
-            plugin.getMessageService().clearInbox(player);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).clearInbox(player);
             return;
         }
         InboxMessage message = ((InboxMenuHolder) top.getHolder()).forSlot(slot);
@@ -47,11 +47,11 @@ public final class InboxMenuListener implements Listener {
             return;
         }
         if (event.isShiftClick()) {
-            plugin.getMessageService().toggleBookmark(player, message);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).toggleBookmark(player, message);
         } else if (event.isRightClick()) {
-            plugin.getMessageService().deleteMessage(player, message);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).deleteMessage(player, message);
         } else {
-            plugin.getMessageService().readMessage(player, message);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).readMessage(player, message);
         }
     }
 

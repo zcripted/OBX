@@ -44,7 +44,7 @@ public final class MsgCommand extends AbstractObxCommand implements TabCompleter
             }
             message.append(args[i]);
         }
-        plugin.getMessageService().sendMessage(sender, target, message.toString());
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).sendMessage(sender, target, message.toString());
         return true;
     }
 

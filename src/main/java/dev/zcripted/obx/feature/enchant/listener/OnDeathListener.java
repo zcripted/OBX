@@ -45,7 +45,7 @@ public final class OnDeathListener implements Listener {
 
     public OnDeathListener(ObxPlugin plugin) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
     }
 
@@ -168,7 +168,7 @@ public final class OnDeathListener implements Listener {
     }
 
     private ItemStack randomScroll() {
-        EnchantItems items = plugin.getEnchantItems();
+        EnchantItems items = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.item.EnchantItems.class);
         if (items == null) {
             return null;
         }

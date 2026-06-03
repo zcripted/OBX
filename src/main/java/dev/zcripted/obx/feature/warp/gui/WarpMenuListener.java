@@ -113,7 +113,7 @@ public class WarpMenuListener implements Listener {
             return;
         }
         if (slot == 7) {
-            plugin.getWarpMenuInputManager().promptSearch(player, holder.isAdminMode(), holder.getBackTarget(), holder.getCategoryFilter());
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptSearch(player, holder.isAdminMode(), holder.getBackTarget(), holder.getCategoryFilter());
             player.closeInventory();
             return;
         }
@@ -131,7 +131,7 @@ public class WarpMenuListener implements Listener {
             return;
         }
         String warpKey = holder.getWarpKeys().get(index);
-        WarpService.WarpEntry entry = plugin.getWarpService().getWarp(warpKey);
+        WarpService.WarpEntry entry = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(warpKey);
         if (entry == null) {
             languages.send(player, "teleport.warp.not-found", Placeholders.with("warp", warpKey));
             WarpMenu.openMain(plugin, player, holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.isAdminMode(), holder.getBackTarget(), holder.getAdminAction());
@@ -160,7 +160,7 @@ public class WarpMenuListener implements Listener {
                 WarpMenu.openConfirmMove(plugin, player, entry, player.getLocation(), holder.getBackTarget(), holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm());
                 return;
             case RENAME:
-                plugin.getWarpMenuInputManager().promptRename(player, entry, holder.getBackTarget(), holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getAdminAction());
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptRename(player, entry, holder.getBackTarget(), holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getAdminAction());
                 player.closeInventory();
                 return;
             case ICON:
@@ -212,7 +212,7 @@ public class WarpMenuListener implements Listener {
     }
 
     private void handleDetailsClick(ClickType click, int slot, Player player, WarpMenuHolder holder) {
-        WarpService.WarpEntry entry = plugin.getWarpService().getWarp(holder.getWarpKey());
+        WarpService.WarpEntry entry = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(holder.getWarpKey());
         if (entry == null) {
             return;
         }
@@ -247,7 +247,7 @@ public class WarpMenuListener implements Listener {
                 WarpMenu.openConfirmMove(plugin, player, entry, player.getLocation(), holder.getBackTarget(), holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm());
                 break;
             case 46:
-                plugin.getWarpMenuInputManager().promptRename(player, entry, holder.getBackTarget(), holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm(), WarpMenuHolder.AdminAction.RENAME);
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptRename(player, entry, holder.getBackTarget(), holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm(), WarpMenuHolder.AdminAction.RENAME);
                 player.closeInventory();
                 break;
             case 47:
@@ -289,7 +289,7 @@ public class WarpMenuListener implements Listener {
             return;
         }
         if (slot == 7) {
-            plugin.getWarpMenuInputManager().promptSearch(player, true, holder.getBackTarget(), holder.getCategoryFilter());
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptSearch(player, true, holder.getBackTarget(), holder.getCategoryFilter());
             player.closeInventory();
             return;
         }
@@ -303,7 +303,7 @@ public class WarpMenuListener implements Listener {
             return;
         }
         if (slot == SLOT_MANAGER_CREATE) {
-            plugin.getWarpMenuInputManager().promptCreate(player, holder.getBackTarget(), holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm());
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptCreate(player, holder.getBackTarget(), holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm());
             player.closeInventory();
             return;
         }
@@ -336,7 +336,7 @@ public class WarpMenuListener implements Listener {
         if (index < 0 || index >= holder.getWarpKeys().size()) {
             return;
         }
-        WarpService.WarpEntry entry = plugin.getWarpService().getWarp(holder.getWarpKeys().get(index));
+        WarpService.WarpEntry entry = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(holder.getWarpKeys().get(index));
         if (entry == null) {
             return;
         }
@@ -390,7 +390,7 @@ public class WarpMenuListener implements Listener {
             return;
         }
         if (slot == 7) {
-            plugin.getWarpMenuInputManager().promptSearch(player, true, holder.getBackTarget(), holder.getCategoryFilter());
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptSearch(player, true, holder.getBackTarget(), holder.getCategoryFilter());
             player.closeInventory();
             return;
         }
@@ -407,7 +407,7 @@ public class WarpMenuListener implements Listener {
         if (index < 0 || index >= holder.getWarpKeys().size()) {
             return;
         }
-        WarpService.WarpEntry entry = plugin.getWarpService().getWarp(holder.getWarpKeys().get(index));
+        WarpService.WarpEntry entry = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(holder.getWarpKeys().get(index));
         if (entry == null) {
             return;
         }
@@ -419,7 +419,7 @@ public class WarpMenuListener implements Listener {
                 WarpMenu.openConfirmMove(plugin, player, entry, player.getLocation(), holder.getBackTarget(), holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm());
                 break;
             case RENAME:
-                plugin.getWarpMenuInputManager().promptRename(player, entry, holder.getBackTarget(), holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getAdminAction());
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.gui.WarpMenuInputManager.class).promptRename(player, entry, holder.getBackTarget(), holder.getPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getAdminAction());
                 player.closeInventory();
                 break;
             case ICON:
@@ -450,11 +450,11 @@ public class WarpMenuListener implements Listener {
         if (slot != 20) {
             return;
         }
-        WarpService.WarpEntry entry = plugin.getWarpService().getWarp(holder.getWarpKey());
+        WarpService.WarpEntry entry = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(holder.getWarpKey());
         if (entry == null) {
             return;
         }
-        plugin.getWarpService().deleteWarp(entry.getKey());
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).deleteWarp(entry.getKey());
         plugin.getLanguageManager().send(player, "teleport.warp.deleted", Placeholders.with("warp", entry.getName()));
         WarpMenu.openManage(plugin, player, holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getBackTarget());
     }
@@ -475,12 +475,12 @@ public class WarpMenuListener implements Listener {
         if (slot != 20) {
             return;
         }
-        WarpService.WarpEntry entry = plugin.getWarpService().getWarp(holder.getWarpKey());
+        WarpService.WarpEntry entry = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(holder.getWarpKey());
         if (entry == null) {
             return;
         }
         Location target = holder.getPendingLocation() != null ? holder.getPendingLocation() : player.getLocation();
-        plugin.getWarpService().moveWarp(entry.getKey(), target, player.getUniqueId(), player.getName());
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).moveWarp(entry.getKey(), target, player.getUniqueId(), player.getName());
         plugin.getLanguageManager().send(player, "teleport.warp.move.success", Placeholders.with("warp", entry.getName()));
         WarpMenu.openManage(plugin, player, holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getBackTarget());
     }
@@ -503,8 +503,8 @@ public class WarpMenuListener implements Listener {
         }
         String warpName = holder.getWarpName() != null ? holder.getWarpName() : holder.getWarpKey();
         Location location = holder.getPendingLocation() != null ? holder.getPendingLocation() : player.getLocation();
-        boolean existed = plugin.getWarpService().getWarp(warpName) != null;
-        plugin.getWarpService().setWarp(warpName, location, "general", null, true, null, player.getUniqueId(), player.getName());
+        boolean existed = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(warpName) != null;
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).setWarp(warpName, location, "general", null, true, null, player.getUniqueId(), player.getName());
         plugin.getLanguageManager().send(player, existed ? "teleport.warp.set.updated" : "teleport.warp.set.created", Placeholders.with("warp", warpName));
         WarpMenu.openManage(plugin, player, holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getBackTarget());
     }
@@ -518,12 +518,12 @@ public class WarpMenuListener implements Listener {
             handleBack(player, holder);
             return;
         }
-        WarpService.WarpEntry entry = plugin.getWarpService().getWarp(holder.getWarpKey());
+        WarpService.WarpEntry entry = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(holder.getWarpKey());
         if (entry == null) {
             return;
         }
         if (slot == SLOT_MANAGER_VISIBILITY) {
-            plugin.getWarpService().setIcon(entry.getKey(), null);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).setIcon(entry.getKey(), null);
             plugin.getLanguageManager().send(player, "teleport.warp.icon.cleared", Placeholders.with("warp", entry.getName()));
             reopenAfterEdit(player, holder, entry);
             return;
@@ -535,9 +535,9 @@ public class WarpMenuListener implements Listener {
         if (clicked == null || clicked.getType() == org.bukkit.Material.AIR) {
             return;
         }
-        plugin.getWarpService().setIcon(entry.getKey(), clicked.getType().name());
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).setIcon(entry.getKey(), clicked.getType().name());
         plugin.getLanguageManager().send(player, "teleport.warp.icon.updated", Placeholders.with("warp", entry.getName(), "icon", clicked.getType().name()));
-        reopenAfterEdit(player, holder, plugin.getWarpService().getWarp(entry.getKey()));
+        reopenAfterEdit(player, holder, plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(entry.getKey()));
     }
 
     private void handleVisibility(int slot, Player player, WarpMenuHolder holder) {
@@ -549,16 +549,16 @@ public class WarpMenuListener implements Listener {
             handleBack(player, holder);
             return;
         }
-        WarpService.WarpEntry entry = plugin.getWarpService().getWarp(holder.getWarpKey());
+        WarpService.WarpEntry entry = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(holder.getWarpKey());
         if (entry == null) {
             return;
         }
         if (slot == 20 || slot == 24) {
             boolean newState = slot == 20;
-            plugin.getWarpService().setPublic(entry.getKey(), newState);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).setPublic(entry.getKey(), newState);
             String stateLabel = newState ? plugin.getLanguageManager().get(player, "teleport.warp.visibility.public") : plugin.getLanguageManager().get(player, "teleport.warp.visibility.hidden");
             plugin.getLanguageManager().send(player, "teleport.warp.public.updated", Placeholders.with("warp", entry.getName(), "state", stateLabel));
-            reopenAfterEdit(player, holder, plugin.getWarpService().getWarp(entry.getKey()));
+            reopenAfterEdit(player, holder, plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class).getWarp(entry.getKey()));
         }
     }
 

@@ -38,9 +38,9 @@ public final class ScrollApplyService {
 
     public ScrollApplyService(ObxPlugin plugin) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
-        this.items = plugin.getEnchantItems();
-        this.feedback = plugin.getEnchantFeedback();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
+        this.items = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.item.EnchantItems.class);
+        this.feedback = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantFeedback.class);
         this.languages = plugin.getLanguageManager();
     }
 

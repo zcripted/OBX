@@ -73,7 +73,7 @@ public final class OnHitDamageListener implements Listener {
 
     public OnHitDamageListener(ObxPlugin plugin, CombatState combatState, CombatParticleService particles, HoloFXService holo, CombatHudService hud) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
         this.combatState = combatState;
         this.particles = particles;

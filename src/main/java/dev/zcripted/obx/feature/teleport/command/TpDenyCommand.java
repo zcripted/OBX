@@ -20,7 +20,7 @@ public class TpDenyCommand extends AbstractObxCommand implements TabCompleter {
 
     public TpDenyCommand(ObxPlugin plugin) {
         super(plugin);
-        this.tpaService = plugin.getTpaService();
+        this.tpaService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.teleport.service.TpaService.class);
     }
 
     @Override

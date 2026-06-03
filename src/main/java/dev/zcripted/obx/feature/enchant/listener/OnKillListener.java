@@ -42,7 +42,7 @@ public final class OnKillListener implements Listener {
 
     public OnKillListener(ObxPlugin plugin, CombatState combatState, CombatParticleService particles, HoloFXService holo) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
         this.combatState = combatState;
         this.particles = particles;
@@ -169,7 +169,7 @@ public final class OnKillListener implements Listener {
                 return;
             }
             CustomEnchant chosen = pool.get((int) (Math.random() * pool.size()));
-            ItemStack scroll = plugin.getEnchantItems().scroll(chosen, 1, 1);
+            ItemStack scroll = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.item.EnchantItems.class).scroll(chosen, 1, 1);
             if (scroll != null) {
                 loc.getWorld().dropItemNaturally(loc, scroll);
             }

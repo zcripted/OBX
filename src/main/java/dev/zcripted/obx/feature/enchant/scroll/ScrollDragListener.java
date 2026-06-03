@@ -34,8 +34,8 @@ public final class ScrollDragListener implements Listener {
 
     public ScrollDragListener(ObxPlugin plugin, ScrollApplyService scrolls) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
-        this.items = plugin.getEnchantItems();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
+        this.items = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.item.EnchantItems.class);
         this.scrolls = scrolls;
     }
 

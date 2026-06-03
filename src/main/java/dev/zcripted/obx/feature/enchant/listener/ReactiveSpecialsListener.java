@@ -34,7 +34,7 @@ public final class ReactiveSpecialsListener implements Listener {
 
     public ReactiveSpecialsListener(ObxPlugin plugin, CombatState combatState, ReactiveSpecialsService reactive) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.combatState = combatState;
         this.reactive = reactive;
     }

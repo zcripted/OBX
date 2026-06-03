@@ -54,7 +54,7 @@ public final class HoloFXService {
     }
 
     private CombatSettings settings() {
-        return plugin.getEnchantService() == null ? null : plugin.getEnchantService().getCombatSettings();
+        return plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class) == null ? null : plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class).getCombatSettings();
     }
 
     /** Floating damage number above a hit, color-coded by type. Gated by {@code damage_numbers}. */
@@ -80,8 +80,8 @@ public final class HoloFXService {
         if (killer == null) {
             return;
         }
-        if (plugin.getEnchantService() != null
-                && !plugin.getEnchantService().getCombatPrefs().fxEnabled(killer.getUniqueId())) {
+        if (plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class) != null
+                && !plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class).getCombatPrefs().fxEnabled(killer.getUniqueId())) {
             return;
         }
         spawn(killer.getLocation().add(0, 2.4, 0), text, 40);

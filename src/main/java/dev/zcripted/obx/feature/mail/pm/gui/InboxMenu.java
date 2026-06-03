@@ -37,7 +37,7 @@ public final class InboxMenu {
 
     public static void open(ObxPlugin plugin, Player player) {
         LanguageManager languages = plugin.getLanguageManager();
-        List<InboxMessage> messages = plugin.getMessageService().inbox(player.getUniqueId());
+        List<InboxMessage> messages = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).inbox(player.getUniqueId());
 
         InboxMenuHolder holder = new InboxMenuHolder();
         String title = ChatColor.translateAlternateColorCodes('&',

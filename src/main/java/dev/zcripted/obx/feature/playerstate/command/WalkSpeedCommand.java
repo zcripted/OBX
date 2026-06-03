@@ -19,7 +19,7 @@ public class WalkSpeedCommand extends AbstractObxCommand implements TabCompleter
 
     public WalkSpeedCommand(ObxPlugin plugin) {
         super(plugin);
-        this.flight = plugin.getFlightStateService();
+        this.flight = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.playerstate.service.FlightStateService.class);
     }
 
     @Override

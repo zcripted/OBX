@@ -39,9 +39,9 @@ public final class FarmingEnchantListener implements Listener {
     private final Set<UUID> processing = new HashSet<UUID>();
 
     public FarmingEnchantListener(ObxPlugin plugin) {
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
-        this.items = plugin.getEnchantItems();
+        this.items = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.item.EnchantItems.class);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

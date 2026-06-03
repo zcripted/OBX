@@ -138,7 +138,7 @@ public final class CombatHudService {
     private void sendNow(Player player, PlayerHud hud) {
         String line = hud.compose(System.currentTimeMillis(), ticks);
         if (line != null) {
-            CombatSupport.actionBar(plugin.getEnchantService(), player, line);
+            CombatSupport.actionBar(plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class), player, line);
         }
     }
 
@@ -184,7 +184,7 @@ public final class CombatHudService {
                     }
                     String line = hud.compose(now, ticks);
                     if (line != null) {
-                        CombatSupport.actionBar(plugin.getEnchantService(), player, line);
+                        CombatSupport.actionBar(plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class), player, line);
                     }
                 } catch (Throwable ignored) {
                     // skip

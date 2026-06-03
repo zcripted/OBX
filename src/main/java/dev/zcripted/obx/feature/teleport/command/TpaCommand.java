@@ -44,10 +44,10 @@ public final class TpaCommand extends AbstractObxCommand implements TabCompleter
         Player player = (Player) sender;
         switch (mode) {
             case ACCEPT:
-                plugin.getTeleportRequestService().accept(player);
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.teleport.service.TeleportRequestService.class).accept(player);
                 return true;
             case DENY:
-                plugin.getTeleportRequestService().deny(player);
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.teleport.service.TeleportRequestService.class).deny(player);
                 return true;
             case REQUEST:
             default:
@@ -60,7 +60,7 @@ public final class TpaCommand extends AbstractObxCommand implements TabCompleter
                     languages.send(sender, "teleport.tp.not-online", Collections.singletonMap("player", args[0]));
                     return true;
                 }
-                plugin.getTeleportRequestService().send(player, target);
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.teleport.service.TeleportRequestService.class).send(player, target);
                 return true;
         }
     }

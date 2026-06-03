@@ -26,7 +26,7 @@ public class KitCommand extends AbstractObxCommand implements TabCompleter {
 
     public KitCommand(ObxPlugin plugin) {
         super(plugin);
-        this.kitService = plugin.getKitService();
+        this.kitService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.kit.service.KitService.class);
     }
 
     @Override

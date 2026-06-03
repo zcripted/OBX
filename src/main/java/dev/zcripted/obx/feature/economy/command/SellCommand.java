@@ -28,7 +28,7 @@ public class SellCommand extends AbstractObxCommand implements TabCompleter {
     public SellCommand(ObxPlugin plugin) {
         super(plugin);
         this.economy = plugin.getEconomyService();
-        this.worth = plugin.getWorthService();
+        this.worth = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.economy.service.WorthService.class);
     }
 
     @Override

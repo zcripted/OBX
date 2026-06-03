@@ -42,8 +42,8 @@ public final class EnchantLoreListener implements Listener {
     private final EnchantItems items;
 
     public EnchantLoreListener(ObxPlugin plugin) {
-        this.service = plugin.getEnchantService();
-        this.items = plugin.getEnchantItems();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
+        this.items = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.item.EnchantItems.class);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

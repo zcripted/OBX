@@ -22,7 +22,7 @@ public class NickCommand extends AbstractObxCommand implements TabCompleter {
 
     public NickCommand(ObxPlugin plugin) {
         super(plugin);
-        this.nicknames = plugin.getNicknameService();
+        this.nicknames = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.nickname.service.NicknameService.class);
     }
 
     @Override

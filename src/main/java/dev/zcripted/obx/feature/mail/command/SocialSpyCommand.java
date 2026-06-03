@@ -18,7 +18,7 @@ public class SocialSpyCommand extends AbstractObxCommand implements TabCompleter
 
     public SocialSpyCommand(ObxPlugin plugin) {
         super(plugin);
-        this.messageService = plugin.getMailService();
+        this.messageService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.mail.MailService.class);
     }
 
     @Override

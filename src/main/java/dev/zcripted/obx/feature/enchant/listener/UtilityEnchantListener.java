@@ -25,7 +25,7 @@ public final class UtilityEnchantListener implements Listener {
     private final EnchantStorage storage;
 
     public UtilityEnchantListener(ObxPlugin plugin) {
-        this.service = plugin.getEnchantService();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
     }
 

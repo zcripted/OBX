@@ -17,7 +17,7 @@ public final class KitModule extends AbstractModule {
     protected void onEnable(ObxPlugin plugin) {
         KitService service = service(KitService.class, new KitService(plugin));
         service.load();
-        // KitCommand resolves the service via plugin.getKitService() in its
+        // KitCommand resolves the service via plugin.getServiceRegistry().get(dev.zcripted.obx.feature.kit.service.KitService.class) in its
         // constructor, so it must be built after the service is registered.
         command("kit", new KitCommand(plugin));
     }

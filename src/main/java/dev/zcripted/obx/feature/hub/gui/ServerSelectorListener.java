@@ -57,7 +57,7 @@ public final class ServerSelectorListener implements Listener {
             return;
         }
 
-        BungeeMessenger messenger = plugin.getBungeeMessenger();
+        BungeeMessenger messenger = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.hub.messaging.BungeeMessenger.class);
         if (messenger == null || !messenger.isRegistered()) {
             plugin.getLanguageManager().send(player, "hub.selector.proxy-unavailable");
             return;

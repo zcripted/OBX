@@ -57,8 +57,8 @@ public final class EnchantLoot {
 
     public EnchantLoot(ObxPlugin plugin) {
         this.plugin = plugin;
-        this.service = plugin.getEnchantService();
-        this.items = plugin.getEnchantItems();
+        this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
+        this.items = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.item.EnchantItems.class);
         this.lootFile = new File(plugin.getDataFolder(), "enchants/loot.yml");
     }
 

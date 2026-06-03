@@ -32,7 +32,7 @@ public class WarpCommand extends AbstractObxCommand implements TabCompleter {
 
     public WarpCommand(ObxPlugin plugin) {
         super(plugin);
-        this.warpService = plugin.getWarpService();
+        this.warpService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class);
         this.query = new WarpQueryCommands(plugin, warpService, languages,
                 plugin.getTeleportManager(), plugin.getDataService());
         this.admin = new WarpAdminCommands(warpService, languages);

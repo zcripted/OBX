@@ -21,7 +21,7 @@ public class PTimeCommand extends AbstractObxCommand implements TabCompleter {
 
     public PTimeCommand(ObxPlugin plugin) {
         super(plugin);
-        this.timeService = plugin.getPerPlayerTimeService();
+        this.timeService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.world.service.PerPlayerTimeService.class);
     }
 
     @Override

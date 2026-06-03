@@ -98,7 +98,7 @@ public final class StaffMenuListener implements Listener {
             // the input manager will reopen the menu on cancel/empty input
             // or hand off to the action menu on a successful match.
             viewer.closeInventory();
-            StaffMenuInputManager inputManager = plugin.getStaffMenuInputManager();
+            StaffMenuInputManager inputManager = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager.class);
             if (inputManager != null) {
                 inputManager.promptSearch(viewer, holder.getCurrentPage());
             }
@@ -160,7 +160,7 @@ public final class StaffMenuListener implements Listener {
         // the matching /warn|/mute|/kick|/tempban|/ban command (existing box-style
         // response + permission checks). Falls back to a plain message if the
         // input manager is unavailable.
-        StaffMenuInputManager inputManager = plugin.getStaffMenuInputManager();
+        StaffMenuInputManager inputManager = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager.class);
         if (inputManager == null) {
             return;
         }

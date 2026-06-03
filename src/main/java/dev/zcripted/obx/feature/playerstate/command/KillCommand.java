@@ -12,7 +12,7 @@ public class KillCommand extends PlayerActionCommand {
 
     @Override
     protected void run(Player player, String[] args) {
-        boolean enabled = plugin.getKillModeManager().toggle(player);
+        boolean enabled = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.playerstate.service.KillModeManager.class).toggle(player);
         languages.send(player, enabled ? "admin.kill.mode.enabled" : "admin.kill.mode.disabled");
     }
 }

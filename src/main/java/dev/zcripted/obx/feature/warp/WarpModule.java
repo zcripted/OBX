@@ -28,7 +28,7 @@ public final class WarpModule extends AbstractModule {
 
     @Override
     public void reload(ObxPlugin plugin) {
-        WarpService warp = plugin.getWarpService();
+        WarpService warp = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.warp.service.WarpService.class);
         if (warp != null) {
             warp.load();
         }

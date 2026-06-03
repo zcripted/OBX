@@ -120,7 +120,7 @@ public final class EnchantModule extends AbstractModule {
 
     @Override
     public void reload(ObxPlugin plugin) {
-        EnchantService enchantService = plugin.getEnchantService();
+        EnchantService enchantService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         if (enchantService != null) {
             enchantService.reload();
         }

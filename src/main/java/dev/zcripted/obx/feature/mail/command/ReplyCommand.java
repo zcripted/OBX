@@ -32,11 +32,11 @@ public final class ReplyCommand extends AbstractObxCommand {
         }
         Player player = (Player) sender;
         if (args.length == 0) {
-            plugin.getMessageService().startDraft(player);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).startDraft(player);
             return true;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("cancel")) {
-            plugin.getMessageService().cancelDraft(player, true);
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).cancelDraft(player, true);
             return true;
         }
         StringBuilder message = new StringBuilder();
@@ -46,7 +46,7 @@ public final class ReplyCommand extends AbstractObxCommand {
             }
             message.append(args[i]);
         }
-        plugin.getMessageService().reply(player, message.toString());
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class).reply(player, message.toString());
         return true;
     }
 }

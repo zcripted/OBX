@@ -27,7 +27,7 @@ public class InfoCommand extends AbstractObxCommand implements TabCompleter {
 
     public InfoCommand(ObxPlugin plugin) {
         super(plugin);
-        this.playtime = plugin.getPlaytimeService();
+        this.playtime = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.playerinfo.service.PlaytimeService.class);
     }
 
     @Override

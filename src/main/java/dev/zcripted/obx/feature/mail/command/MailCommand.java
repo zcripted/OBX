@@ -25,7 +25,7 @@ public class MailCommand extends AbstractObxCommand implements TabCompleter {
 
     public MailCommand(ObxPlugin plugin) {
         super(plugin);
-        this.messageService = plugin.getMailService();
+        this.messageService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.mail.MailService.class);
     }
 
     @Override

@@ -18,7 +18,7 @@ public class TpToggleCommand extends AbstractObxCommand implements TabCompleter 
 
     public TpToggleCommand(ObxPlugin plugin) {
         super(plugin);
-        this.tpaService = plugin.getTpaService();
+        this.tpaService = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.teleport.service.TpaService.class);
     }
 
     @Override

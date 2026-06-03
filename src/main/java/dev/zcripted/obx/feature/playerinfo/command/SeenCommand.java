@@ -22,7 +22,7 @@ public class SeenCommand extends AbstractObxCommand implements TabCompleter {
 
     public SeenCommand(ObxPlugin plugin) {
         super(plugin);
-        this.playtime = plugin.getPlaytimeService();
+        this.playtime = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.playerinfo.service.PlaytimeService.class);
     }
 
     @Override

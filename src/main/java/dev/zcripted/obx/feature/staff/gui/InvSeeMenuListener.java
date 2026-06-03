@@ -83,8 +83,8 @@ public final class InvSeeMenuListener implements Listener {
         if (!(top.getHolder() instanceof InvSeeMenuHolder)) {
             return;
         }
-        if (plugin.getInvSeeMenuManager() != null) {
-            plugin.getInvSeeMenuManager().unregister(event.getPlayer().getUniqueId());
+        if (plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager.class) != null) {
+            plugin.getServiceRegistry().get(dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager.class).unregister(event.getPlayer().getUniqueId());
         }
     }
 }
