@@ -188,6 +188,18 @@ public class OBX extends JavaPlugin {
     private dev.zcripted.obx.hologram.gui.HologramEditorMenu hologramEditorMenu;
     private String releaseDate = "Unknown";
     private long lastLoadDurationMs;
+    private final dev.zcripted.obx.core.service.ServiceRegistry serviceRegistry = new dev.zcripted.obx.core.service.ServiceRegistry();
+    private final dev.zcripted.obx.core.module.ModuleManager moduleManager = new dev.zcripted.obx.core.module.ModuleManager(this);
+
+    /** Shared service container; feature modules register here and the getters below read from it. */
+    public dev.zcripted.obx.core.service.ServiceRegistry getServiceRegistry() {
+        return serviceRegistry;
+    }
+
+    /** Drives feature module lifecycle (enable/disable/reload/runtime-toggle). */
+    public dev.zcripted.obx.core.module.ModuleManager getModuleManager() {
+        return moduleManager;
+    }
 
     @Override
     public void onEnable() {
