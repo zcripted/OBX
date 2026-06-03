@@ -6,3 +6,9 @@ target/
 /plugins/
 /maven/
 /memory/
+
+# Gradle
+/gradle-dist/
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
