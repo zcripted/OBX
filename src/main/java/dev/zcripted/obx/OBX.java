@@ -136,8 +136,6 @@ public class OBX extends JavaPlugin {
     private TeleportManager teleportManager;
     private dev.zcripted.obx.feature.teleport.service.TeleportRequestService teleportRequestService;
     private dev.zcripted.obx.feature.mail.pm.PrivateMessageService messageService;
-    private GodModeManager godModeManager;
-    private KillModeManager killModeManager;
     private VanishManager vanishManager;
     private MotdService motdService;
     private JoinLeaveService joinLeaveService;
@@ -150,12 +148,9 @@ public class OBX extends JavaPlugin {
     private TpsService tpsService;
     private dev.zcripted.obx.feature.teleport.service.TpaService tpaService;
     private dev.zcripted.obx.feature.mail.mail.MailService mailService;
-    private dev.zcripted.obx.feature.playerstate.service.AfkService afkService;
     private dev.zcripted.obx.feature.playerinfo.service.PlaytimeService playtimeService;
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
-    private dev.zcripted.obx.feature.playerstate.service.FlightStateService flightStateService;
     private dev.zcripted.obx.feature.staff.service.FreezeService freezeService;
-    private dev.zcripted.obx.feature.world.service.PerPlayerTimeService perPlayerTimeService;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
     private HubService hubService;
@@ -224,8 +219,6 @@ public class OBX extends JavaPlugin {
         dev.zcripted.obx.feature.mail.pm.MessageStore messageStore = new dev.zcripted.obx.feature.mail.pm.MessageStore(this);
         messageStore.load();
         messageService = new dev.zcripted.obx.feature.mail.pm.PrivateMessageService(this, messageStore);
-        godModeManager = new GodModeManager();
-        killModeManager = new KillModeManager(this);
         vanishManager = new VanishManager(this);
         resourcePackManager = new AutoResourcePackManager(this);
         resourcePackManager.installBundledPack();
@@ -234,14 +227,9 @@ public class OBX extends JavaPlugin {
         tpaService = new dev.zcripted.obx.feature.teleport.service.TpaService(this);
         mailService = new dev.zcripted.obx.feature.mail.mail.MailService(this);
         mailService.load();
-        afkService = new dev.zcripted.obx.feature.playerstate.service.AfkService(this);
         playtimeService = new dev.zcripted.obx.feature.playerinfo.service.PlaytimeService(this);
         playtimeService.load();
-        flightStateService = new dev.zcripted.obx.feature.playerstate.service.FlightStateService(this);
-        flightStateService.load();
         freezeService = new dev.zcripted.obx.feature.staff.service.FreezeService(this);
-        perPlayerTimeService = new dev.zcripted.obx.feature.world.service.PerPlayerTimeService(this);
-        perPlayerTimeService.load();
 
         // Hub / lobby system — service must exist before listeners or
         // command registration since they reference it. Dormant when the
@@ -290,9 +278,6 @@ public class OBX extends JavaPlugin {
             adminMenuRefreshTask.start();
         }
         tpsService.start();
-        if (afkService != null) {
-            afkService.start();
-        }
         if (vanishManager != null) {
             vanishManager.start();
         }
@@ -362,9 +347,6 @@ public class OBX extends JavaPlugin {
         if (tpaService != null) {
             tpaService.stop();
         }
-        if (afkService != null) {
-            afkService.stop();
-        }
         if (playtimeService != null) {
             playtimeService.save();
         }
@@ -403,11 +385,11 @@ public class OBX extends JavaPlugin {
     }
 
     public GodModeManager getGodModeManager() {
-        return godModeManager;
+        return serviceRegistry.get(GodModeManager.class);
     }
 
     public KillModeManager getKillModeManager() {
-        return killModeManager;
+        return serviceRegistry.get(KillModeManager.class);
     }
 
     public VanishManager getVanishManager() {
@@ -471,7 +453,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.playerstate.service.AfkService getAfkService() {
-        return afkService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.playerstate.service.AfkService.class);
     }
 
     public dev.zcripted.obx.feature.kit.service.KitService getKitService() {
@@ -495,7 +477,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.playerstate.service.FlightStateService getFlightStateService() {
-        return flightStateService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.playerstate.service.FlightStateService.class);
     }
 
     public dev.zcripted.obx.feature.staff.service.FreezeService getFreezeService() {
@@ -507,7 +489,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.world.service.PerPlayerTimeService getPerPlayerTimeService() {
-        return perPlayerTimeService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.world.service.PerPlayerTimeService.class);
     }
 
     public dev.zcripted.obx.feature.jail.service.JailService getJailService() {
@@ -631,6 +613,8 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new TablistModule());
         moduleManager.register(new EconomyModule());
         moduleManager.register(new dev.zcripted.obx.feature.item.ItemModule());
+        moduleManager.register(new dev.zcripted.obx.feature.world.WorldModule());
+        moduleManager.register(new dev.zcripted.obx.feature.playerstate.PlayerStateModule());
     }
 
     private void registerCommands() {
@@ -649,7 +633,6 @@ public class OBX extends JavaPlugin {
         getServer().getPluginManager().registerEvents(messageService, this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.mail.pm.gui.InboxMenuListener(this), this);
         bind("warp", warpCommand);
-        bind("gamemode", new GamemodeCommand(this));
         bind("back", new BackCommand(this));
         bind("tp", new dev.zcripted.obx.feature.teleport.command.TeleportCommand(this, dev.zcripted.obx.feature.teleport.command.TeleportCommand.Mode.TO));
         bind("tphere", new dev.zcripted.obx.feature.teleport.command.TeleportCommand(this, dev.zcripted.obx.feature.teleport.command.TeleportCommand.Mode.HERE));
@@ -660,14 +643,9 @@ public class OBX extends JavaPlugin {
         bind("msg", new dev.zcripted.obx.feature.mail.command.MsgCommand(this));
         bind("rply", new dev.zcripted.obx.feature.mail.command.ReplyCommand(this));
         bind("inbox", new dev.zcripted.obx.feature.mail.command.InboxCommand(this));
-        bind("kill", new KillCommand(this));
         bind("tps", new TpsCommand(this));
         bind("pl", new PluginListCommand(this));
         bind("top", new TopCommand(this));
-        bind("heal", new HealCommand(this));
-        bind("feed", new FeedCommand(this));
-        bind("vital", new VitalCommand(this));
-        bind("god", new GodCommand(this));
         bind("vanish", new VanishCommand(this));
         bind("invsee", new InvSeeCommand(this));
         bind("language", new LanguageCommand(this));
@@ -682,7 +660,6 @@ public class OBX extends JavaPlugin {
         bind("me", new dev.zcripted.obx.feature.mail.command.MeCommand(this));
         bind("broadcast", new dev.zcripted.obx.feature.mail.command.BroadcastCommand(this));
         bind("staffchat", new dev.zcripted.obx.feature.mail.command.StaffChatCommand(this));
-        bind("afk", new dev.zcripted.obx.feature.playerstate.command.AfkCommand(this));
         bind("seen", new dev.zcripted.obx.feature.playerinfo.command.SeenCommand(this));
         bind("firstseen", new dev.zcripted.obx.feature.playerinfo.command.FirstSeenCommand(this));
         bind("playtime", new dev.zcripted.obx.feature.playerinfo.command.PlaytimeCommand(this));
@@ -691,22 +668,7 @@ public class OBX extends JavaPlugin {
         bind("whois", new dev.zcripted.obx.feature.playerinfo.command.WhoisCommand(this));
         bind("realname", new dev.zcripted.obx.feature.playerinfo.command.RealnameCommand(this));
         bind("info", new dev.zcripted.obx.feature.playerinfo.command.InfoCommand(this));
-        bind("fly", new dev.zcripted.obx.feature.playerstate.command.FlyCommand(this));
-        bind("flyspeed", new dev.zcripted.obx.feature.playerstate.command.FlySpeedCommand(this));
-        bind("walkspeed", new dev.zcripted.obx.feature.playerstate.command.WalkSpeedCommand(this));
         bind("freeze", new dev.zcripted.obx.feature.staff.command.FreezeCommand(this));
-        bind("time", new dev.zcripted.obx.feature.world.command.TimeCommand(this));
-        bind("day", new dev.zcripted.obx.feature.world.command.DayCommand(this, 1000L));
-        bind("night", new dev.zcripted.obx.feature.world.command.DayCommand(this, 13000L));
-        bind("sun", new dev.zcripted.obx.feature.world.command.DayCommand(this, 6000L));
-        bind("weather", new dev.zcripted.obx.feature.world.command.WeatherCommand(this));
-        bind("ptime", new dev.zcripted.obx.feature.world.command.PTimeCommand(this));
-        bind("pweather", new dev.zcripted.obx.feature.world.command.PWeatherCommand(this));
-        bind("butcher", new dev.zcripted.obx.feature.playerstate.command.ButcherCommand(this));
-        bind("spawnmob", new dev.zcripted.obx.feature.playerstate.command.SpawnMobCommand(this));
-        bind("spawner", new dev.zcripted.obx.feature.playerstate.command.SpawnerCommand(this));
-        bind("smite", new dev.zcripted.obx.feature.playerstate.command.SmiteCommand(this));
-        bind("tree", new dev.zcripted.obx.feature.playerstate.command.TreeCommand(this));
         bind("staff", new dev.zcripted.obx.feature.staff.command.StaffCommand(this));
         bind("hub", new HubCommand(this, hubService, hubKitApplier));
         bind("obxench", new ObxEnchantCommand(this));
@@ -718,8 +680,6 @@ public class OBX extends JavaPlugin {
 
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(teleportManager, this);
-        getServer().getPluginManager().registerEvents(godModeManager, this);
-        getServer().getPluginManager().registerEvents(killModeManager, this);
         getServer().getPluginManager().registerEvents(vanishManager, this);
         getServer().getPluginManager().registerEvents(new BackListener(this), this);
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
@@ -728,14 +688,9 @@ public class OBX extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MainMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new HelpGuiListener(this), this);
         getServer().getPluginManager().registerEvents(new WarpMenuListener(this), this);
-        getServer().getPluginManager().registerEvents(new JoinLockListener(languageManager), this);
-        getServer().getPluginManager().registerEvents(new RedstoneControlListener(), this);
         getServer().getPluginManager().registerEvents(new ResourcePackListener(this, resourcePackManager), this);
         getServer().getPluginManager().registerEvents(new WarpMenuInputListener(warpMenuInputManager), this);
         getServer().getPluginManager().registerEvents(staffSessionTracker, this);
-        if (afkService != null) {
-            getServer().getPluginManager().registerEvents(afkService, this);
-        }
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.InvSeeMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.staff.gui.StaffMenuInputListener(staffMenuInputManager), this);
