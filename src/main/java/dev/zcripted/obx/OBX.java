@@ -138,11 +138,6 @@ public class OBX extends JavaPlugin {
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
-    private HubService hubService;
-    private HubKitApplier hubKitApplier;
-    private LaunchpadCooldownManager launchpadCooldownManager;
-    private BungeeMessenger bungeeMessenger;
-    private HubItemUseListener hubItemUseListener;
     private EnchantService enchantService;
     private EnchantItems enchantItems;
     private EnchantFeedback enchantFeedback;
@@ -196,17 +191,6 @@ public class OBX extends JavaPlugin {
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
 
-        // Hub / lobby system — service must exist before listeners or
-        // command registration since they reference it. Dormant when the
-        // master `enabled: false` flag in systems/hub.yml is left at its
-        // default.
-        hubService = new HubService(this);
-        hubService.load();
-        hubKitApplier = new HubKitApplier(this, hubService);
-        launchpadCooldownManager = new LaunchpadCooldownManager(this, hubService);
-        bungeeMessenger = new BungeeMessenger(this, hubService);
-        bungeeMessenger.register();
-
         // Arcanum custom-enchantment module. The service loads the roster and
         // config; the GUI/items/feedback depend on it being constructed first.
         enchantService = new EnchantService(this);
@@ -240,9 +224,6 @@ public class OBX extends JavaPlugin {
         registerListeners();
 
         tpsService.start();
-        if (launchpadCooldownManager != null) {
-            launchpadCooldownManager.start();
-        }
         if (enchantTickTask != null) {
             enchantTickTask.start();
         }
@@ -275,15 +256,6 @@ public class OBX extends JavaPlugin {
             if (enchantBoundMovement != null) {
                 enchantBoundMovement.restore(online);
             }
-        }
-        if (launchpadCooldownManager != null) {
-            launchpadCooldownManager.stop();
-        }
-        if (bungeeMessenger != null) {
-            bungeeMessenger.unregister();
-        }
-        if (hubService != null) {
-            hubService.save();
         }
         if (tpsService != null) {
             tpsService.stop();
@@ -443,23 +415,23 @@ public class OBX extends JavaPlugin {
     }
 
     public HubService getHubService() {
-        return hubService;
+        return serviceRegistry.get(HubService.class);
     }
 
     public HubKitApplier getHubKitApplier() {
-        return hubKitApplier;
+        return serviceRegistry.get(HubKitApplier.class);
     }
 
     public LaunchpadCooldownManager getLaunchpadCooldownManager() {
-        return launchpadCooldownManager;
+        return serviceRegistry.get(LaunchpadCooldownManager.class);
     }
 
     public BungeeMessenger getBungeeMessenger() {
-        return bungeeMessenger;
+        return serviceRegistry.get(BungeeMessenger.class);
     }
 
     public HubItemUseListener getHubItemUseListener() {
-        return hubItemUseListener;
+        return serviceRegistry.get(HubItemUseListener.class);
     }
 
     public EnchantService getEnchantService() {
@@ -513,9 +485,6 @@ public class OBX extends JavaPlugin {
             resourcePackManager.prepareHosting();
             times.put("resource-pack", System.nanoTime() - s);
         }
-        if (hubService != null) {
-            s = System.nanoTime(); hubService.reload(); times.put("hub.yml", System.nanoTime() - s);
-        }
         if (enchantService != null) {
             s = System.nanoTime(); enchantService.reload(); times.put("enchants", System.nanoTime() - s);
         }
@@ -554,6 +523,7 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.mail.MailModule());
         moduleManager.register(new dev.zcripted.obx.feature.warp.WarpModule());
         moduleManager.register(new dev.zcripted.obx.feature.staff.StaffModule());
+        moduleManager.register(new dev.zcripted.obx.feature.hub.HubModule());
     }
 
     private void registerCommands() {
@@ -563,7 +533,6 @@ public class OBX extends JavaPlugin {
         bind("pl", new PluginListCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
-        bind("hub", new HubCommand(this, hubService, hubKitApplier));
         bind("obxench", new ObxEnchantCommand(this));
         bind("enchants", new EnchantsBrowseCommand(this));
         bind("recall", new RecallCommand(this, enchantState));
@@ -582,18 +551,6 @@ public class OBX extends JavaPlugin {
         // so register for it explicitly — without this the server-list hover
         // (player sample) never gets set on Paper. No-op on base Spigot.
         motdPingListener.registerPaperPingListener();
-
-        // Hub / Lobby system listeners (early-exit when hub-mode is off,
-        // so registration cost is one ConcurrentHashMap read per event in
-        // the dormant state).
-        getServer().getPluginManager().registerEvents(new HubJoinListener(this, hubService, hubKitApplier), this);
-        hubItemUseListener = new HubItemUseListener(this, hubService);
-        getServer().getPluginManager().registerEvents(hubItemUseListener, this);
-        getServer().getPluginManager().registerEvents(new HubItemProtectionListener(this, hubService), this);
-        getServer().getPluginManager().registerEvents(new HubFishingListener(this, hubService), this);
-        getServer().getPluginManager().registerEvents(new HubLaunchpadListener(this, hubService, launchpadCooldownManager), this);
-        getServer().getPluginManager().registerEvents(new HubFallDamageListener(launchpadCooldownManager), this);
-        getServer().getPluginManager().registerEvents(new ServerSelectorListener(this), this);
 
         // Arcanum enchantment module listeners (combat effects + GUI routing).
         getServer().getPluginManager().registerEvents(new CombatEnchantListener(this, enchantService, combatHud), this);
