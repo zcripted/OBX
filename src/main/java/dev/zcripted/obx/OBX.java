@@ -133,7 +133,6 @@ public class OBX extends JavaPlugin {
     private DataService dataService;
     private WarpService warpService;
     private LanguageManager languageManager;
-    private dev.zcripted.obx.feature.mail.pm.PrivateMessageService messageService;
     private VanishManager vanishManager;
     private MotdService motdService;
     private dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask adminMenuRefreshTask;
@@ -143,7 +142,6 @@ public class OBX extends JavaPlugin {
     private dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager invSeeMenuManager;
     private dev.zcripted.obx.feature.staff.service.StaffSessionTracker staffSessionTracker;
     private TpsService tpsService;
-    private dev.zcripted.obx.feature.mail.mail.MailService mailService;
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
     private dev.zcripted.obx.feature.staff.service.FreezeService freezeService;
     private SchedulerAdapter scheduler;
@@ -208,16 +206,11 @@ public class OBX extends JavaPlugin {
         staffMenuInputManager = new dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager(this);
         invSeeMenuManager = new dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager(this);
         staffSessionTracker = new dev.zcripted.obx.feature.staff.service.StaffSessionTracker();
-        dev.zcripted.obx.feature.mail.pm.MessageStore messageStore = new dev.zcripted.obx.feature.mail.pm.MessageStore(this);
-        messageStore.load();
-        messageService = new dev.zcripted.obx.feature.mail.pm.PrivateMessageService(this, messageStore);
         vanishManager = new VanishManager(this);
         resourcePackManager = new AutoResourcePackManager(this);
         resourcePackManager.installBundledPack();
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
-        mailService = new dev.zcripted.obx.feature.mail.mail.MailService(this);
-        mailService.load();
         freezeService = new dev.zcripted.obx.feature.staff.service.FreezeService(this);
 
         // Hub / lobby system — service must exist before listeners or
@@ -361,7 +354,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.mail.pm.PrivateMessageService getMessageService() {
-        return messageService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.mail.pm.PrivateMessageService.class);
     }
 
     public GodModeManager getGodModeManager() {
@@ -429,7 +422,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.mail.mail.MailService getMailService() {
-        return mailService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.mail.mail.MailService.class);
     }
 
     public dev.zcripted.obx.feature.playerstate.service.AfkService getAfkService() {
@@ -594,30 +587,20 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.playerstate.PlayerStateModule());
         moduleManager.register(new dev.zcripted.obx.feature.playerinfo.PlayerInfoModule());
         moduleManager.register(new dev.zcripted.obx.feature.teleport.TeleportModule());
+        moduleManager.register(new dev.zcripted.obx.feature.mail.MailModule());
     }
 
     private void registerCommands() {
         WarpCommand warpCommand = new WarpCommand(this);
         bind("obx", new ObxCommand(this, languageManager));
         bind("help", new HelpGuiCommand(this));
-        getServer().getPluginManager().registerEvents(messageService, this);
-        getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.mail.pm.gui.InboxMenuListener(this), this);
         bind("warp", warpCommand);
-        bind("msg", new dev.zcripted.obx.feature.mail.command.MsgCommand(this));
-        bind("rply", new dev.zcripted.obx.feature.mail.command.ReplyCommand(this));
-        bind("inbox", new dev.zcripted.obx.feature.mail.command.InboxCommand(this));
         bind("tps", new TpsCommand(this));
         bind("pl", new PluginListCommand(this));
         bind("vanish", new VanishCommand(this));
         bind("invsee", new InvSeeCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
-        bind("ignore", new dev.zcripted.obx.feature.mail.command.IgnoreCommand(this));
-        bind("socialspy", new dev.zcripted.obx.feature.mail.command.SocialSpyCommand(this));
-        bind("mail", new dev.zcripted.obx.feature.mail.command.MailCommand(this));
-        bind("me", new dev.zcripted.obx.feature.mail.command.MeCommand(this));
-        bind("broadcast", new dev.zcripted.obx.feature.mail.command.BroadcastCommand(this));
-        bind("staffchat", new dev.zcripted.obx.feature.mail.command.StaffChatCommand(this));
         bind("freeze", new dev.zcripted.obx.feature.staff.command.FreezeCommand(this));
         bind("staff", new dev.zcripted.obx.feature.staff.command.StaffCommand(this));
         bind("hub", new HubCommand(this, hubService, hubKitApplier));
