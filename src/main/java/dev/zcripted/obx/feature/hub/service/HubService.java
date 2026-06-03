@@ -19,7 +19,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 /**
  * Loads, persists, and exposes the hub / lobby configuration stored in
  * {@code systems/hub.yml}. Mirrors the existing service pattern used by
- * {@link dev.zcripted.obx.feature.chat.service.ChatService} and
+ * {@link dev.zcripted.obx.api.chat.ChatService} and
  * {@link dev.zcripted.obx.feature.tablist.service.TablistService} — typed
  * getters return safe defaults if the file is missing or malformed so hub
  * features degrade silently rather than crashing the plugin.

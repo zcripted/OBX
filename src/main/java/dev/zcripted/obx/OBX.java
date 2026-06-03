@@ -65,7 +65,7 @@ import dev.zcripted.obx.feature.playerstate.command.VitalCommand;
 import dev.zcripted.obx.feature.staff.command.InvSeeCommand;
 import dev.zcripted.obx.feature.staff.command.VanishCommand;
 import dev.zcripted.obx.feature.chat.ChatModule;
-import dev.zcripted.obx.feature.chat.service.ChatService;
+import dev.zcripted.obx.api.chat.ChatService;
 import dev.zcripted.obx.feature.nickname.NicknameModule;
 import dev.zcripted.obx.feature.kit.KitModule;
 import dev.zcripted.obx.feature.jail.JailModule;

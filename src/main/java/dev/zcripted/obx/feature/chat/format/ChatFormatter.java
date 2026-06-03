@@ -1,6 +1,6 @@
 package dev.zcripted.obx.feature.chat.format;
 
-import dev.zcripted.obx.feature.chat.service.ChatService;
+import dev.zcripted.obx.api.chat.ChatService;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

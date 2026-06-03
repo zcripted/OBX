@@ -1,7 +1,7 @@
 package dev.zcripted.obx.feature.playerinfo.listener;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.feature.chat.service.ChatService;
+import dev.zcripted.obx.api.chat.ChatService;
 import dev.zcripted.obx.feature.playerinfo.service.JoinLeaveService;
 import dev.zcripted.obx.util.message.AdventureMessageUtil;
 import dev.zcripted.obx.util.message.ConsoleTimestamp;

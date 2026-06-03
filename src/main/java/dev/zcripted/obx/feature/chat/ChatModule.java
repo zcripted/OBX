@@ -3,7 +3,7 @@ package dev.zcripted.obx.feature.chat;
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.chat.listener.ChatManagementListener;
-import dev.zcripted.obx.feature.chat.service.ChatService;
+import dev.zcripted.obx.api.chat.ChatService;
 
 /**
  * Chat formatting + chat-management feature. Owns {@link ChatService} and the
@@ -18,7 +18,7 @@ public final class ChatModule extends AbstractModule {
 
     @Override
     protected void onEnable(ObxPlugin plugin) {
-        ChatService chatService = service(ChatService.class, new ChatService(plugin));
+        ChatService chatService = service(ChatService.class, new dev.zcripted.obx.feature.chat.service.ChatServiceImpl(plugin));
         chatService.load();
         listener(new ChatManagementListener(plugin, chatService));
     }

@@ -11,7 +11,7 @@ import java.io.File;
  * config file is missing or malformed so that chat continues to work even
  * when a server owner ships a broken YAML.
  */
-public final class ChatService {
+public final class ChatServiceImpl implements dev.zcripted.obx.api.chat.ChatService {
 
     private static final String RESOURCE_PATH = "systems/chat_management.yml";
 
@@ -19,7 +19,7 @@ public final class ChatService {
     private final File configFile;
     private YamlConfiguration config;
 
-    public ChatService(ObxPlugin plugin) {
+    public ChatServiceImpl(ObxPlugin plugin) {
         this.plugin = plugin;
         this.configFile = new File(plugin.getDataFolder(), RESOURCE_PATH);
     }

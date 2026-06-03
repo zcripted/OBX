@@ -58,7 +58,7 @@ public interface ObxPlugin extends Plugin {
 
     dev.zcripted.obx.feature.playerinfo.service.JoinLeaveService getJoinLeaveService();
 
-    dev.zcripted.obx.feature.chat.service.ChatService getChatService();
+    dev.zcripted.obx.api.chat.ChatService getChatService();
 
     dev.zcripted.obx.feature.tablist.service.TablistService getTablistService();
 

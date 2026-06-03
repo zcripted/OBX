@@ -2,7 +2,7 @@ package dev.zcripted.obx.feature.chat.listener;
 
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.chat.format.ChatFormatter;
-import dev.zcripted.obx.feature.chat.service.ChatService;
+import dev.zcripted.obx.api.chat.ChatService;
 import dev.zcripted.obx.util.message.AdventureMessageUtil;
 import dev.zcripted.obx.util.message.ConsoleTimestamp;
 import dev.zcripted.obx.util.text.Placeholders;

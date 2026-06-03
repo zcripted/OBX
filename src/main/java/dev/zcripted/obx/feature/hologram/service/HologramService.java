@@ -20,7 +20,7 @@ import java.io.IOException;
 /**
  * Service entry point for the holograms module. Lifecycle, config gate, and
  * backend selection — mirrors {@link dev.zcripted.obx.feature.hub.service.HubService}
- * and {@link dev.zcripted.obx.feature.chat.service.ChatService}.
+ * and {@link dev.zcripted.obx.api.chat.ChatService}.
  *
  * <p>Dormant by default — the {@code enabled} flag in
  * {@code systems/holograms.yml} starts as {@code false}, and {@link #load()}
