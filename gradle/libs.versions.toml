@@ -1,0 +1,18 @@
+# Version catalog — pins server APIs + build tooling for the OBX multi-module build.
+[versions]
+spigot = "1.12.2-R0.1-SNAPSHOT"
+bungeecord-chat = "1.12-SNAPSHOT"
+netty = "4.1.97.Final"
+junit = "5.10.2"
+shadow = "8.3.5"
+proguard = "7.5.0"
+
+[libraries]
+spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
+bungeecord-chat = { module = "net.md-5:bungeecord-chat", version.ref = "bungeecord-chat" }
+netty = { module = "io.netty:netty-all", version.ref = "netty" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+proguard-gradle = { module = "com.guardsquare:proguard-gradle", version.ref = "proguard" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
