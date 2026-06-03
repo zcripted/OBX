@@ -18,6 +18,8 @@ public final class MessageDefaults {
 
     private static final LinkedHashMap<String, Object> EN = new LinkedHashMap<String, Object>();
     private static final LinkedHashMap<String, Object> DE = new LinkedHashMap<String, Object>();
+    /** Spanish overrides; any key absent here falls back to the English value. */
+    private static final LinkedHashMap<String, Object> ES = new LinkedHashMap<String, Object>();
     private static final LinkedHashMap<String, List<String>> SEC_EN = new LinkedHashMap<String, List<String>>();
     private static final LinkedHashMap<String, List<String>> SEC_DE = new LinkedHashMap<String, List<String>>();
 
@@ -1141,7 +1143,16 @@ public final class MessageDefaults {
     }
 
     public static Map<String, Object> defaults(LanguageRegistry registry) {
-        return new LinkedHashMap<String, Object>(registry == LanguageRegistry.DE ? DE : EN);
+        if (registry == LanguageRegistry.DE) {
+            return new LinkedHashMap<String, Object>(DE);
+        }
+        // English is the base for every other locale; ES layers its translated
+        // overrides on top (untranslated keys fall back to English).
+        LinkedHashMap<String, Object> base = new LinkedHashMap<String, Object>(EN);
+        if (registry == LanguageRegistry.ES) {
+            base.putAll(ES);
+        }
+        return base;
     }
 
     public static Map<String, List<String>> sectionComments(LanguageRegistry registry) {
@@ -1159,6 +1170,24 @@ public final class MessageDefaults {
     private static void def(String k, Object en, Object de) {
         EN.put(k, en);
         DE.put(k, de);
+    }
+
+    // Runs after the main static block (source order), so EN/DE are already populated.
+    static {
+        spanishOverrides();
+    }
+
+    /**
+     * Curated Spanish (es) translations for the highest-traffic, user-facing
+     * messages. Every key NOT listed here falls back to the English value (see
+     * {@link #defaults}); fill this in (or have a translator edit lang/es.yml) to
+     * extend Spanish coverage without touching the 1000+ def() call sites.
+     */
+    private static void spanishOverrides() {
+        ES.put("core.no-permission", "{prefix}&eNo tienes permiso para hacer eso.");
+        ES.put("core.no-permission-console", "&eNo tienes permiso para hacer eso.");
+        ES.put("core.player-only", "{prefix}&eSolo los jugadores pueden ejecutar este comando.");
+        ES.put("core.player-only-console", "&eSolo los jugadores pueden ejecutar este comando.");
     }
 
     private static void sec(String k, List<String> en, List<String> de) {

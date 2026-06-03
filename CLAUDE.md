@@ -19,11 +19,13 @@ Work on this IntelliJ project as a **production-grade Minecraft plugin codebase*
     - Detailed
     - Cleanly formatted
     - Use dividers and new lines where appropriate
-- **Anytime a message is added or edited**, update both languages via
+- **Anytime a message is added or edited**, update both base languages via
   `core/language/MessageDefaults.java` using `def(key, en, de)` — this guarantees
   EN/DE parity by construction and generates the runtime language files:
     - `lang/en.yml`
     - `lang/de.yml`
+    - `lang/es.yml` — Spanish; English-fallback by default, with curated overrides
+      in `MessageDefaults.spanishOverrides()`. Untranslated keys render in English.
 
 ## Output Expectations
 - If instructions are ambiguous:
@@ -31,15 +33,24 @@ Work on this IntelliJ project as a **production-grade Minecraft plugin codebase*
     - Clearly document the assumption in code or docs
 
 ## Testing Checklist
-- Maven build completes with **no errors**
-- Plugin builds successfully
+- Gradle build completes with **no errors**
+- Plugin builds successfully (both jars produced)
 
 ## Build Tooling
-- A portable Apache Maven distribution is committed at `./maven/` (in this project directory).
-- Always invoke it via the in-project executable — do NOT rely on a global `mvn` on PATH:
-    - PowerShell: `& ".\maven\bin\mvn.cmd" -DskipTests package`
-    - Bash: `./maven/bin/mvn -DskipTests package`
-- ProGuard `Note:` lines for reflective accesses (Adventure / Folia / MiniMessage detection) are informational, not build failures.
+- **Gradle multi-module build** (Maven has been retired; there is no `pom.xml`).
+- Use the committed Gradle **wrapper** — do NOT rely on a global `gradle` on PATH:
+    - PowerShell: `.\gradlew.bat build`
+    - Bash: `./gradlew build`
+- Module layout: `:api` (public interfaces) ← `:core` (framework + platform seam +
+  util) ← `:features:*` (one subproject per feature) ← `:plugin` (thin `OBX`
+  bootstrap + Shadow aggregator). Convention plugins live in `buildSrc`
+  (`obx.java-conventions`, `obx.feature-conventions`); versions are pinned in
+  `gradle/libs.versions.toml`.
+- `./gradlew build` runs the full pipeline: compile + test → `:plugin:shadowJar`
+  merges everything into `OBX-<ver>-unobf.jar` → `:plugin:proguard` obfuscates it
+  (via `proguard.pro`) into the shippable `OBX-<ver>.jar` (+ a mapping file).
+- ProGuard `Note:` lines for reflective accesses (Adventure / Folia / MiniMessage
+  detection) are informational, not build failures.
 
 ---
 

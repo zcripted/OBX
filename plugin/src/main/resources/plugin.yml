@@ -1,6 +1,6 @@
-﻿name: ${plugin.name}
+﻿name: OBX
 main: dev.zcripted.obx.OBX
-version: ${plugin.fullversion}
+version: 1.0.0-beta-b1
 description: "Obsidian eXtended — Forged from Obsidian. Essentials-style core utilities. Single JAR, runtime-adapts to Paper / Spigot / PurPur / Folia from 1.8.8 to 26.1.x."
 author: zcripted
 website: https://obx.zcripted.dev
