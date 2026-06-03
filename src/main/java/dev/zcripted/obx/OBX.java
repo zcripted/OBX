@@ -133,8 +133,6 @@ public class OBX extends JavaPlugin {
     private DataService dataService;
     private WarpService warpService;
     private LanguageManager languageManager;
-    private TeleportManager teleportManager;
-    private dev.zcripted.obx.feature.teleport.service.TeleportRequestService teleportRequestService;
     private dev.zcripted.obx.feature.mail.pm.PrivateMessageService messageService;
     private VanishManager vanishManager;
     private MotdService motdService;
@@ -145,7 +143,6 @@ public class OBX extends JavaPlugin {
     private dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager invSeeMenuManager;
     private dev.zcripted.obx.feature.staff.service.StaffSessionTracker staffSessionTracker;
     private TpsService tpsService;
-    private dev.zcripted.obx.feature.teleport.service.TpaService tpaService;
     private dev.zcripted.obx.feature.mail.mail.MailService mailService;
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
     private dev.zcripted.obx.feature.staff.service.FreezeService freezeService;
@@ -211,8 +208,6 @@ public class OBX extends JavaPlugin {
         staffMenuInputManager = new dev.zcripted.obx.feature.staff.gui.StaffMenuInputManager(this);
         invSeeMenuManager = new dev.zcripted.obx.feature.staff.gui.InvSeeMenuManager(this);
         staffSessionTracker = new dev.zcripted.obx.feature.staff.service.StaffSessionTracker();
-        teleportManager = new TeleportManager(this, languageManager);
-        teleportRequestService = new dev.zcripted.obx.feature.teleport.service.TeleportRequestService(this);
         dev.zcripted.obx.feature.mail.pm.MessageStore messageStore = new dev.zcripted.obx.feature.mail.pm.MessageStore(this);
         messageStore.load();
         messageService = new dev.zcripted.obx.feature.mail.pm.PrivateMessageService(this, messageStore);
@@ -221,7 +216,6 @@ public class OBX extends JavaPlugin {
         resourcePackManager.installBundledPack();
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
-        tpaService = new dev.zcripted.obx.feature.teleport.service.TpaService(this);
         mailService = new dev.zcripted.obx.feature.mail.mail.MailService(this);
         mailService.load();
         freezeService = new dev.zcripted.obx.feature.staff.service.FreezeService(this);
@@ -336,12 +330,6 @@ public class OBX extends JavaPlugin {
         if (adminMenuRefreshTask != null) {
             adminMenuRefreshTask.cancel();
         }
-        if (teleportManager != null) {
-            teleportManager.cancelAll();
-        }
-        if (tpaService != null) {
-            tpaService.stop();
-        }
         if (dataService != null) {
             dataService.save();
         }
@@ -365,11 +353,11 @@ public class OBX extends JavaPlugin {
     }
 
     public TeleportManager getTeleportManager() {
-        return teleportManager;
+        return serviceRegistry.get(TeleportManager.class);
     }
 
     public dev.zcripted.obx.feature.teleport.service.TeleportRequestService getTeleportRequestService() {
-        return teleportRequestService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.teleport.service.TeleportRequestService.class);
     }
 
     public dev.zcripted.obx.feature.mail.pm.PrivateMessageService getMessageService() {
@@ -437,7 +425,7 @@ public class OBX extends JavaPlugin {
     }
 
     public dev.zcripted.obx.feature.teleport.service.TpaService getTpaService() {
-        return tpaService;
+        return serviceRegistry.get(dev.zcripted.obx.feature.teleport.service.TpaService.class);
     }
 
     public dev.zcripted.obx.feature.mail.mail.MailService getMailService() {
@@ -605,44 +593,25 @@ public class OBX extends JavaPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.world.WorldModule());
         moduleManager.register(new dev.zcripted.obx.feature.playerstate.PlayerStateModule());
         moduleManager.register(new dev.zcripted.obx.feature.playerinfo.PlayerInfoModule());
+        moduleManager.register(new dev.zcripted.obx.feature.teleport.TeleportModule());
     }
 
     private void registerCommands() {
-        SpawnCommand spawnCommand = new SpawnCommand(this);
         WarpCommand warpCommand = new WarpCommand(this);
         bind("obx", new ObxCommand(this, languageManager));
         bind("help", new HelpGuiCommand(this));
-        bind("home", new HomeCommand(this));
-        bind("sethome", new SetHomeCommand(this));
-        bind("delhome", new DelHomeCommand(this));
-        bind("homes", new HomesCommand(this));
-        bind("spawn", spawnCommand);
-        bind("setspawn", spawnCommand);
-        getServer().getPluginManager().registerEvents(spawnCommand, this);
         getServer().getPluginManager().registerEvents(messageService, this);
         getServer().getPluginManager().registerEvents(new dev.zcripted.obx.feature.mail.pm.gui.InboxMenuListener(this), this);
         bind("warp", warpCommand);
-        bind("back", new BackCommand(this));
-        bind("tp", new dev.zcripted.obx.feature.teleport.command.TeleportCommand(this, dev.zcripted.obx.feature.teleport.command.TeleportCommand.Mode.TO));
-        bind("tphere", new dev.zcripted.obx.feature.teleport.command.TeleportCommand(this, dev.zcripted.obx.feature.teleport.command.TeleportCommand.Mode.HERE));
-        bind("tpa", new dev.zcripted.obx.feature.teleport.command.TpaCommand(this, dev.zcripted.obx.feature.teleport.command.TpaCommand.Mode.REQUEST));
-        bind("tpaccept", new dev.zcripted.obx.feature.teleport.command.TpaCommand(this, dev.zcripted.obx.feature.teleport.command.TpaCommand.Mode.ACCEPT));
-        bind("tpdeny", new dev.zcripted.obx.feature.teleport.command.TpaCommand(this, dev.zcripted.obx.feature.teleport.command.TpaCommand.Mode.DENY));
-        bind("pos", new dev.zcripted.obx.feature.teleport.command.PositionCommand(this));
         bind("msg", new dev.zcripted.obx.feature.mail.command.MsgCommand(this));
         bind("rply", new dev.zcripted.obx.feature.mail.command.ReplyCommand(this));
         bind("inbox", new dev.zcripted.obx.feature.mail.command.InboxCommand(this));
         bind("tps", new TpsCommand(this));
         bind("pl", new PluginListCommand(this));
-        bind("top", new TopCommand(this));
         bind("vanish", new VanishCommand(this));
         bind("invsee", new InvSeeCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
-        bind("tpcancel", new dev.zcripted.obx.feature.teleport.command.TpCancelCommand(this));
-        bind("tptoggle", new dev.zcripted.obx.feature.teleport.command.TpToggleCommand(this));
-        bind("tppos", new dev.zcripted.obx.feature.teleport.command.TpPosCommand(this));
-        bind("tpall", new dev.zcripted.obx.feature.teleport.command.TpAllCommand(this));
         bind("ignore", new dev.zcripted.obx.feature.mail.command.IgnoreCommand(this));
         bind("socialspy", new dev.zcripted.obx.feature.mail.command.SocialSpyCommand(this));
         bind("mail", new dev.zcripted.obx.feature.mail.command.MailCommand(this));
@@ -660,9 +629,7 @@ public class OBX extends JavaPlugin {
     }
 
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(teleportManager, this);
         getServer().getPluginManager().registerEvents(vanishManager, this);
-        getServer().getPluginManager().registerEvents(new BackListener(this), this);
         getServer().getPluginManager().registerEvents(new CommandOverrideListener(this), this);
         getServer().getPluginManager().registerEvents(new MainMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new HelpGuiListener(this), this);
