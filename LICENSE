@@ -1,0 +1,97 @@
+OBX (Obsidian eXtended) — End User License Agreement (EULA)
+Copyright (c) 2026 zcripted. All Rights Reserved.
+
+================================================================================
+1. DEFINITIONS
+================================================================================
+"Software" means the OBX plugin, including its compiled JAR artifacts, source
+code, configuration files, bundled assets, and accompanying documentation.
+"Author" means zcripted, the copyright holder.
+"You" / "Licensee" means the individual or entity that obtained a copy of the
+Software through an authorized channel.
+
+================================================================================
+2. GRANT OF LICENSE
+================================================================================
+Subject to Your continuous compliance with this Agreement, the Author grants You
+a limited, non-exclusive, non-transferable, revocable license to install and run
+the Software on Minecraft server(s) that You own or operate, for the purpose of
+operating those servers.
+
+One purchase / authorized acquisition entitles the purchasing individual or
+organization to use the Software. A network of servers operated by the same
+purchasing party is covered by a single license.
+
+================================================================================
+3. RESTRICTIONS — ALL RIGHTS RESERVED
+================================================================================
+Except as expressly permitted by this Agreement or by mandatory applicable law,
+You may NOT:
+
+  (a) redistribute, resell, sublicense, lease, rent, lend, publish, or otherwise
+      make the Software (in whole or in part, obfuscated or not) available to any
+      third party;
+  (b) decompile, deobfuscate, reverse-engineer, disassemble, or attempt to derive
+      the source code of the Software, except to the limited extent applicable law
+      expressly permits despite this restriction;
+  (c) modify, adapt, translate, or create derivative works of the Software for the
+      purpose of redistribution, or remove/alter any copyright, attribution, or
+      license notice;
+  (d) use, copy, or distribute the Software obtained through any unauthorized,
+      pirated, "leaked", or cracked channel;
+  (e) claim authorship of the Software or represent it as Your own work.
+
+All rights not expressly granted to You are reserved by the Author.
+
+================================================================================
+4. OWNERSHIP
+================================================================================
+The Software is licensed, not sold. The Author retains all right, title, and
+interest in and to the Software, including all intellectual property rights.
+This Agreement does not transfer any ownership of the Software to You.
+
+================================================================================
+5. TERMINATION
+================================================================================
+This license terminates automatically and immediately, without notice, if You
+breach any term of this Agreement. Upon termination You must cease all use of the
+Software and destroy all copies in Your possession or control. Sections 3, 4, 6,
+and 7 survive termination.
+
+================================================================================
+6. DISCLAIMER OF WARRANTY
+================================================================================
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. THE AUTHOR DOES NOT
+WARRANT THAT THE SOFTWARE WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF HARMFUL
+COMPONENTS, OR THAT DEFECTS WILL BE CORRECTED.
+
+================================================================================
+7. LIMITATION OF LIABILITY
+================================================================================
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE AUTHOR BE
+LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES,
+OR FOR ANY LOSS OF PROFITS, DATA, GOODWILL, OR SERVER DOWNTIME, ARISING OUT OF OR
+RELATED TO THE USE OF (OR INABILITY TO USE) THE SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES. THE AUTHOR'S TOTAL AGGREGATE LIABILITY SHALL NOT
+EXCEED THE AMOUNT YOU PAID (IF ANY) FOR THE SOFTWARE.
+
+================================================================================
+8. THIRD-PARTY COMPONENTS
+================================================================================
+The Software runs against APIs provided by the host server (Bukkit / Spigot /
+Paper / PurPur / Folia) and may load a SQLite JDBC driver at runtime via the
+server's library loader. Those components are the property of their respective
+owners and are governed by their own licenses; this Agreement applies only to the
+OBX Software itself.
+
+================================================================================
+9. GENERAL
+================================================================================
+This Agreement constitutes the entire agreement between You and the Author
+regarding the Software and supersedes any prior agreements. If any provision is
+held unenforceable, the remaining provisions remain in full force. The Author's
+failure to enforce any provision is not a waiver of that provision.
+
+For licensing inquiries, contact the Author at https://zcripted.dev.
