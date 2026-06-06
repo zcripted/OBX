@@ -1,10 +1,15 @@
 package dev.zcripted.obx.feature.staff.gui;
 
+import dev.zcripted.obx.core.ObxPlugin;
+import dev.zcripted.obx.core.language.LanguageManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,9 +60,27 @@ final class AdminMenuRender {
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(lore);
+            hideAttributes(meta);
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    /**
+     * Suppresses vanilla attribute modifier lines (e.g. the attack damage/speed a
+     * sword, trident, or axe icon would otherwise show) so menu icons stay clean.
+     * Wrapped defensively because {@code HIDE_ATTRIBUTES} is absent on very old API
+     * levels.
+     */
+    static void hideAttributes(ItemMeta meta) {
+        if (meta == null) {
+            return;
+        }
+        try {
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        } catch (Throwable ignored) {
+            // ItemFlag.HIDE_ATTRIBUTES unavailable on this server — leave as-is.
+        }
     }
 
     static void place(Inventory inventory, int slot, ItemStack item) {
@@ -70,48 +93,38 @@ final class AdminMenuRender {
         inventory.setItem(slot, item);
     }
 
-    static ItemStack createBackItem() {
-        ItemStack back = new ItemStack(resolveMaterial(new String[]{"ARROW", "SPECTRAL_ARROW"}));
-        ItemMeta backMeta = back.getItemMeta();
-        if (backMeta != null) {
-            backMeta.setDisplayName(ChatColor.DARK_PURPLE + "Back to Admin Panel");
-            backMeta.setLore(Arrays.asList(ChatColor.GRAY + "Return to the main Admin menu."));
-            back.setItemMeta(backMeta);
-        }
-        return back;
+    /** Resolves the OBX language manager from the providing plugin (this is a feature module). */
+    private static LanguageManager languages() {
+        return ((ObxPlugin) JavaPlugin.getProvidingPlugin(AdminMenuRender.class)).getLanguageManager();
     }
 
-    static ItemStack createBackItemToServerControl() {
-        ItemStack back = new ItemStack(resolveMaterial(new String[]{"ARROW", "SPECTRAL_ARROW"}));
-        ItemMeta backMeta = back.getItemMeta();
-        if (backMeta != null) {
-            backMeta.setDisplayName(ChatColor.DARK_PURPLE + "Back to Server Control");
-            backMeta.setLore(Arrays.asList(ChatColor.GRAY + "Return to server control options."));
-            back.setItemMeta(backMeta);
-        }
-        return back;
-    }
-
-    static ItemStack createBackItemToWorldControls() {
-        ItemStack back = new ItemStack(resolveMaterial(new String[]{"ARROW", "SPECTRAL_ARROW"}));
-        ItemMeta backMeta = back.getItemMeta();
-        if (backMeta != null) {
-            backMeta.setDisplayName(ChatColor.DARK_PURPLE + "Back to World Controls");
-            backMeta.setLore(Arrays.asList(ChatColor.GRAY + "Return to world controls."));
-            back.setItemMeta(backMeta);
-        }
-        return back;
-    }
-
-    static ItemStack createCloseItem() {
-        ItemStack close = new ItemStack(resolveMaterial(new String[]{"BARRIER"}));
-        ItemMeta meta = close.getItemMeta();
+    private static ItemStack navItem(Player player, String[] materials, String nameKey, String loreKey) {
+        LanguageManager lang = languages();
+        ItemStack item = new ItemStack(resolveMaterial(materials));
+        ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.RED + "Close");
-            meta.setLore(Arrays.asList(ChatColor.GRAY + "Click to close this menu"));
-            close.setItemMeta(meta);
+            meta.setDisplayName(lang.get(player, nameKey));
+            meta.setLore(lang.list(player, loreKey, java.util.Collections.<String, String>emptyMap()));
+            hideAttributes(meta);
+            item.setItemMeta(meta);
         }
-        return close;
+        return item;
+    }
+
+    static ItemStack createBackItem(Player player) {
+        return navItem(player, new String[]{"ARROW", "SPECTRAL_ARROW"}, "admin.gui.back.admin.name", "admin.gui.back.admin.lore");
+    }
+
+    static ItemStack createBackItemToServerControl(Player player) {
+        return navItem(player, new String[]{"ARROW", "SPECTRAL_ARROW"}, "admin.gui.back.server-control.name", "admin.gui.back.server-control.lore");
+    }
+
+    static ItemStack createBackItemToWorldControls(Player player) {
+        return navItem(player, new String[]{"ARROW", "SPECTRAL_ARROW"}, "admin.gui.back.world-controls.name", "admin.gui.back.world-controls.lore");
+    }
+
+    static ItemStack createCloseItem(Player player) {
+        return navItem(player, new String[]{"BARRIER"}, "admin.gui.close.name", "admin.gui.close.lore");
     }
 
     static Material resolveMaterial(String[] names) {

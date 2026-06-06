@@ -37,6 +37,15 @@ public final class TablistTeams {
 
     private static final Map<UUID, Boolean> lastState = new ConcurrentHashMap<>();
 
+    /**
+     * Serializes every mutation of the shared MAIN scoreboard. The tablist refresh dispatches its
+     * per-player work onto each player's region on Folia, so without this lock multiple region threads
+     * would call {@code addEntry}/{@code registerNewTeam}/{@code unregister} on the same global
+     * scoreboard concurrently — Bukkit's Team/Scoreboard objects aren't thread-safe, risking a
+     * ConcurrentModificationException / torn state. Serializing OBX's own access removes that race.
+     */
+    private static final Object SCOREBOARD_LOCK = new Object();
+
     private TablistTeams() {
     }
 
@@ -49,6 +58,7 @@ public final class TablistTeams {
         if (previous != null && previous == staff) {
             return;
         }
+        synchronized (SCOREBOARD_LOCK) {
         Scoreboard board = mainScoreboard();
         if (board == null) {
             return;
@@ -64,6 +74,7 @@ public final class TablistTeams {
             // Scoreboard/team API unavailable on this fork — grouping degrades to
             // the client's default ordering.
         }
+        }
     }
 
     /** Removes {@code player} from the OBX tablist teams (call on quit). */
@@ -72,17 +83,19 @@ public final class TablistTeams {
             return;
         }
         lastState.remove(player.getUniqueId());
-        Scoreboard board = mainScoreboard();
-        if (board == null) {
-            return;
-        }
-        for (String name : new String[]{STAFF_TEAM, PLAYER_TEAM}) {
-            try {
-                Team team = board.getTeam(name);
-                if (team != null) {
-                    team.removeEntry(player.getName());
+        synchronized (SCOREBOARD_LOCK) {
+            Scoreboard board = mainScoreboard();
+            if (board == null) {
+                return;
+            }
+            for (String name : new String[]{STAFF_TEAM, PLAYER_TEAM}) {
+                try {
+                    Team team = board.getTeam(name);
+                    if (team != null) {
+                        team.removeEntry(player.getName());
+                    }
+                } catch (Throwable ignored) {
                 }
-            } catch (Throwable ignored) {
             }
         }
     }
@@ -90,17 +103,19 @@ public final class TablistTeams {
     /** Unregisters the OBX tablist teams entirely (call on disable / when off). */
     public static void reset() {
         lastState.clear();
-        Scoreboard board = mainScoreboard();
-        if (board == null) {
-            return;
-        }
-        for (String name : new String[]{STAFF_TEAM, PLAYER_TEAM}) {
-            try {
-                Team team = board.getTeam(name);
-                if (team != null) {
-                    team.unregister();
+        synchronized (SCOREBOARD_LOCK) {
+            Scoreboard board = mainScoreboard();
+            if (board == null) {
+                return;
+            }
+            for (String name : new String[]{STAFF_TEAM, PLAYER_TEAM}) {
+                try {
+                    Team team = board.getTeam(name);
+                    if (team != null) {
+                        team.unregister();
+                    }
+                } catch (Throwable ignored) {
                 }
-            } catch (Throwable ignored) {
             }
         }
     }

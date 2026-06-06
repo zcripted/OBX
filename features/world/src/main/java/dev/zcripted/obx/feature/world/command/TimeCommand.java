@@ -52,8 +52,7 @@ public class TimeCommand extends AbstractObxCommand implements TabCompleter {
         } else {
             world.setTime(world.getTime() + parsed);
         }
-        languages.send(sender, "world.time.changed",
-                Placeholders.with("world", world.getName(), "time", world.getTime()));
+        dev.zcripted.obx.feature.world.service.ServerControlActions.timeMessage(plugin, sender, world.getName(), world.getTime());
         return true;
     }
 

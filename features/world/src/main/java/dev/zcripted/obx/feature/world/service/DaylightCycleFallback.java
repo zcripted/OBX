@@ -1,7 +1,6 @@
 package dev.zcripted.obx.feature.world.service;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -57,6 +56,23 @@ public final class DaylightCycleFallback {
     private static void stopTaskIfIdle() {
         if (frozenTimes.isEmpty() && task != null) {
             task.cancel();
+            task = null;
+        }
+    }
+
+    /**
+     * Cancels the freeze task and clears all frozen-world state. Must be called on plugin disable
+     * so the static task doesn't leak across a reload (it is bound to the previous plugin instance's
+     * scheduler).
+     */
+    public static void shutdown() {
+        frozenTimes.clear();
+        if (task != null) {
+            try {
+                task.cancel();
+            } catch (Throwable ignored) {
+                // already cancelled
+            }
             task = null;
         }
     }

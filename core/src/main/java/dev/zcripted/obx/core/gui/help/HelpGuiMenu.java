@@ -96,6 +96,8 @@ public final class HelpGuiMenu {
         map.put("lag", CATEGORY_ADMIN);
         map.put("mspt", CATEGORY_ADMIN);
         map.put("performance", CATEGORY_ADMIN);
+        map.put("health", CATEGORY_ADMIN);
+        map.put("healthcheck", CATEGORY_ADMIN);
         map.put("pl", CATEGORY_ADMIN);
         map.put("plugins", CATEGORY_ADMIN);
         // Core
@@ -104,6 +106,7 @@ public final class HelpGuiMenu {
         // Language
         map.put("language", CATEGORY_LANGUAGE);
         map.put("sprache", CATEGORY_LANGUAGE);
+        map.put("idioma", CATEGORY_LANGUAGE);
         // Moderation
         map.put("ban", CATEGORY_MODERATION);
         map.put("unban", CATEGORY_MODERATION);
@@ -164,6 +167,9 @@ public final class HelpGuiMenu {
         map.put("gma", CATEGORY_UTILITY);
         map.put("gmsp", CATEGORY_UTILITY);
         map.put("heal", CATEGORY_UTILITY);
+        map.put("backpack", CATEGORY_UTILITY);
+        map.put("bp", CATEGORY_UTILITY);
+        map.put("pack", CATEGORY_UTILITY);
         map.put("feed", CATEGORY_UTILITY);
         map.put("vital", CATEGORY_UTILITY);
         map.put("restore", CATEGORY_UTILITY);

@@ -9,6 +9,14 @@
 #   "MATERIAL:AMOUNT"     — short form with amount
 #   { material: STONE, amount: 16, name: "&aPretty Stone", lore: ["&7Soft"], enchants: { UNBREAKING: 1 } }
 # ════════════════════════════════════════════════════════════════════════════
+
+# First-join kits — when enabled, a brand-new player automatically receives every
+# kit flagged "first-join: true" below on their first login (one time only; the
+# claim is recorded so it never repeats). Set enabled: false to turn the whole
+# behaviour off without editing individual kits.
+first-join:
+  enabled: true
+
 kits:
   starter:
     display-name: "&aStarter Kit"

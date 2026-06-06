@@ -12,3 +12,14 @@ target/
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
+
+# run-paper local test harness (server runtime state, downloaded jars, worlds)
+/plugin/run/
+run-harness*.log
+
+# IntelliJ IDEA — per-developer/machine config, not part of a marketplace release
+/.idea/
+*.ipr
+*.iws
+# macOS
+.DS_Store

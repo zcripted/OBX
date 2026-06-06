@@ -25,7 +25,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Death-triggered combat enchants. Currently handles Headsplitter's increased

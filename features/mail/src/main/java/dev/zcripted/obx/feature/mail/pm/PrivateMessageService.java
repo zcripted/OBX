@@ -4,6 +4,7 @@ import dev.zcripted.obx.feature.mail.pm.gui.InboxMenu;
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.util.text.ComponentMessenger;
+import dev.zcripted.obx.util.text.MessageSanitizer;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -13,6 +14,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +34,8 @@ public final class PrivateMessageService implements Listener {
 
     /** Sentinel reply-target for messages sent by the console (can't be replied to). */
     private static final UUID CONSOLE_ID = new UUID(0L, 0L);
+    /** Sentinel reply-target meaning "the last message was staff chat" — {@code /rply} answers into staff chat. */
+    private static final UUID STAFF_CHAT_ID = new UUID(0L, 1L);
     private static final long DRAFT_MS = 60_000L;
 
     private final ObxPlugin plugin;
@@ -40,6 +44,11 @@ public final class PrivateMessageService implements Listener {
     private final Map<UUID, UUID> replyTarget = new ConcurrentHashMap<UUID, UUID>();
     private final Map<UUID, String> replyTargetName = new ConcurrentHashMap<UUID, String>();
     private final Map<UUID, Draft> drafts = new ConcurrentHashMap<UUID, Draft>();
+    // Reply-channel recency, kept separate so a staff-chat line never clobbers a private
+    // reply target (which would silently redirect a /rply into staff chat). /rply answers
+    // whichever channel the player most recently *received* a message on.
+    private final Map<UUID, Long> pmReplyAt = new ConcurrentHashMap<UUID, Long>();
+    private final Map<UUID, Long> staffChatAt = new ConcurrentHashMap<UUID, Long>();
 
     public PrivateMessageService(ObxPlugin plugin, MessageStore store) {
         this.plugin = plugin;
@@ -65,10 +74,22 @@ public final class PrivateMessageService implements Listener {
 
     // ── /msg ────────────────────────────────────────────────────────────────────
 
+    /** Hard cap on a single private-message body, so a muted/abusive sender can't flood an inbox. */
+    private static final int MAX_PM_LENGTH = 256;
+
     public void sendMessage(CommandSender sender, String targetName, String message) {
         if (message == null || message.trim().isEmpty()) {
             languages.send(sender, "message.usage");
             return;
+        }
+        // Defense-in-depth: block muted players here too, not only via the command-blocklist listener
+        // (which can be misconfigured). PMs are a chat channel and a mute must cover them.
+        if (blockedByMute(sender)) {
+            return;
+        }
+        message = MessageSanitizer.sanitize(sender, message);
+        if (message.length() > MAX_PM_LENGTH) {
+            message = message.substring(0, MAX_PM_LENGTH);
         }
         if (targetName.equalsIgnoreCase("console") || targetName.equalsIgnoreCase("server")) {
             languages.send(sender, "message.console-blocked");
@@ -92,26 +113,66 @@ public final class PrivateMessageService implements Listener {
             languages.send(sender, "message.not-found", one("player", targetName));
             return;
         }
+        String shownName = offline.getName() != null ? offline.getName() : targetName;
+        // Honor /ignore for offline targets too, but fake success so the ignore can't be
+        // probed by who-does-and-doesn't-receive.
+        if (isIgnored(sender, fromId, offline.getUniqueId())) {
+            languages.send(sender, "message.stored", one("player", shownName));
+            return;
+        }
         store.add(offline.getUniqueId(), new InboxMessage(
                 fromConsole ? InboxMessage.CONSOLE : fromId.toString(), fromName, message, System.currentTimeMillis()));
-        languages.send(sender, "message.stored",
-                one("player", offline.getName() != null ? offline.getName() : targetName));
+        languages.send(sender, "message.stored", one("player", shownName));
+        // Social-spy covers offline-stored PMs too, for consistent moderation visibility.
+        notifySpies(fromId, fromName, offline.getUniqueId(), shownName, message);
+    }
+
+    /** Whether {@code sender} is currently muted — and if so, sends them the mute notice. */
+    private boolean blockedByMute(CommandSender sender) {
+        if (!(sender instanceof Player)) {
+            return false; // console is never muted
+        }
+        dev.zcripted.obx.api.moderation.ModerationApi mod =
+                plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class);
+        // UUID lookup, not name: name-based checks are bypassable via name changes.
+        java.util.UUID uuid = ((Player) sender).getUniqueId();
+        if (mod == null || !mod.isMuted(uuid)) {
+            return false;
+        }
+        String reason = mod.getMuteReason(uuid);
+        languages.send(sender, "player.moderation.mute.chat-blocked", one("reason", reason == null ? "" : reason));
+        return true;
+    }
+
+    /** Whether {@code recipientId} is ignoring {@code fromId} (console + bypass perm are never ignored). */
+    private boolean isIgnored(CommandSender sender, UUID fromId, UUID recipientId) {
+        if (fromId.equals(CONSOLE_ID)) {
+            return false;
+        }
+        if (sender instanceof Player && sender.hasPermission("obx.message.ignore.bypass")) {
+            return false;
+        }
+        dev.zcripted.obx.feature.mail.mail.MailService mail =
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.mail.MailService.class);
+        return mail != null && mail.isIgnoring(recipientId, fromId);
     }
 
     private void deliverLive(CommandSender sender, UUID fromId, String fromName, Player to, String message) {
-        // Ignore enforcement: if the recipient has /ignore'd the sender, the PM is
-        // blocked (console can't be ignored). Senders with bypass perm get through.
-        dev.zcripted.obx.feature.mail.mail.MailService mail = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.mail.MailService.class);
-        boolean bypass = sender instanceof Player && sender.hasPermission("obx.message.ignore.bypass");
-        if (!fromId.equals(CONSOLE_ID) && !bypass && mail != null
-                && mail.isIgnoring(to.getUniqueId(), fromId)) {
-            languages.send(sender, "message.ignored", one("player", to.getName()));
-            return;
-        }
-
         Map<String, String> sent = new LinkedHashMap<String, String>();
         sent.put("player", to.getName());
         sent.put("message", message);
+
+        // Ignore enforcement: if the recipient has /ignore'd the sender, fake success (show
+        // the normal "sent" line) but don't deliver to the recipient — so the ignore can't be
+        // detected. Console can't be ignored; bypass-perm senders get through. Social-spy STILL
+        // fires (spies are invisible to the sender, so it can't reveal the ignore, and moderators
+        // should see ignored PMs — matching the offline-delivery path).
+        if (isIgnored(sender, fromId, to.getUniqueId())) {
+            languages.send(sender, "message.format.sent", sent);
+            notifySpies(fromId, fromName, to.getUniqueId(), to.getName(), message);
+            return;
+        }
+
         languages.send(sender, "message.format.sent", sent);
 
         Map<String, String> received = new LinkedHashMap<String, String>();
@@ -122,6 +183,7 @@ public final class PrivateMessageService implements Listener {
         if (!fromId.equals(CONSOLE_ID)) {
             replyTarget.put(to.getUniqueId(), fromId);
             replyTargetName.put(to.getUniqueId(), fromName);
+            pmReplyAt.put(to.getUniqueId(), System.currentTimeMillis());
             // Line 1: the message itself.
             to.sendMessage(line);
             // Line 2: the reply button on its own line.
@@ -172,7 +234,14 @@ public final class PrivateMessageService implements Listener {
             return;
         }
         Player player = (Player) sender;
-        UUID target = replyTarget.get(player.getUniqueId());
+        UUID id = player.getUniqueId();
+        // Answer whichever channel was most recently received on. Staff-chat receipt is
+        // tracked separately so it never overwrites a private reply target.
+        if (staffChatIsMostRecent(id)) {
+            deliverToId(player, STAFF_CHAT_ID, null, message);
+            return;
+        }
+        UUID target = replyTarget.get(id);
         if (target == null) {
             languages.send(player, "reply.no-target");
             return;
@@ -181,10 +250,30 @@ public final class PrivateMessageService implements Listener {
             languages.send(player, "reply.cant-console");
             return;
         }
-        deliverToId(player, target, replyTargetName.get(player.getUniqueId()), message);
+        deliverToId(player, target, replyTargetName.get(id), message);
+    }
+
+    /** True if the player's most recent received message was a staff-chat line. */
+    private boolean staffChatIsMostRecent(UUID id) {
+        long sc = staffChatAt.getOrDefault(id, 0L);
+        return sc > 0L && sc >= pmReplyAt.getOrDefault(id, 0L);
     }
 
     private void deliverToId(Player from, UUID targetId, String targetName, String message) {
+        message = MessageSanitizer.sanitize(from, message);
+        if (STAFF_CHAT_ID.equals(targetId)) {
+            // The most recent message was staff chat — reply straight back into staff chat.
+            if (!from.hasPermission("obx.staffchat")) {
+                languages.send(from, "core.no-permission");
+                return;
+            }
+            dev.zcripted.obx.feature.mail.staffchat.StaffChatService staffChat =
+                    plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.staffchat.StaffChatService.class);
+            if (staffChat != null) {
+                staffChat.dispatch(from, message);
+            }
+            return;
+        }
         Player to = Bukkit.getPlayer(targetId);
         if (to != null && to.isOnline()) {
             deliverLive(from, from.getUniqueId(), from.getName(), to, message);
@@ -194,18 +283,36 @@ public final class PrivateMessageService implements Listener {
         }
     }
 
-    /** {@code /rply} with no message — opens a 60s reply draft to the last sender. */
+    /**
+     * Records that {@code recipient} just received a staff-chat line, so a following
+     * {@code /rply} answers into staff chat — but only while staff chat is their most
+     * recent message. This is kept separate from the private reply target so it never
+     * silently redirects an in-progress private conversation into staff chat.
+     */
+    public void markStaffChatReplyTarget(Player recipient) {
+        staffChatAt.put(recipient.getUniqueId(), System.currentTimeMillis());
+    }
+
+    /** {@code /rply} with no message — opens a 60s reply draft to the most recent channel. */
     public void startDraft(Player player) {
-        UUID target = replyTarget.get(player.getUniqueId());
-        if (target == null) {
-            languages.send(player, "reply.no-target");
-            return;
+        final UUID id = player.getUniqueId();
+        final UUID target;
+        final String name;
+        if (staffChatIsMostRecent(id)) {
+            target = STAFF_CHAT_ID;
+            name = languages.get(player, "messaging.staffchat.reply-label");
+        } else {
+            target = replyTarget.get(id);
+            if (target == null) {
+                languages.send(player, "reply.no-target");
+                return;
+            }
+            if (target.equals(CONSOLE_ID)) {
+                languages.send(player, "reply.cant-console");
+                return;
+            }
+            name = replyTargetName.get(id);
         }
-        if (target.equals(CONSOLE_ID)) {
-            languages.send(player, "reply.cant-console");
-            return;
-        }
-        final String name = replyTargetName.get(player.getUniqueId());
         final long stamp = System.currentTimeMillis();
         drafts.put(player.getUniqueId(), new Draft(target, name == null ? "player" : name, stamp));
 
@@ -217,7 +324,6 @@ public final class PrivateMessageService implements Listener {
         parts.add(ComponentMessenger.InteractiveMessagePart.interactive(cancelButton, Collections.singletonList(cancelHover), "/rply cancel", true));
         ComponentMessenger.sendJoinedHoverMessages(player, parts);
 
-        final UUID id = player.getUniqueId();
         plugin.getSchedulerAdapter().runLater(new Runnable() {
             @Override
             public void run() {
@@ -267,6 +373,7 @@ public final class PrivateMessageService implements Listener {
                 UUID senderId = UUID.fromString(message.getSenderId());
                 replyTarget.put(player.getUniqueId(), senderId);
                 replyTargetName.put(player.getUniqueId(), message.getSenderName());
+                pmReplyAt.put(player.getUniqueId(), System.currentTimeMillis());
             } catch (IllegalArgumentException ignored) {
                 // malformed id — skip reply target
             }
@@ -297,7 +404,20 @@ public final class PrivateMessageService implements Listener {
 
     /** Clear all non-bookmarked inbox messages and refresh the menu. */
     public void clearInbox(Player player) {
+        int total = store.count(player.getUniqueId());
+        if (total == 0) {
+            // Nothing to clear — surface a formal error rather than a fake "cleared 0" success.
+            languages.send(player, "inbox.clear-empty");
+            reopenInbox(player);
+            return;
+        }
         int removed = store.clearNonBookmarked(player.getUniqueId());
+        if (removed == 0) {
+            // Inbox isn't empty, but everything left is bookmarked (protected from clearing).
+            languages.send(player, "inbox.clear-bookmarked-only");
+            reopenInbox(player);
+            return;
+        }
         languages.send(player, "inbox.cleared", one("count", Integer.toString(removed)));
         reopenInbox(player);
     }
@@ -315,11 +435,29 @@ public final class PrivateMessageService implements Listener {
 
     // ── Listeners ───────────────────────────────────────────────────────────────
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    // HIGH (not HIGHEST): the chat formatter (ChatManagementListener) runs at HIGHEST and
+    // broadcasts the message to all recipients, so a draft/staff-chat-toggle redirect must
+    // cancel the event *before* it — otherwise a toggled staff message would also leak out
+    // as normal chat to non-staff players.
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onChat(AsyncPlayerChatEvent event) {
         final Player player = event.getPlayer();
         final Draft draft = drafts.get(player.getUniqueId());
         if (draft == null) {
+            // No reply draft pending — if the player has staff-chat toggle mode on, route
+            // their normal chat into staff chat instead. (A draft always takes precedence.)
+            final dev.zcripted.obx.feature.mail.staffchat.StaffChatService staffChat =
+                    plugin.getServiceRegistry().get(dev.zcripted.obx.feature.mail.staffchat.StaffChatService.class);
+            if (staffChat != null && staffChat.isToggled(player)) {
+                final String toggledMessage = event.getMessage();
+                event.setCancelled(true);
+                plugin.getSchedulerAdapter().runAtEntity(player, new Runnable() {
+                    @Override
+                    public void run() {
+                        staffChat.dispatch(player, toggledMessage);
+                    }
+                });
+            }
             return;
         }
         final String message = event.getMessage();
@@ -330,6 +468,11 @@ public final class PrivateMessageService implements Listener {
             public void run() {
                 if (message.trim().equalsIgnoreCase("cancel")) {
                     languages.send(player, "reply.draft-cancelled");
+                    return;
+                }
+                // Mute gate: the draft-reply path delivers like /msg and must be
+                // blocked for muted players exactly like the direct path.
+                if (blockedByMute(player)) {
                     return;
                 }
                 deliverToId(player, draft.targetId, draft.targetName, message);
@@ -361,10 +504,18 @@ public final class PrivateMessageService implements Listener {
         }, 40L);
     }
 
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        // Drop reply targets/drafts so a reconnecting player can't /rply to a stale target.
+        clear(event.getPlayer().getUniqueId());
+    }
+
     public void clear(UUID id) {
         replyTarget.remove(id);
         replyTargetName.remove(id);
         drafts.remove(id);
+        pmReplyAt.remove(id);
+        staffChatAt.remove(id);
     }
 
     private static Map<String, String> one(String key, String value) {

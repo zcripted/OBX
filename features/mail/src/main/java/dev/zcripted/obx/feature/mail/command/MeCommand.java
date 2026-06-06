@@ -3,7 +3,6 @@ package dev.zcripted.obx.feature.mail.command;
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -17,6 +16,8 @@ import java.util.Map;
 
 public class MeCommand extends AbstractObxCommand implements TabCompleter {
 
+    /** Caps the broadcast body so a single emote can't flood chat. */
+    private static final int MAX_LENGTH = 256;
 
     public MeCommand(ObxPlugin plugin) {
         super(plugin);
@@ -37,9 +38,13 @@ public class MeCommand extends AbstractObxCommand implements TabCompleter {
             if (i > 0) body.append(' ');
             body.append(args[i]);
         }
+        String text = body.toString();
+        if (text.length() > MAX_LENGTH) {
+            text = text.substring(0, MAX_LENGTH);
+        }
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("player", sender instanceof Player ? ((Player) sender).getName() : sender.getName());
-        placeholders.put("message", body.toString());
+        placeholders.put("message", dev.zcripted.obx.util.text.MessageSanitizer.sanitize(sender, text));
         for (Player online : Bukkit.getOnlinePlayers()) {
             languages.send(online, "messaging.me.broadcast", placeholders);
         }

@@ -1,12 +1,15 @@
-﻿name: OBX
+name: OBX
 main: dev.zcripted.obx.OBX
-version: 1.0.0-beta-b1
+version: 1.0.0
 description: "Obsidian eXtended — Forged from Obsidian. Essentials-style core utilities. Single JAR, runtime-adapts to Paper / Spigot / PurPur / Folia from 1.8.8 to 26.1.x."
 author: zcripted
 website: https://obx.zcripted.dev
 folia-supported: true
 load: POSTWORLD
 api-version: '1.13'
+# Enable OBX AFTER these (when present): the banner's functional hook probes and the
+# Vault economy-provider registration then see their final enabled state.
+softdepend: [Vault, PlaceholderAPI, ProtocolLib]
 libraries:
   - org.xerial:sqlite-jdbc:3.45.3.0
 commands:
@@ -24,6 +27,11 @@ commands:
     description: Return to your previous location.
     usage: "/<command>"
     permission: obx.back
+  backpack:
+    description: Open or manage your portable 3-row backpack.
+    aliases: [bp, pack]
+    usage: "/<command> [convert|respawn|virtual]"
+    permission: obx.backpack.use
   balance:
     description: Show your or another player's balance.
     aliases: [bal, money]
@@ -43,6 +51,16 @@ commands:
     aliases: [blist]
     usage: "/<command>"
     permission: obx.moderation.banlist
+  ipban:
+    description: Ban an IP address, or the address of an online player.
+    aliases: [banip]
+    usage: "/<command> <player|ip> [reason]"
+    permission: obx.moderation.ipban
+  ipunban:
+    description: Lift an IP ban.
+    aliases: [unbanip, pardonip]
+    usage: "/<command> <ip>"
+    permission: obx.moderation.ipunban
   book:
     description: Get a writable book, unsign, or copy held book.
     usage: "/<command> [new|unsign|copy]"
@@ -144,7 +162,7 @@ commands:
     permission: obx.give
   god:
     description: Toggle complete invincibility.
-    aliases: [gmode, godmode, invincible, immortal]
+    aliases: [godmode, invincible, immortal]
     usage: "/<command> [player]"
     permission: obx.god
   grindstone:
@@ -161,6 +179,11 @@ commands:
     description: Restore your health to full.
     usage: "/<command>"
     permission: obx.heal
+  health:
+    description: Run a full staff-only server performance health check.
+    aliases: [healthcheck]
+    usage: "/<command>"
+    permission: obx.admin.health
   help:
     description: Opens the OBX paginated help GUI.
     aliases: ["?"]
@@ -248,13 +271,17 @@ commands:
     permission: obx.kit
   language:
     description: Change your preferred OBX language.
-    usage: "/<command> <English|EN|German|DE>"
+    usage: "/<command> <English|EN|German|DE|Spanish|ES>"
     permission: obx.language
   list:
     description: List online players and staff in separate sections.
     aliases: [players, online, who, playerlist]
     usage: "/<command>"
-    permission: obx.list
+  stafflist:
+    description: List only the online op/staff.
+    aliases: [sl, os, mods, slist, sonline]
+    usage: "/<command>"
+    permission: obx.stafflist
   loom:
     description: Open a virtual loom.
     usage: "/<command>"
@@ -318,10 +345,15 @@ commands:
     usage: "/<command>"
     permission: obx.pl
   playtime:
-    description: Show a player's total playtime.
-    aliases: [ptime]
+    description: Show a player's total, session, and longest playtime.
+    aliases: [pt, played]
     usage: "/<command> [player]"
     permission: obx.playtime
+  topplaytime:
+    description: Show the top 10 players by total playtime.
+    aliases: [playtimetop, topplay, pttop]
+    usage: "/<command>"
+    permission: obx.topplaytime
   pos:
     description: Show your current coordinates.
     aliases: [position]
@@ -375,6 +407,25 @@ commands:
     description: Sell every saleable item in your inventory.
     usage: "/<command>"
     permission: obx.sellall
+  shop:
+    description: Open the categorized buy/sell shop GUI.
+    aliases: [market]
+    usage: "/<command> [category|sell|reload]"
+    permission: obx.shop
+  withdraw:
+    description: Convert wallet money into a redeemable banknote item.
+    aliases: [banknote, cheque]
+    usage: "/<command> <amount>"
+    permission: obx.withdraw
+  bank:
+    description: Interest-bearing savings account (balance/deposit/withdraw).
+    usage: "/<command> [balance|deposit <amount>|withdraw <amount>]"
+    permission: obx.bank
+  ah:
+    description: Player auction house — browse, sell, claim returns.
+    aliases: [auction, auctionhouse]
+    usage: "/<command> [sell <price>|mine|claim]"
+    permission: obx.ah
   sethome:
     description: Set a named home at your current location.
     usage: "/<command> [name]"
@@ -424,7 +475,11 @@ commands:
     permission: obx.spawnmob
   sprache:
     description: Ändert deine bevorzugte OBX-Sprache.
-    usage: "/<command> <Englisch|EN|Deutsch|DE>"
+    usage: "/<command> <Englisch|EN|Deutsch|DE|Spanisch|ES>"
+    permission: obx.language
+  idioma:
+    description: Cambia tu idioma preferido de OBX.
+    usage: "/<command> <Inglés|EN|Alemán|DE|Español|ES>"
     permission: obx.language
   staff:
     description: Open the staff overview menu listing all online players.
@@ -432,9 +487,9 @@ commands:
     usage: "/<command>"
     permission: obx.staff.menu
   staffchat:
-    description: Send a message visible only to staff.
+    description: Send a message visible only to staff, or toggle staff-chat mode.
     aliases: [sc, achat]
-    usage: "/<command> <message>"
+    usage: "/<command> [message]  (no message toggles staff-chat mode)"
     permission: obx.staffchat
   status:
     description: View a player's moderation profile and action history.
@@ -501,6 +556,11 @@ commands:
     aliases: [tpcoords]
     usage: "/<command> <x> <y> <z> [world] [yaw] [pitch]"
     permission: obx.tppos
+  preview:
+    description: Render a MiniMessage/hex/gradient/legacy string to ANSI truecolor in the console (or chat in-game).
+    aliases: [prev]
+    usage: "/<command> <text with color tags or codes>"
+    permission: obx.preview
   tps:
     description: Show server TPS, MSPT, uptime, and online player counts.
     aliases: [lag, mspt, performance]
@@ -580,7 +640,9 @@ permissions:
       obx.afk.others: true
       obx.anvil: true
       obx.back: true
+      obx.backpack.*: true
       obx.cartography: true
+      obx.shop.*: true
       obx.clearinv: true
       obx.clearinv.others: true
       obx.commands.list: true
@@ -612,6 +674,7 @@ permissions:
       obx.moderation.*: true
       obx.permissions.view: true
       obx.pl: true
+      obx.preview: true
       obx.research: true
       obx.smith: true
       obx.spawn.*: true
@@ -624,6 +687,70 @@ permissions:
       obx.version: true
       obx.vital: true
       obx.warp.*: true
+      obx.balance: true
+      obx.baltop: true
+      obx.pay: true
+      obx.sell: true
+      obx.sellall: true
+      obx.worth: true
+      obx.withdraw: true
+      obx.bank: true
+      obx.payday: true
+      obx.ah.*: true
+      obx.kit: true
+      obx.mail: true
+      obx.me: true
+      obx.ignore: true
+      obx.playtime: true
+      obx.topplaytime: true
+      obx.ptime: true
+      obx.pweather: true
+      obx.realname: true
+      obx.seen: true
+      obx.firstseen: true
+      obx.near: true
+      obx.tptoggle: true
+      obx.tpcancel: true
+      obx.disposal: true
+      obx.jailtime: true
+      obx.fly: true
+      obx.walkspeed: true
+      obx.nick: true
+      obx.nick.color: true
+      obx.nick.others: true
+      obx.message.ignore.bypass: true
+      obx.socialspy: true
+      obx.staffchat: true
+      obx.freeze: true
+      obx.jail: true
+      obx.jails: true
+      obx.setjail: true
+      obx.deljail: true
+      obx.unjail: true
+      obx.smite: true
+      obx.tree: true
+      obx.spawner: true
+      obx.spawnmob: true
+      obx.give: true
+      obx.more: true
+      obx.repair: true
+      obx.unbreakable: true
+      obx.item: true
+      obx.itemname: true
+      obx.itemlore: true
+      obx.hat: true
+      obx.skull: true
+      obx.book: true
+      obx.butcher: true
+      obx.enderchest: true
+      obx.weather: true
+      obx.time: true
+      obx.broadcast: true
+      obx.eco: true
+      obx.info.player: true
+      obx.tpall: true
+      obx.tppos: true
+      obx.whois: true
   obx.about:
     description: Allows access to /obx about.
     default: true
@@ -633,9 +760,12 @@ permissions:
     children:
       obx.admin.diagnostics: true
       obx.admin.diagnostics.full: true
+      obx.admin.health: true
       obx.admin.menu: true
       obx.admin.modules.joinleave: true
       obx.admin.modules.joinmotd: true
+      obx.admin.modules.afk: true
+      obx.admin.modules.deathdrop: true
       obx.admin.reload: true
       obx.admin.reload.config: true
       obx.admin.reload.features: true
@@ -647,6 +777,9 @@ permissions:
   obx.admin.diagnostics.full:
     description: Allows running /obx diagnostics full.
     default: op
+  obx.admin.health:
+    description: Allows running the staff-only /health (and /obx health) server health check.
+    default: op
   obx.admin.menu:
     description: Allows opening the admin menu via /obx.
     default: op
@@ -655,6 +788,12 @@ permissions:
     default: op
   obx.admin.modules.joinmotd:
     description: Allows toggling the in-game join MOTD module.
+    default: op
+  obx.admin.modules.afk:
+    description: Allows toggling the entire AFK system via /obx afk.
+    default: op
+  obx.admin.modules.deathdrop:
+    description: Allows toggling the death-item grouping module via /obx deathdrop.
     default: op
   obx.admin.reload:
     description: Allows running /obx reload.
@@ -682,6 +821,22 @@ permissions:
     default: op
   obx.back:
     description: Allows teleporting back to your previous location.
+    default: true
+  obx.backpack.*:
+    description: Full backpack access (open, convert, respawn).
+    default: true
+    children:
+      obx.backpack.use: true
+      obx.backpack.convert: true
+      obx.backpack.respawn: true
+  obx.backpack.use:
+    description: Allows opening your portable backpack via /backpack (/bp).
+    default: true
+  obx.backpack.convert:
+    description: Allows converting the backpack between virtual storage and a physical item.
+    default: true
+  obx.backpack.respawn:
+    description: Allows respawning a lost/destroyed physical backpack (dupe-guarded; old copies become void).
     default: true
   obx.cartography:
     description: Allows opening a virtual cartography table with /cartography.
@@ -931,9 +1086,15 @@ permissions:
   obx.language:
     description: Allows changing your language with /language or /sprache.
     default: true
-  obx.list:
-    description: Allows viewing the online player list via /list (and aliases).
+  obx.stafflist:
+    description: Allows viewing the online staff list via /stafflist (and aliases).
     default: true
+  obx.staff:
+    description: Marks a player as staff (in addition to op) for the /list and /stafflist groupings.
+    default: op
+  obx.list.vanished:
+    description: Allows seeing vanished players in /list and /stafflist.
+    default: op
   obx.loom:
     description: Allows opening a virtual loom with /loom.
     default: op
@@ -943,6 +1104,12 @@ permissions:
   obx.message:
     description: Allows private messaging (/msg, /rply, /inbox).
     default: true
+  obx.message.color:
+    description: Allows &-color codes in message bodies (/msg, /me, /broadcast, /staffchat, mail); otherwise stripped.
+    default: op
+  obx.chat.staff:
+    description: Shows the configured staff chat prefix before this player's name in chat.
+    default: op
   obx.moderation.*:
     description: Grants access to all moderation commands.
     default: op
@@ -956,6 +1123,15 @@ permissions:
       obx.moderation.unban: true
       obx.moderation.unmute: true
       obx.moderation.warn: true
+      obx.moderation.ipban: true
+      obx.moderation.ipunban: true
+      obx.moderation.exempt.bypass: true
+  obx.moderation.exempt:
+    description: Shields a player from being punished (ban/mute/kick/warn) by moderators while online.
+    default: false
+  obx.moderation.exempt.bypass:
+    description: Allows punishing players who hold obx.moderation.exempt (senior staff override).
+    default: op
   obx.moderation.ban:
     description: Allows permanently banning players.
     default: op
@@ -1043,6 +1219,9 @@ permissions:
   obx.top:
     description: Allows teleporting to the highest safe block above you.
     default: op
+  obx.preview:
+    description: Allows rendering a color/format preview to the console via /preview.
+    default: op
   obx.tps:
     description: Allows viewing server performance via /tps.
     default: op
@@ -1057,7 +1236,7 @@ permissions:
     description: Allows checking for updates via /obx updates and /obx updates check.
     default: op
   obx.updates.notify:
-    description: Allows toggling update notifications via /obx updates notify.
+    description: Receives new-release notifications (ON by default; on join and when a release is found while the server runs). Toggle via /obx updates notify — the opt-out persists across restarts.
     default: op
   obx.vanish:
     description: Allows toggling vanish on yourself via /vanish. Lower tier — visible to other vanished staff with an above-head [L] indicator.
@@ -1146,6 +1325,233 @@ permissions:
     default: true
   obx.warp.tp.others:
     description: Allows teleporting other players to a warp.
+    default: op
+  obx.balance:
+    description: Allows checking your own balance via /balance.
+    default: true
+  obx.baltop:
+    description: Allows viewing the richest-players leaderboard via /baltop.
+    default: true
+  obx.pay:
+    description: Allows paying another player via /pay.
+    default: true
+  obx.sell:
+    description: Allows selling the item in your hand via /sell.
+    default: true
+  obx.sellall:
+    description: Allows selling all sellable items via /sellall.
+    default: true
+  obx.shop.*:
+    description: Full shop access (browse/buy/sell + admin reload).
+    default: op
+    children:
+      obx.shop: true
+      obx.shop.sell: true
+      obx.shop.admin: true
+  obx.shop:
+    description: Allows browsing and buying in the /shop GUI.
+    default: true
+  obx.shop.sell:
+    description: Allows the shop's Sell-Items inventory and selling to the shop.
+    default: true
+  obx.shop.admin:
+    description: Allows /shop reload (re-reads shop.yml and shops/*.yml).
+    default: op
+  obx.worth:
+    description: Allows checking an item sell value via /worth.
+    default: true
+  obx.withdraw:
+    description: Allows converting money into banknotes (/withdraw) and redeeming them.
+    default: true
+  obx.bank:
+    description: Allows using the interest-bearing savings bank (/bank).
+    default: true
+  obx.payday:
+    description: Receives the scheduled payday salary when economy.payday is enabled.
+    default: true
+  obx.ah.*:
+    description: Full auction-house access (browse/buy/sell + admin cancel).
+    default: op
+    children:
+      obx.ah: true
+      obx.ah.sell: true
+      obx.ah.admin: true
+  obx.ah:
+    description: Allows browsing and buying in the auction house (/ah).
+    default: true
+  obx.ah.sell:
+    description: Allows listing items for sale via /ah sell.
+    default: true
+  obx.ah.admin:
+    description: Allows cancelling any player's auction listings.
+    default: op
+  obx.kit:
+    description: Allows claiming kits via /kit.
+    default: true
+  obx.mail:
+    description: Allows sending and reading mail via /mail.
+    default: true
+  obx.me:
+    description: Allows broadcasting an action message via /me.
+    default: true
+  obx.ignore:
+    description: Allows ignoring private messages from a player via /ignore.
+    default: true
+  obx.message.ignore.bypass:
+    description: Allows bypassing another player's /ignore so your private messages still reach them (staff).
+    default: op
+  obx.playtime:
+    description: Allows checking play time via /playtime.
+    default: true
+  obx.topplaytime:
+    description: Allows viewing the playtime leaderboard via /topplaytime.
+    default: true
+  obx.ptime:
+    description: Allows setting your personal client time via /ptime.
+    default: true
+  obx.pweather:
+    description: Allows setting your personal client weather via /pweather.
+    default: true
+  obx.realname:
+    description: Allows looking up the real name of a nicknamed player via /realname.
+    default: true
+  obx.seen:
+    description: Allows checking when a player was last online via /seen.
+    default: true
+  obx.firstseen:
+    description: Allows checking when a player first joined via /firstseen.
+    default: true
+  obx.near:
+    description: Allows listing nearby players via /near.
+    default: true
+  obx.tptoggle:
+    description: Allows toggling incoming teleport requests via /tptoggle.
+    default: true
+  obx.tpcancel:
+    description: Allows cancelling a pending teleport request via /tpcancel.
+    default: true
+  obx.disposal:
+    description: Allows opening a disposal (trash) GUI via /disposal.
+    default: true
+  obx.jailtime:
+    description: Allows a jailed player to check their remaining jail time via /jailtime.
+    default: true
+  obx.fly:
+    description: Allows toggling flight via /fly.
+    default: op
+  obx.walkspeed:
+    description: Allows changing walk speed via /walkspeed.
+    default: op
+  obx.nick:
+    description: Allows setting your own nickname via /nick.
+    default: op
+  obx.nick.color:
+    description: Allows using color codes in your nickname via /nick.
+    default: op
+  obx.nick.others:
+    description: Allows setting another player's nickname via /nick <name> <player>.
+    default: op
+  obx.socialspy:
+    description: Allows monitoring private messages via /socialspy.
+    default: op
+  obx.staffchat:
+    description: Allows using the staff chat channel via /staffchat.
+    default: op
+  obx.freeze:
+    description: Allows freezing a player in place via /freeze.
+    default: op
+  obx.jail:
+    description: Allows jailing a player via /jail.
+    default: op
+  obx.jails:
+    description: Allows listing configured jails via /jails.
+    default: op
+  obx.setjail:
+    description: Allows creating a jail point via /setjail.
+    default: op
+  obx.deljail:
+    description: Allows deleting a jail point via /deljail.
+    default: op
+  obx.unjail:
+    description: Allows releasing a jailed player via /unjail.
+    default: op
+  obx.smite:
+    description: Allows striking a target with lightning via /smite.
+    default: op
+  obx.tree:
+    description: Allows generating a tree via /tree.
+    default: op
+  obx.spawner:
+    description: Allows configuring a mob spawner via /spawner.
+    default: op
+  obx.spawnmob:
+    description: Allows spawning mobs via /spawnmob.
+    default: op
+  obx.give:
+    description: Allows giving items via /give.
+    default: op
+  obx.more:
+    description: Allows filling the held stack to its max size via /more.
+    default: op
+  obx.repair:
+    description: Allows repairing the held item or full inventory via /repair.
+    default: op
+  obx.unbreakable:
+    description: Allows toggling the unbreakable flag on an item via /unbreakable.
+    default: op
+  obx.item:
+    description: Allows spawning an item via /item.
+    default: op
+  obx.itemname:
+    description: Allows renaming the held item via /itemname.
+    default: op
+  obx.itemlore:
+    description: Allows editing the held item lore via /itemlore.
+    default: op
+  obx.hat:
+    description: Allows wearing the held item as a hat via /hat.
+    default: op
+  obx.skull:
+    description: Allows obtaining a player head via /skull.
+    default: op
+  obx.book:
+    description: Allows book authoring and copy tools via /book.
+    default: op
+  obx.butcher:
+    description: Allows removing nearby mobs via /butcher.
+    default: op
+  obx.enderchest:
+    description: Allows opening an ender chest via /enderchest.
+    default: op
+  obx.weather:
+    description: Allows changing the world weather via /weather.
+    default: op
+  obx.time:
+    description: Allows changing the world time via /time.
+    default: op
+  obx.broadcast:
+    description: Allows broadcasting a server-wide message via /broadcast.
+    default: op
+  obx.eco:
+    description: Allows managing player balances via /eco.
+    default: op
+  obx.info.player:
+    description: Allows viewing detailed player info.
+    default: op
+  obx.tpall:
+    description: Allows teleporting all players to you via /tpall.
+    default: op
+  obx.tppos:
+    description: Allows teleporting to coordinates via /tppos.
+    default: op
+  obx.whois:
+    description: Allows viewing player profile details via /whois.
+    default: op
+  obx.moderation.ipban:
+    description: Allows IP-banning a player or address via /ipban.
+    default: op
+  obx.moderation.ipunban:
+    description: Allows lifting an IP ban via /ipunban.
     default: op
 #
 #

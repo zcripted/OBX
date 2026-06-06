@@ -39,6 +39,11 @@ public final class TeleportModule extends AbstractModule {
         service(TeleportManager.class, teleportManager);
         service(TeleportRequestService.class, new TeleportRequestService(plugin));
         TpaService tpaService = service(TpaService.class, new TpaService(plugin));
+        // TpaService is itself a Listener (onQuit clears pending requests) and runs an expiry
+        // sweeper. Both were previously unwired — register it and start the sweeper so requests
+        // expire and per-player state doesn't leak across disconnects.
+        listener(tpaService);
+        tpaService.start();
 
         // SpawnCommand backs both /spawn and /setspawn and is itself a listener.
         SpawnCommand spawnCommand = new SpawnCommand(plugin);

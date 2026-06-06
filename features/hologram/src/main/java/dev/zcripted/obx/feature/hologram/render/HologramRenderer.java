@@ -48,10 +48,13 @@ public final class HologramRenderer {
             plugin.getLogger().info("[Holograms] Removed " + orphans
                     + " orphaned hologram entit" + (orphans == 1 ? "y" : "ies") + " from a previous session.");
         }
-        Collection<? extends Player> online = plugin.getServer().getOnlinePlayers();
+        final Collection<? extends Player> online = plugin.getServer().getOnlinePlayers();
         for (Hologram hologram : registry.all()) {
-            backend.spawn(hologram, snapshotViewers(hologram, online));
-            registry.rebuildEntityIndex(hologram);
+            final Hologram h = hologram;
+            runForHologram(hologram, () -> {
+                backend.spawn(h, snapshotViewers(h, online));
+                registry.rebuildEntityIndex(h);
+            });
         }
     }
 
@@ -80,37 +83,90 @@ public final class HologramRenderer {
 
     /** Tick entry point — called by {@link TickLoop}. */
     public void tick() {
-        Collection<? extends Player> online = plugin.getServer().getOnlinePlayers();
-        tickCounter++;
+        final Collection<? extends Player> online = plugin.getServer().getOnlinePlayers();
+        final long phaseTick = ++tickCounter;
         for (Hologram hologram : registry.all()) {
-            // Animations run before mutations so opacity/yaw changes land in
-            // the same tick they're requested.
-            if (!hologram.getLiveAnimations().isEmpty()) {
-                if (hologram.getAnimationStartTick() == 0L) {
-                    hologram.setAnimationStartTick(tickCounter);
-                }
-                long phase = tickCounter - hologram.getAnimationStartTick();
-                for (dev.zcripted.obx.feature.hologram.anim.Animation anim : hologram.getLiveAnimations()) {
-                    try {
-                        anim.tick(hologram, backend, phase);
-                    } catch (Throwable throwable) {
-                        plugin.getLogger().warning("[Holograms] Animation "
-                                + anim.name() + " errored: " + throwable.getMessage());
-                    }
-                }
-            }
-            if (hologram.isDirty()) {
-                backend.applyMutations(hologram);
-                registry.rebuildEntityIndex(hologram);
-            }
-            for (Player player : online) {
-                boolean shouldSee = ViewerTracker.shouldSee(hologram, player);
-                backend.updateVisibility(hologram, player, shouldSee);
-            }
+            final Hologram h = hologram;
+            // Each hologram's animations/mutations/visibility (which spawn, move and remove backend
+            // entities) run on THAT hologram's region thread under Folia, where entity mutation is
+            // legal — the global tick loop only fans the work out, it never touches entities itself.
+            runForHologram(hologram, () -> tickOne(h, online, phaseTick));
         }
     }
 
-    private long tickCounter = 0L;
+    /** Per-hologram tick body, run on the hologram's region thread under Folia. */
+    private void tickOne(Hologram hologram, Collection<? extends Player> online, long phaseTick) {
+        // Animations run before mutations so opacity/yaw changes land in the same tick they're requested.
+        if (!hologram.getLiveAnimations().isEmpty()) {
+            if (hologram.getAnimationStartTick() == 0L) {
+                hologram.setAnimationStartTick(phaseTick);
+            }
+            long phase = phaseTick - hologram.getAnimationStartTick();
+            for (dev.zcripted.obx.feature.hologram.anim.Animation anim : hologram.getLiveAnimations()) {
+                try {
+                    anim.tick(hologram, backend, phase);
+                } catch (Throwable throwable) {
+                    plugin.getLogger().warning("[Holograms] Animation "
+                            + anim.name() + " errored: " + throwable.getMessage());
+                }
+            }
+        }
+        if (hologram.isDirty()) {
+            backend.applyMutations(hologram);
+            registry.rebuildEntityIndex(hologram);
+        }
+        for (Player player : online) {
+            boolean shouldSee = ViewerTracker.shouldSee(hologram, player);
+            backend.updateVisibility(hologram, player, shouldSee);
+        }
+    }
+
+    /**
+     * Runs entity-touching {@code work} for {@code hologram} on the hologram's own region thread under
+     * Folia (where spawn/remove/teleport are legal), or inline on a regular Bukkit/Paper server. The
+     * armor-stand backend creates real entities, so without this the global tick loop would hit Folia's
+     * cross-region thread check and the holograms would silently never render.
+     */
+    private void runForHologram(Hologram hologram, Runnable work) {
+        if (hologram == null) {
+            return;
+        }
+        org.bukkit.Location loc = hologram.getLocation();
+        if (plugin.getSchedulerAdapter() != null && plugin.getSchedulerAdapter().isFolia()
+                && loc != null && loc.getWorld() != null) {
+            plugin.getSchedulerAdapter().runAtLocation(loc, work);
+        } else {
+            work.run();
+        }
+    }
+
+    private volatile long tickCounter = 0L;
+
+    /**
+     * Spawn (or re-spawn) a single hologram's entities now, with the correct
+     * initial viewer set. Used by the chunk/world listener to bring a hologram
+     * back when its chunk loads, without re-spawning the whole registry.
+     */
+    public void spawn(Hologram hologram) {
+        if (hologram == null) {
+            return;
+        }
+        runForHologram(hologram, () -> {
+            backend.spawn(hologram, snapshotViewers(hologram, plugin.getServer().getOnlinePlayers()));
+            registry.rebuildEntityIndex(hologram);
+        });
+    }
+
+    /**
+     * Destroy a single hologram's live entities (without unregistering the model),
+     * so the entities are not serialized into chunk data when the chunk unloads.
+     */
+    public void destroy(Hologram hologram) {
+        if (hologram == null) {
+            return;
+        }
+        runForHologram(hologram, () -> backend.destroy(hologram));
+    }
 
     /** Destroy every hologram's live entities. Called on service shutdown / reload. */
     public void destroyAll() {

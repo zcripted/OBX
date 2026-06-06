@@ -21,6 +21,13 @@
 # ServerControlState idiom for clean off-state.
 enabled: false
 
+# Set true ONLY if this entire server is a dedicated hub/lobby with no survival
+# worlds. It is the safety gate for the destructive 'kit.clear-inventory' wipe
+# below: when false (the default), OBX will NOT wipe a player's inventory on
+# entering a hub world, so a mixed/single server can't delete survival items.
+# Leave false unless the server has nothing but hub worlds.
+dedicated-server: false
+
 # Worlds where hub-mode is active. Outside these worlds OBX behaves
 # exactly like before (essentials-style core). Case-sensitive world names
 # as reported by Bukkit.getWorld().getName().
@@ -34,6 +41,9 @@ worlds:
 kit:
   # Clear the player's inventory before applying the hub kit. Disable if
   # you'd rather merge the kit into whatever the player is carrying.
+  # NOTE: this wipe only happens when 'dedicated-server: true' above — on a
+  # mixed/single server it is skipped (with a console warning) to avoid
+  # deleting survival inventories when a player enters a hub world.
   clear-inventory: true
   # Give the kit again on respawn while in a hub world.
   give-on-respawn: true

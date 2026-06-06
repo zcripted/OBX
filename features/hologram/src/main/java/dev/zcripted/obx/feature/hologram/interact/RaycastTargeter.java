@@ -5,7 +5,6 @@ import dev.zcripted.obx.feature.hologram.model.Hologram;
 import dev.zcripted.obx.feature.hologram.packet.InteractDecoder;
 import dev.zcripted.obx.feature.hologram.packet.PacketAvailability;
 import dev.zcripted.obx.feature.hologram.service.HologramService;
-import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;

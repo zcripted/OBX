@@ -54,7 +54,6 @@ public final class Hologram {
     /** Configured animations (persisted) + live instances built from them. */
     private final List<AnimationConfig> animationConfigs = new ArrayList<>();
     private final List<Animation> liveAnimations = new ArrayList<>();
-    private final long spawnedAtTick = 0L;
     private volatile long animationStartTick = 0L;
 
     private volatile boolean dirty = true;

@@ -26,6 +26,8 @@ public final class HubKitApplierImpl implements dev.zcripted.obx.api.hub.HubKitA
 
     private final ObxPlugin plugin;
     private final HubService hub;
+    /** One-shot guard so the "clear skipped to protect inventories" warning isn't logged per apply. */
+    private volatile boolean warnedNonDedicated;
 
     public HubKitApplierImpl(ObxPlugin plugin, HubService hub) {
         this.plugin = plugin;
@@ -66,11 +68,23 @@ public final class HubKitApplierImpl implements dev.zcripted.obx.api.hub.HubKitA
 
     private void applyInternal(Player player) {
         PlayerInventory inventory = player.getInventory();
+        // The inventory wipe is irreversible, and on a single/mixed server it fires every time a
+        // player enters a hub world (join / respawn / world-change) — which would delete their
+        // survival items. Only wipe when the operator has declared this a dedicated hub server;
+        // otherwise place the kit items non-destructively and warn once.
         if (hub.kitClearInventory()) {
-            inventory.clear();
-            try {
-                inventory.setArmorContents(new ItemStack[inventory.getArmorContents().length]);
-            } catch (Throwable ignored) {
+            if (hub.dedicatedServer()) {
+                inventory.clear();
+                try {
+                    inventory.setArmorContents(new ItemStack[inventory.getArmorContents().length]);
+                } catch (Throwable ignored) {
+                }
+            } else if (!warnedNonDedicated) {
+                warnedNonDedicated = true;
+                plugin.getLogger().warning("[Hub] kit.clear-inventory is enabled but dedicated-server is"
+                        + " false — skipping the inventory wipe so player inventories aren't deleted on a"
+                        + " mixed/single server. Set dedicated-server: true in systems/hub.yml only if this"
+                        + " server has no survival worlds.");
             }
         }
 

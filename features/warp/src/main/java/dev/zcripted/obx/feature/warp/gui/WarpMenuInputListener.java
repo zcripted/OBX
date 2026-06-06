@@ -25,4 +25,14 @@ public class WarpMenuInputListener implements Listener {
         event.setCancelled(true);
         inputManager.handleInput(player, input, event.getMessage());
     }
+
+    /**
+     * Drops any pending prompt when the player leaves. Without this the entry
+     * leaked forever AND the HIGHEST-priority chat hook above would swallow the
+     * player's first chat line when they rejoined.
+     */
+    @EventHandler
+    public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+        inputManager.clear(event.getPlayer().getUniqueId());
+    }
 }

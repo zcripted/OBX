@@ -14,4 +14,10 @@ public interface AfkService {
     boolean isAfk(UUID uuid);
 
     void setAfk(Player player, boolean afk);
+
+    /** Master switch: whether the AFK system (auto-detection, timeout/kick, messages) is active. */
+    boolean isEnabled();
+
+    /** Enables/disables the entire AFK system and persists the choice to config.yml. */
+    void setEnabled(boolean enabled);
 }

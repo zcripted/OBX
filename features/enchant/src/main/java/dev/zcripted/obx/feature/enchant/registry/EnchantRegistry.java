@@ -222,6 +222,30 @@ public final class EnchantRegistry {
         return id == null ? null : byId.get(id.toLowerCase(Locale.ENGLISH));
     }
 
+    // Null-safe per-level value lookups by enchant id. They return the supplied
+    // default if the id isn't registered — which can happen if an admin removes a
+    // custom enchant from config while items still carry it. Used by the combat
+    // hot paths so a stray lookup can't NPE mid-hit.
+    public double levelDouble(String id, int level, String key, double def) {
+        CustomEnchant e = get(id);
+        return e == null ? def : e.levelDouble(level, key, def);
+    }
+
+    public int levelInt(String id, int level, String key, int def) {
+        CustomEnchant e = get(id);
+        return e == null ? def : e.levelInt(level, key, def);
+    }
+
+    public boolean levelBoolean(String id, int level, String key, boolean def) {
+        CustomEnchant e = get(id);
+        return e == null ? def : e.levelBoolean(level, key, def);
+    }
+
+    public String levelString(String id, int level, String key, String def) {
+        CustomEnchant e = get(id);
+        return e == null ? def : e.levelString(level, key, def);
+    }
+
     /** Reverse lookup used by lore parsing: color-stripped display name → enchant. */
     public CustomEnchant byDisplayName(String plainName) {
         String id = byPlainName.get(normalizeName(plainName));

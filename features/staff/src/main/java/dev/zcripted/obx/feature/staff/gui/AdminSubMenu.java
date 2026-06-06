@@ -9,13 +9,10 @@ import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.createBackItemT
 import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.createBackItemToWorldControls;
 import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.createCloseItem;
 import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.createMenuItem;
-import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.createPane;
 import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.fillWithFiller;
-import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.loreLines;
+import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.hideAttributes;
 import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.place;
 import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.resolveMaterial;
-import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.statusLine;
-import static dev.zcripted.obx.feature.staff.gui.AdminMenuRender.valueLine;
 import dev.zcripted.obx.feature.world.service.DaylightCycleFallback;
 import dev.zcripted.obx.util.text.Placeholders;
 import dev.zcripted.obx.feature.world.service.ServerControlActions;
@@ -23,25 +20,19 @@ import dev.zcripted.obx.feature.world.service.ServerControlState;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,7 +45,15 @@ public final class AdminSubMenu {
 
     public static final int BACK_SLOT = 22;
     private static final int SERVER_BACK_SLOT = 31;
+    // Economy Control nav lives on its own bottom row (36-slot menu): back + close
+    // centered, away from the action tiles — slot 22 hosts the Shop tile there.
+    public static final int ECONOMY_BACK_SLOT = 30;
+    public static final int ECONOMY_CLOSE_SLOT = 32;
     private static final int CLOSE_SLOT = AdminMenu.CLOSE_SLOT;
+    // Dedicated nav slots for the 54-slot Game Rule Editor — kept in the bottom row,
+    // away from the gamerule grid (slots 0–44) so close/back never mix with rules.
+    public static final int GAMERULE_BACK_SLOT = 45;
+    public static final int GAMERULE_CLOSE_SLOT = 53;
 
     private static final Set<UUID> stopConfirmations = new HashSet<>();
 
@@ -79,28 +78,334 @@ public final class AdminSubMenu {
         JAIL_CENTER,
         MOB_TOOLS,
         WORLD_BORDER,
-        MODULES
+        MODULES,
+        ECONOMY,
+        CONFIRM
     }
 
     private AdminSubMenu() {
     }
 
+    // ── Localization helpers ─────────────────────────────────────────────────
+    // ObxPlugin is an interface implemented by the bootstrap in the plugin module,
+    // so a feature module resolves it via the providing plugin instead of a hard
+    // reference. Every menu/item below is rendered per-player in EN/DE/ES.
+
+    private static LanguageManager languages() {
+        return ((ObxPlugin) JavaPlugin.getProvidingPlugin(AdminSubMenu.class)).getLanguageManager();
+    }
+
+    private static String t(Player player, String key) {
+        return languages().get(player, key);
+    }
+
+    private static String t(Player player, String key, Map<String, String> placeholders) {
+        return languages().get(player, key, placeholders);
+    }
+
+    private static List<String> tl(Player player, String key) {
+        return languages().list(player, key, Collections.<String, String>emptyMap());
+    }
+
+    private static List<String> tl(Player player, String key, Map<String, String> placeholders) {
+        return languages().list(player, key, placeholders);
+    }
+
+    /** Localized, colored ENABLED / DISABLED word for status lines. */
+    private static String onOff(Player player, boolean enabled) {
+        return t(player, enabled ? "admin.gui.common.enabled" : "admin.gui.common.disabled");
+    }
+
+    /** Localized gradient title for an admin submenu. */
+    private static String title(Player player, String key) {
+        return AdminMenu.gradientTitle(ChatColor.stripColor(t(player, key)));
+    }
+
+    private static Map<String, String> map(String... kv) {
+        Map<String, String> out = new HashMap<>();
+        for (int i = 0; i + 1 < kv.length; i += 2) {
+            out.put(kv[i], kv[i + 1]);
+        }
+        return out;
+    }
+
     public static void open(ObxPlugin plugin, Player player, AdminMenu.PlaceholderView placeholder) {
-        String stripped = ChatColor.stripColor(placeholder.name()).toLowerCase();
-        if ("server control".equals(stripped)) {
+        // Route on the stable localization key (not the display name), so navigation
+        // works identically for EN/DE/ES players.
+        String key = placeholder.key();
+        if ("server-control".equals(key)) {
             openServerControlMenu(player, placeholder);
-        } else if ("moderation".equals(stripped)) {
+        } else if ("moderation".equals(key)) {
             openJailCenterMenu(plugin, player, placeholder);
-        } else if ("fun utilities".equals(stripped)) {
+        } else if ("fun-utilities".equals(key)) {
             openMobToolsMenu(plugin, player, placeholder);
+        } else if ("economy".equals(key)) {
+            openEconomyMenu(plugin, player, placeholder);
         } else {
             openGenericMenu(player, placeholder);
         }
     }
 
+    // ── Economy Control Panel (reached from the AdminMenu Economy tile) ────────
+
+    /**
+     * Economy Control Panel: every item carries LIVE data pulled on open/refresh —
+     * the top balances, total supply / account count / average, the worth.yml price
+     * count, the latest audit-log movement, and the shop category count. Click
+     * actions are dispatched from {@link #handleEconomyMenuClick}.
+     */
+    public static void openEconomyMenu(ObxPlugin plugin, Player player, AdminMenu.PlaceholderView placeholder) {
+        Holder holder = new Holder(placeholder, SubMenuType.ECONOMY);
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.economy"));
+        holder.setInventory(inventory);
+        fillWithFiller(inventory);
+
+        dev.zcripted.obx.api.economy.EconomyService economy = plugin.getEconomyService();
+
+        // Row 1: currency card · Row 2: action tiles centered at 11–15 · Row 3: shop
+        // centered · Row 4 (nav-only): back + close.
+        place(inventory, 4, economyCurrencyItem(player, economy));
+        place(inventory, 11, economyTopItem(player, economy));
+        place(inventory, 12, economyOverviewItem(player, economy));
+        place(inventory, 13, createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"},
+                t(player, "admin.gui.eco.manage.name"), tl(player, "admin.gui.eco.manage.lore")));
+        place(inventory, 14, economyWorthItem(plugin, player));
+        place(inventory, 15, economyTransactionsItem(player, economy));
+        place(inventory, 22, economyShopItem(plugin, player));
+
+        place(inventory, ECONOMY_BACK_SLOT, createBackItem(player));
+        place(inventory, ECONOMY_CLOSE_SLOT, createCloseItem(player));
+        player.openInventory(inventory);
+    }
+
+    private static dev.zcripted.obx.api.economy.EconomyService economyService(ObxPlugin plugin) {
+        return plugin.getEconomyService();
+    }
+
+    private static ItemStack economyCurrencyItem(Player player, dev.zcripted.obx.api.economy.EconomyService economy) {
+        boolean up = economy != null;
+        return createMenuItem(new String[]{"SUNFLOWER", "DOUBLE_PLANT", "GOLD_NUGGET"},
+                t(player, "admin.gui.eco.currency.name"),
+                tl(player, "admin.gui.eco.currency.lore", map(
+                        "symbol", up ? economy.getCurrencySymbol() : "?",
+                        "name", up ? economy.getCurrencyName() : "?",
+                        "plural", up ? economy.getCurrencyNamePlural() : "?",
+                        "starting", up ? economy.format(economy.getStartingBalance()) : "?")));
+    }
+
+    private static ItemStack economyTopItem(Player player, dev.zcripted.obx.api.economy.EconomyService economy) {
+        String[] rows = {"—", "—", "—"};
+        int accounts = -1;
+        if (economy != null) {
+            // 3s-cached snapshot — the 0.5s refresh cadence must not hit SQLite per render.
+            EconomyStats.Snapshot stats = EconomyStats.get(economy);
+            for (int i = 0; i < stats.top.size() && i < 3; i++) {
+                rows[i] = stats.top.get(i).getName() + " §8— §a" + economy.format(stats.top.get(i).getBalance());
+            }
+            accounts = stats.accounts;
+        }
+        return createMenuItem(new String[]{"GOLD_BLOCK"}, t(player, "admin.gui.eco.top.name"),
+                tl(player, "admin.gui.eco.top.lore", map(
+                        "one", rows[0], "two", rows[1], "three", rows[2],
+                        "accounts", accounts < 0 ? "?" : String.valueOf(accounts))));
+    }
+
+    private static ItemStack economyOverviewItem(Player player, dev.zcripted.obx.api.economy.EconomyService economy) {
+        String supply = "?";
+        String accounts = "?";
+        String average = "?";
+        String starting = "?";
+        if (economy != null) {
+            EconomyStats.Snapshot stats = EconomyStats.get(economy);
+            supply = stats.supply < 0 ? "?" : economy.format(stats.supply);
+            accounts = stats.accounts < 0 ? "?" : String.valueOf(stats.accounts);
+            average = (stats.supply < 0 || stats.accounts <= 0) ? "?" : economy.format(stats.supply / stats.accounts);
+            starting = economy.format(economy.getStartingBalance());
+        }
+        return createMenuItem(new String[]{"EMERALD"}, t(player, "admin.gui.eco.overview.name"),
+                tl(player, "admin.gui.eco.overview.lore", map(
+                        "supply", supply, "accounts", accounts, "average", average, "starting", starting)));
+    }
+
+    private static ItemStack economyWorthItem(ObxPlugin plugin, Player player) {
+        dev.zcripted.obx.feature.economy.service.WorthService worth =
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.economy.service.WorthService.class);
+        int priced = worth == null ? -1 : worth.pricedCount();
+        return createMenuItem(new String[]{"HOPPER"}, t(player, "admin.gui.eco.worth.name"),
+                tl(player, "admin.gui.eco.worth.lore", map("count", priced < 0 ? "?" : String.valueOf(priced))));
+    }
+
+    private static ItemStack economyTransactionsItem(Player player, dev.zcripted.obx.api.economy.EconomyService economy) {
+        String[] rows = {t(player, "admin.gui.eco.tx.none"), "", ""};
+        if (economy != null) {
+            java.util.List<dev.zcripted.obx.api.economy.EconomyService.TransactionEntry> latest =
+                    EconomyStats.get(economy).recent;
+            java.text.SimpleDateFormat time = new java.text.SimpleDateFormat("MM-dd HH:mm");
+            for (int i = 0; i < latest.size() && i < 3; i++) {
+                dev.zcripted.obx.api.economy.EconomyService.TransactionEntry entry = latest.get(i);
+                rows[i] = t(player, "admin.gui.eco.tx.row", map(
+                        "time", time.format(new java.util.Date(entry.getTime())),
+                        "action", entry.getAction(),
+                        "amount", economy.format(entry.getAmount()),
+                        "target", entry.getTargetName() == null ? "?" : entry.getTargetName()));
+            }
+        }
+        return createMenuItem(new String[]{"WRITABLE_BOOK", "BOOK_AND_QUILL", "BOOK"},
+                t(player, "admin.gui.eco.tx.name"),
+                tl(player, "admin.gui.eco.tx.lore", map("one", rows[0], "two", rows[1], "three", rows[2])));
+    }
+
+    private static ItemStack economyShopItem(ObxPlugin plugin, Player player) {
+        dev.zcripted.obx.feature.economy.shop.ShopService shop =
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.economy.shop.ShopService.class);
+        int categories = shop == null ? -1 : shop.getCategories().size();
+        return createMenuItem(new String[]{"EMERALD_BLOCK"}, t(player, "admin.gui.eco.shop.name"),
+                tl(player, "admin.gui.eco.shop.lore", map("count", categories < 0 ? "?" : String.valueOf(categories))));
+    }
+
+    /** Click dispatch for the Economy Control Panel. */
+    public static void handleEconomyMenuClick(ObxPlugin plugin, Player player, int slot, ClickType click,
+                                              AdminMenu.PlaceholderView placeholder) {
+        switch (slot) {
+            case 11:
+                player.closeInventory();
+                player.performCommand("baltop");
+                return;
+            case 12:
+                openEconomyMenu(plugin, player, placeholder); // refresh the live stats
+                return;
+            case 13:
+                player.closeInventory();
+                sendManageBalancesPanel(plugin, player);
+                return;
+            case 14: {
+                final dev.zcripted.obx.feature.economy.service.WorthService worth =
+                        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.economy.service.WorthService.class);
+                if (worth == null) {
+                    return;
+                }
+                openConfirmMenu(player, placeholder, new String[]{"HOPPER"},
+                        t(player, "admin.gui.eco.worth.name"),
+                        tl(player, "admin.gui.eco.confirm.worth"),
+                        clicker -> {
+                            worth.reload();
+                            languages().send(clicker, "admin.gui.eco.worth-reloaded",
+                                    Collections.singletonMap("count", String.valueOf(worth.pricedCount())));
+                            openEconomyMenu(plugin, clicker, placeholder);
+                        },
+                        clicker -> openEconomyMenu(plugin, clicker, placeholder));
+                return;
+            }
+            case 15:
+                player.closeInventory();
+                player.performCommand("eco log");
+                return;
+            case 22: {
+                final dev.zcripted.obx.feature.economy.shop.ShopService shop =
+                        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.economy.shop.ShopService.class);
+                if (click == ClickType.RIGHT || click == ClickType.SHIFT_RIGHT) {
+                    if (shop == null) {
+                        return;
+                    }
+                    openConfirmMenu(player, placeholder, new String[]{"EMERALD_BLOCK"},
+                            t(player, "admin.gui.eco.shop.name"),
+                            tl(player, "admin.gui.eco.confirm.shop"),
+                            clicker -> {
+                                shop.reload();
+                                languages().send(clicker, "admin.gui.eco.shop-reloaded",
+                                        Collections.singletonMap("count", String.valueOf(shop.getCategories().size())));
+                                openEconomyMenu(plugin, clicker, placeholder);
+                            },
+                            clicker -> openEconomyMenu(plugin, clicker, placeholder));
+                } else {
+                    player.closeInventory();
+                    player.performCommand("shop");
+                }
+                return;
+            }
+            default:
+                // informational tiles (4) and filler — ignore
+        }
+    }
+
+    /**
+     * Chat action panel for "Manage Balances": one row of click-to-suggest buttons
+     * that prefill the matching {@code /eco} command (works for offline players too).
+     */
+    private static void sendManageBalancesPanel(ObxPlugin plugin, Player player) {
+        languages().send(player, "admin.gui.eco.manage.chat.header");
+        java.util.List<ComponentMessenger.InteractiveMessagePart> parts = new java.util.ArrayList<>();
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain("  "));
+        String[][] actions = {
+                {"admin.gui.eco.manage.chat.give", "/eco give "},
+                {"admin.gui.eco.manage.chat.take", "/eco take "},
+                {"admin.gui.eco.manage.chat.set", "/eco set "},
+                {"admin.gui.eco.manage.chat.reset", "/eco reset "},
+                {"admin.gui.eco.manage.chat.log", "/eco log "}
+        };
+        for (int i = 0; i < actions.length; i++) {
+            if (i > 0) {
+                parts.add(ComponentMessenger.InteractiveMessagePart.plain("  "));
+            }
+            parts.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                    t(player, actions[i][0]),
+                    tl(player, "admin.gui.eco.manage.chat.hover", map("command", actions[i][1].trim())),
+                    actions[i][1], false));
+        }
+        ComponentMessenger.sendJoinedHoverMessages(player, parts);
+        player.sendMessage(" ");
+    }
+
+    // ── Reusable confirmation step for destructive admin actions ──────────────
+
+    /**
+     * Generic confirmation menu: an info card flanked by green Confirm / red Cancel.
+     * The actions are carried on the holder and dispatched by
+     * {@link #handleConfirmMenuClick}. Used by the Economy panel's reload actions;
+     * open one from any submenu by passing the appropriate reopen-cancel runnable.
+     */
+    public static void openConfirmMenu(Player player, AdminMenu.PlaceholderView placeholder, String[] materials,
+                                       String subjectName, List<String> infoLore,
+                                       java.util.function.Consumer<Player> onConfirm,
+                                       java.util.function.Consumer<Player> onCancel) {
+        Holder holder = new Holder(placeholder, SubMenuType.CONFIRM);
+        holder.setConfirmActions(onConfirm, onCancel);
+        Inventory inventory = Bukkit.createInventory(holder, 27, title(player, "admin.gui.title.confirm"));
+        holder.setInventory(inventory);
+        fillWithFiller(inventory);
+        place(inventory, 11, createMenuItem(new String[]{"LIME_WOOL", "EMERALD_BLOCK"},
+                t(player, "admin.gui.confirm.confirm.name"), tl(player, "admin.gui.confirm.confirm.lore")));
+        place(inventory, 13, createMenuItem(materials, subjectName, infoLore));
+        place(inventory, 15, createMenuItem(new String[]{"RED_WOOL", "REDSTONE_BLOCK"},
+                t(player, "admin.gui.confirm.cancel.name"), tl(player, "admin.gui.confirm.cancel.lore")));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        player.openInventory(inventory);
+    }
+
+    /**
+     * Confirm-menu dispatch: 11 = confirm, 15/back = cancel. The action receives the
+     * CLICKING player (not a reference captured when the menu opened), so a relog
+     * between open and confirm can never execute against a stale entity.
+     */
+    public static void handleConfirmMenuClick(Player player, Holder holder, int slot) {
+        if (slot == 11) {
+            java.util.function.Consumer<Player> confirm = holder.confirmAction();
+            if (confirm != null) {
+                confirm.accept(player);
+            }
+        } else if (slot == 15 || slot == BACK_SLOT) {
+            java.util.function.Consumer<Player> cancel = holder.cancelAction();
+            if (cancel != null) {
+                cancel.accept(player);
+            } else {
+                player.closeInventory();
+            }
+        }
+    }
+
     public static void openJailCenterMenu(ObxPlugin plugin, Player player, AdminMenu.PlaceholderView placeholder) {
         Holder holder = new Holder(placeholder, SubMenuType.JAIL_CENTER);
-        Inventory inventory = Bukkit.createInventory(holder, 27, AdminMenu.gradientTitle("Jail Center"));
+        Inventory inventory = Bukkit.createInventory(holder, 27, title(player, "admin.gui.title.jail-center"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
 
@@ -113,61 +418,37 @@ public final class AdminSubMenu {
                 jailList.append(jail.getName());
             }
         }
+        String jailListLine = jailList.length() == 0 ? t(player, "admin.gui.jail.none") : ChatColor.GRAY + jailList.toString();
 
-        place(inventory, 10, createMenuItem(new String[]{"IRON_BARS"}, ChatColor.DARK_PURPLE + "Jail Anchors",
-                loreLines(
-                        ChatColor.GRAY + "Configured jails: " + ChatColor.YELLOW + jailCount,
-                        jailList.length() == 0 ? ChatColor.DARK_GRAY + "(none yet)" : ChatColor.GRAY + jailList.toString(),
-                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "run /jails"
-                )));
-        place(inventory, 12, createMenuItem(new String[]{"COMPASS"}, ChatColor.DARK_PURPLE + "Set Jail Here",
-                loreLines(
-                        ChatColor.GRAY + "Save this location as a jail anchor.",
-                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "suggests /setjail <name>"
-                )));
-        place(inventory, 14, createMenuItem(new String[]{"REDSTONE_BLOCK"}, ChatColor.RED + "Delete Jail",
-                loreLines(
-                        ChatColor.GRAY + "Remove a jail anchor by name.",
-                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "suggests /deljail <name>"
-                )));
-        place(inventory, 16, createMenuItem(new String[]{"CLOCK", "WATCH"}, ChatColor.LIGHT_PURPLE + "Check Jail Time",
-                loreLines(
-                        ChatColor.GRAY + "View remaining jail time for a player.",
-                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "suggests /jailtime <player>"
-                )));
-        place(inventory, BACK_SLOT, createBackItem());
-        place(inventory, CLOSE_SLOT, createCloseItem());
+        place(inventory, 10, createMenuItem(new String[]{"IRON_BARS"}, t(player, "admin.gui.jail.anchors.name"),
+                tl(player, "admin.gui.jail.anchors.lore", map("count", String.valueOf(jailCount), "list", jailListLine))));
+        place(inventory, 12, createMenuItem(new String[]{"COMPASS"}, t(player, "admin.gui.jail.set.name"),
+                tl(player, "admin.gui.jail.set.lore")));
+        place(inventory, 14, createMenuItem(new String[]{"REDSTONE_BLOCK"}, t(player, "admin.gui.jail.delete.name"),
+                tl(player, "admin.gui.jail.delete.lore")));
+        place(inventory, 16, createMenuItem(new String[]{"CLOCK", "WATCH"}, t(player, "admin.gui.jail.time.name"),
+                tl(player, "admin.gui.jail.time.lore")));
+        place(inventory, BACK_SLOT, createBackItem(player));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
         player.openInventory(inventory);
     }
 
     public static void openMobToolsMenu(ObxPlugin plugin, Player player, AdminMenu.PlaceholderView placeholder) {
         Holder holder = new Holder(placeholder, SubMenuType.MOB_TOOLS);
-        Inventory inventory = Bukkit.createInventory(holder, 27, AdminMenu.gradientTitle("Mob Tools"));
+        Inventory inventory = Bukkit.createInventory(holder, 27, title(player, "admin.gui.title.mob-tools"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
 
-        place(inventory, 10, createMenuItem(new String[]{"DIAMOND_SWORD"}, ChatColor.RED + "Butcher Nearby",
-                loreLines(
-                        ChatColor.GRAY + "Kill mobs within 32 blocks.",
-                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "runs /butcher 32"
-                )));
-        place(inventory, 12, createMenuItem(new String[]{"BLAZE_POWDER"}, ChatColor.DARK_PURPLE + "Spawn Mob",
-                loreLines(
-                        ChatColor.GRAY + "Spawn a mob at your crosshair.",
-                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "suggests /spawnmob <type>"
-                )));
-        place(inventory, 14, createMenuItem(new String[]{"LIGHTNING_ROD", "TRIDENT"}, ChatColor.LIGHT_PURPLE + "Smite at Crosshair",
-                loreLines(
-                        ChatColor.GRAY + "Strike lightning at your crosshair.",
-                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "runs /smite"
-                )));
-        place(inventory, 16, createMenuItem(new String[]{"OAK_SAPLING", "SAPLING"}, ChatColor.GREEN + "Grow Tree",
-                loreLines(
-                        ChatColor.GRAY + "Generate a tree at your crosshair.",
-                        ChatColor.YELLOW + "Click: " + ChatColor.GRAY + "runs /tree"
-                )));
-        place(inventory, BACK_SLOT, createBackItem());
-        place(inventory, CLOSE_SLOT, createCloseItem());
+        place(inventory, 10, createMenuItem(new String[]{"DIAMOND_SWORD"}, t(player, "admin.gui.mob.butcher.name"),
+                tl(player, "admin.gui.mob.butcher.lore")));
+        place(inventory, 12, createMenuItem(new String[]{"BLAZE_POWDER"}, t(player, "admin.gui.mob.spawn.name"),
+                tl(player, "admin.gui.mob.spawn.lore")));
+        place(inventory, 14, createMenuItem(new String[]{"LIGHTNING_ROD", "TRIDENT"}, t(player, "admin.gui.mob.smite.name"),
+                tl(player, "admin.gui.mob.smite.lore")));
+        place(inventory, 16, createMenuItem(new String[]{"OAK_SAPLING", "SAPLING"}, t(player, "admin.gui.mob.grow-tree.name"),
+                tl(player, "admin.gui.mob.grow-tree.lore")));
+        place(inventory, BACK_SLOT, createBackItem(player));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
         player.openInventory(inventory);
     }
 
@@ -186,248 +467,178 @@ public final class AdminSubMenu {
         }
         inventory.setItem(13, info);
 
-        place(inventory, BACK_SLOT, createBackItem());
-        place(inventory, CLOSE_SLOT, createCloseItem());
+        place(inventory, BACK_SLOT, createBackItem(player));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
 
         player.openInventory(inventory);
     }
 
     private static void openServerControlMenu(Player player, AdminMenu.PlaceholderView placeholder) {
         Holder holder = new Holder(placeholder, SubMenuType.SERVER_CONTROL);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Server Control"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.server-control"));
         holder.setInventory(inventory);
 
         fillWithFiller(inventory);
 
-        place(inventory, 10, serverStateOverviewItem());
-        place(inventory, 12, playerAccessOverviewItem());
-        place(inventory, 14, performanceOverviewItem());
-        place(inventory, 16, worldControlsOverviewItem());
+        place(inventory, 10, serverStateOverviewItem(player));
+        place(inventory, 12, playerAccessOverviewItem(player));
+        place(inventory, 14, performanceOverviewItem(player));
+        place(inventory, 16, worldControlsOverviewItem(player));
 
         place(inventory, 19, createMenuItem(new String[]{"REDSTONE_COMPARATOR", "COMPARATOR"},
-                ChatColor.DARK_PURPLE + "Plugin + Systems",
-                Arrays.asList(
-                        ChatColor.GRAY + "Plugin/system tools:",
-                        ChatColor.YELLOW + "- Reload OBX configs",
-                        ChatColor.YELLOW + "- Toggle plugin modules"
-                )));
+                t(player, "admin.gui.sc.plugin-systems.name"), tl(player, "admin.gui.sc.plugin-systems.lore")));
 
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItem());
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItem(player));
 
         player.openInventory(inventory);
     }
 
     public static void openServerStateMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.SERVER_STATE);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Server State"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.server-state"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
-        place(inventory, 10, createMenuItem(new String[]{"BARRIER"}, ChatColor.RED + "Stop Server",
-                loreLines(
-                        ChatColor.GRAY + "Stops the server immediately.",
-                        ChatColor.YELLOW + "Requires double-click confirmation."
-                )));
-        place(inventory, 12, createMenuItem(new String[]{"REDSTONE_BLOCK"}, ChatColor.DARK_PURPLE + "Restart (5s)",
-                loreLines(
-                        ChatColor.GRAY + "Broadcast 5s warning then shutdown.",
-                        ChatColor.YELLOW + "Not a graceful restart."
-                )));
-        place(inventory, 14, createMenuItem(new String[]{"TOTEM_OF_UNDYING"}, ChatColor.DARK_PURPLE + "Safe Restart",
-                loreLines(
-                        ChatColor.GRAY + "Graceful restart with short delay.",
-                        ChatColor.YELLOW + "Use when players need warning."
-                )));
-        place(inventory, 16, lockServerItem());
-        place(inventory, 19, unlockServerItem());
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl());
+        place(inventory, 10, createMenuItem(new String[]{"BARRIER"}, t(player, "admin.gui.ss.stop.name"),
+                tl(player, "admin.gui.ss.stop.lore")));
+        place(inventory, 12, createMenuItem(new String[]{"REDSTONE_BLOCK"}, t(player, "admin.gui.ss.restart.name"),
+                tl(player, "admin.gui.ss.restart.lore")));
+        place(inventory, 14, createMenuItem(new String[]{"TOTEM_OF_UNDYING"}, t(player, "admin.gui.ss.safe-restart.name"),
+                tl(player, "admin.gui.ss.safe-restart.lore")));
+        place(inventory, 16, lockServerItem(player));
+        place(inventory, 19, unlockServerItem(player));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl(player));
         player.openInventory(inventory);
     }
 
     public static void openPlayerAccessMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.PLAYER_ACCESS);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Player Access"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.player-access"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
-        place(inventory, 10, whitelistToggleItem());
-        place(inventory, 12, joinLockToggleItem());
-        place(inventory, 14, maxPlayersItem());
-        place(inventory, 16, createMenuItem(new String[]{"BARRIER"}, ChatColor.RED + "Kick Non-Ops",
-                loreLines(
-                        ChatColor.GRAY + "Immediately kick all non-op players.",
-                        ChatColor.YELLOW + "Use with join lock or whitelist."
-                )));
-        place(inventory, 19, createMenuItem(new String[]{"ENDER_EYE"}, ChatColor.LIGHT_PURPLE + "Spectator Only",
-                loreLines(
-                        ChatColor.GRAY + "Force non-ops into spectator mode.",
-                        ChatColor.YELLOW + "Ops remain unchanged."
-                )));
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl());
+        place(inventory, 10, whitelistToggleItem(player));
+        place(inventory, 12, joinLockToggleItem(player));
+        place(inventory, 14, maxPlayersItem(player));
+        place(inventory, 16, createMenuItem(new String[]{"BARRIER"}, t(player, "admin.gui.pa.kick-nonops.name"),
+                tl(player, "admin.gui.pa.kick-nonops.lore")));
+        place(inventory, 19, createMenuItem(new String[]{"ENDER_EYE"}, t(player, "admin.gui.pa.spectator.name"),
+                tl(player, "admin.gui.pa.spectator.lore")));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl(player));
         player.openInventory(inventory);
     }
 
     public static void openPerformanceMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.PERFORMANCE_HEALTH);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Performance + Health"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.performance"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
-        place(inventory, 10, createMenuItem(new String[]{"CLOCK", "WATCH"}, ChatColor.DARK_PURPLE + "View TPS",
-                loreLines(
-                        ChatColor.GRAY + "Show current server TPS (1m sample).",
-                        ChatColor.YELLOW + "Closes menu on click."
-                )));
-        place(inventory, 12, createMenuItem(new String[]{"HOPPER"}, ChatColor.YELLOW + "Clear Entities",
-                loreLines(
-                        ChatColor.GRAY + "Cleanup utilities:",
-                        ChatColor.YELLOW + "Left-click: All entities",
-                        ChatColor.YELLOW + "Right-click: Mobs only",
-                        ChatColor.YELLOW + "Shift-left: Items only"
-                )));
-        place(inventory, 14, redstoneToggleItem());
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl());
+        place(inventory, 10, createMenuItem(new String[]{"CLOCK", "WATCH"}, t(player, "admin.gui.perf.tps.name"),
+                tl(player, "admin.gui.perf.tps.lore")));
+        place(inventory, 12, createMenuItem(new String[]{"HOPPER"}, t(player, "admin.gui.perf.clear.name"),
+                tl(player, "admin.gui.perf.clear.lore")));
+        place(inventory, 14, redstoneToggleItem(player));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl(player));
         player.openInventory(inventory);
     }
 
     public static void openWorldControlsMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.WORLD_CONTROLS);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("World Controls"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.world-controls"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
         boolean autoSave = detectAutoSave();
         boolean daylight = detectDaylightCycle();
-        place(inventory, 10, createMenuItem(new String[]{"BOOK"}, ChatColor.DARK_PURPLE + "Save Worlds",
-                loreLines(
-                        ChatColor.GRAY + "Flush chunks to disk for all worlds.",
-                        ChatColor.YELLOW + "Use before restart or backups."
-                )));
-        place(inventory, 12, createMenuItem(new String[]{"REDSTONE_COMPARATOR", "COMPARATOR"}, ChatColor.DARK_PURPLE + "Autosave Toggle",
-                loreLines(
-                        statusLine("Autosave", autoSave),
-                        ChatColor.GRAY + "Flip auto-save for every loaded world."
-                )));
-        place(inventory, 14, createMenuItem(new String[]{"MAP"}, ChatColor.YELLOW + "World Border",
-                loreLines(
-                        ChatColor.GRAY + "Resize / recenter / reset the",
-                        ChatColor.GRAY + "current world's border.",
-                        ChatColor.YELLOW + "Opens the World Border editor."
-                )));
-        place(inventory, 16, createMenuItem(new String[]{"WATER_BUCKET"}, ChatColor.LIGHT_PURPLE + "Weather Control",
-                loreLines(
-                        ChatColor.GRAY + "Clear / Rain / Thunder for all worlds.",
-                        ChatColor.YELLOW + "Opens weather submenu."
-                )));
-        place(inventory, 19, createMenuItem(new String[]{"CLOCK", "WATCH"}, ChatColor.DARK_PURPLE + "Time Control",
-                loreLines(
-                        statusLine("Daylight Cycle", daylight),
-                        ChatColor.YELLOW + "Set time or freeze cycle.",
-                        ChatColor.YELLOW + "Opens time submenu."
-                )));
-        place(inventory, 21, createMenuItem(new String[]{"WRITABLE_BOOK", "BOOK_AND_QUILL"}, ChatColor.YELLOW + "Game Rule Editor",
-                loreLines(
-                        ChatColor.GRAY + "Toggle common gamerules.",
-                        ChatColor.YELLOW + "Opens gamerule editor."
-                )));
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl());
+        place(inventory, 10, createMenuItem(new String[]{"BOOK"}, t(player, "admin.gui.wc.save.name"),
+                tl(player, "admin.gui.wc.save.lore")));
+        place(inventory, 12, createMenuItem(new String[]{"REDSTONE_COMPARATOR", "COMPARATOR"}, t(player, "admin.gui.wc.autosave.name"),
+                tl(player, "admin.gui.wc.autosave.lore", map("autosave", onOff(player, autoSave)))));
+        place(inventory, 14, createMenuItem(new String[]{"MAP"}, t(player, "admin.gui.wc.border.name"),
+                worldBorderLore(player)));
+        place(inventory, 16, createMenuItem(new String[]{"WATER_BUCKET"}, t(player, "admin.gui.wc.weather.name"),
+                weatherControlLore(player)));
+        place(inventory, 19, createMenuItem(new String[]{"CLOCK", "WATCH"}, t(player, "admin.gui.wc.time.name"),
+                tl(player, "admin.gui.wc.time.lore", map("daylight", onOff(player, daylight)))));
+        place(inventory, 21, createMenuItem(new String[]{"WRITABLE_BOOK", "BOOK_AND_QUILL"}, t(player, "admin.gui.wc.gamerule.name"),
+                gameruleEditorLore(player)));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl(player));
         player.openInventory(inventory);
     }
 
     public static void openWeatherMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.WEATHER);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Weather Control"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.weather"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
-        String current = detectWeatherState();
-        place(inventory, 11, createMenuItem(new String[]{"SUNFLOWER", "GLOWSTONE_DUST"}, ChatColor.DARK_PURPLE + "Clear",
-                loreLines(
-                        ChatColor.GRAY + "Set all worlds to clear weather.",
-                        valueLine("Current", current)
-                )));
-        place(inventory, 13, createMenuItem(new String[]{"WATER_BUCKET"}, ChatColor.LIGHT_PURPLE + "Rain",
-                loreLines(
-                        ChatColor.GRAY + "Set all worlds to rain.",
-                        valueLine("Current", current)
-                )));
-        place(inventory, 15, createMenuItem(new String[]{"TRIDENT", "NETHER_STAR"}, ChatColor.DARK_PURPLE + "Thunder",
-                loreLines(
-                        ChatColor.GRAY + "Set all worlds to thunder & lightning.",
-                        valueLine("Current", current)
-                )));
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToWorldControls());
+        Map<String, String> current = map("current", weatherStateText(player));
+        place(inventory, 11, createMenuItem(new String[]{"SUNFLOWER", "GLOWSTONE_DUST"}, t(player, "admin.gui.weather-menu.clear.name"),
+                tl(player, "admin.gui.weather-menu.clear.lore", current)));
+        place(inventory, 13, createMenuItem(new String[]{"WATER_BUCKET"}, t(player, "admin.gui.weather-menu.rain.name"),
+                tl(player, "admin.gui.weather-menu.rain.lore", current)));
+        place(inventory, 15, createMenuItem(new String[]{"TRIDENT", "NETHER_STAR"}, t(player, "admin.gui.weather-menu.thunder.name"),
+                tl(player, "admin.gui.weather-menu.thunder.lore", current)));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItemToWorldControls(player));
         player.openInventory(inventory);
     }
 
     public static void openTimeMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.TIME);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Time Control"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.time"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
         long time = detectTime();
         boolean daylight = detectDaylightCycle();
-        place(inventory, 11, createMenuItem(new String[]{"HONEYCOMB", "TORCH"}, ChatColor.DARK_PURPLE + "Morning",
-                loreLines(
-                        ChatColor.GRAY + "Set time to morning (0).",
-                        statusLine("Daylight Cycle", true),
-                        valueLine("Current Time", time)
-                )));
-        place(inventory, 13, createMenuItem(new String[]{"CLOCK", "WATCH"}, ChatColor.YELLOW + "Noon",
-                loreLines(
-                        ChatColor.GRAY + "Set time to noon (6000).",
-                        statusLine("Daylight Cycle", true),
-                        valueLine("Current Time", time)
-                )));
-        place(inventory, 15, createMenuItem(new String[]{"ENDER_PEARL"}, ChatColor.BLUE + "Night",
-                loreLines(
-                        ChatColor.GRAY + "Set time to night (13000).",
-                        statusLine("Daylight Cycle", true),
-                        valueLine("Current Time", time)
-                )));
-        place(inventory, 20, createMenuItem(new String[]{"PACKED_ICE", "ICE"}, ChatColor.LIGHT_PURPLE + "Freeze/Unfreeze",
-                loreLines(
-                        ChatColor.GRAY + "Toggle doDaylightCycle for all worlds.",
-                        statusLine("Currently", daylight)
-                )));
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToWorldControls());
+        String timeStr = String.valueOf(time);
+        String daylightOn = onOff(player, true);
+        place(inventory, 11, createMenuItem(new String[]{"HONEYCOMB", "TORCH"}, t(player, "admin.gui.time.morning.name"),
+                tl(player, "admin.gui.time.morning.lore", map("daylight", daylightOn, "time", timeStr))));
+        place(inventory, 13, createMenuItem(new String[]{"CLOCK", "WATCH"}, t(player, "admin.gui.time.noon.name"),
+                tl(player, "admin.gui.time.noon.lore", map("daylight", daylightOn, "time", timeStr))));
+        place(inventory, 15, createMenuItem(new String[]{"ENDER_PEARL"}, t(player, "admin.gui.time.night.name"),
+                tl(player, "admin.gui.time.night.lore", map("daylight", daylightOn, "time", timeStr))));
+        place(inventory, 20, createMenuItem(new String[]{"PACKED_ICE", "ICE"}, t(player, "admin.gui.time.freeze.name"),
+                tl(player, "admin.gui.time.freeze.lore", map("daylight", onOff(player, daylight)))));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItemToWorldControls(player));
         player.openInventory(inventory);
     }
 
     public static void openGameruleMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.GAMERULES);
-        Inventory inventory = Bukkit.createInventory(holder, 45, AdminMenu.gradientTitle("Game Rule Editor"));
+        Inventory inventory = Bukkit.createInventory(holder, 54, title(player, "admin.gui.title.gamerule"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
         World world = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
+        // Lay out supported rules A–Z first, then the unsupported ones (firework
+        // stars) on their own separated row — computed against the running version.
+        GameruleEntry.rebuildLayout(world);
         for (GameruleEntry entry : GameruleEntry.values()) {
-            place(inventory, entry.slot(), createGameruleItem(world, entry));
+            int slot = entry.slot();
+            if (slot >= 0) {
+                place(inventory, slot, createGameruleItem(player, world, entry));
+            }
         }
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToWorldControls());
+        // Nav lives in the dedicated bottom row, never mixed with the rules.
+        place(inventory, GAMERULE_BACK_SLOT, createBackItemToWorldControls(player));
+        place(inventory, GAMERULE_CLOSE_SLOT, createCloseItem(player));
         player.openInventory(inventory);
     }
 
     public static void openPluginSystemsMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.PLUGIN_SYSTEMS);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Plugin + Systems"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.plugin-systems"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
-        place(inventory, 12, createMenuItem(new String[]{"BOOK"}, ChatColor.DARK_PURPLE + "Reload Configs",
-                loreLines(
-                        ChatColor.GRAY + "Reload OBX config/messages/data files.",
-                        ChatColor.YELLOW + "Logs details to console and notifies you."
-                )));
-        place(inventory, 14, createMenuItem(new String[]{"REPEATER", "REDSTONE_REPEATER"}, ChatColor.YELLOW + "Toggle Modules",
-                loreLines(
-                        ChatColor.GRAY + "Enable/disable chat, scoreboard, tablist,",
-                        ChatColor.GRAY + "join/leave, MOTD, and hub modules.",
-                        ChatColor.YELLOW + "Opens the Module Toggles menu."
-                )));
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl());
+        place(inventory, 12, createMenuItem(new String[]{"BOOK"}, t(player, "admin.gui.ps.reload.name"),
+                tl(player, "admin.gui.ps.reload.lore")));
+        place(inventory, 14, createMenuItem(new String[]{"REPEATER", "REDSTONE_REPEATER"}, t(player, "admin.gui.ps.modules.name"),
+                tl(player, "admin.gui.ps.modules.lore")));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItemToServerControl(player));
         player.openInventory(inventory);
     }
 
@@ -441,80 +652,49 @@ public final class AdminSubMenu {
      */
     public static void openHubMenu(ObxPlugin plugin, Player player) {
         Holder holder = new Holder(null, SubMenuType.HUB);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Hub / Lobby Controls"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.hub"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
 
-        boolean hubEnabled = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isEnabled();
-        List<String> worlds = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) == null
-                ? java.util.Collections.<String>emptyList()
-                : plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).getHubWorlds();
+        dev.zcripted.obx.api.hub.HubApi hub = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class);
+        boolean hubEnabled = hub != null && hub.isEnabled();
+        List<String> worlds = hub == null ? java.util.Collections.<String>emptyList() : hub.getHubWorlds();
         int worldCount = worlds.size();
         String worldSummary = worldCount == 0 ? "—" : String.join(", ", worlds);
-        int cdSeconds = plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) == null ? 3 : plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).launchpadCooldownSeconds();
+        int cdSeconds = hub == null ? 3 : hub.launchpadCooldownSeconds();
+        boolean jumpRodEnabled = hub != null && hub.isJumpRodEnabled();
+        boolean vanishAllEnabled = hub != null && hub.isVanishAllEnabled();
 
         place(inventory, 10, createMenuItem(
                 new String[]{hubEnabled ? "LIME_DYE" : "GRAY_DYE", "INK_SACK", "DYE"},
-                hubEnabled ? ChatColor.GREEN + "Hub Mode: Enabled" : ChatColor.RED + "Hub Mode: Disabled",
-                loreLines(
-                        statusLine("Hub Mode", hubEnabled),
-                        ChatColor.GRAY + "Click to toggle.",
-                        ChatColor.YELLOW + "Saved live to systems/hub.yml."
-                )));
+                t(player, hubEnabled ? "admin.gui.hub.mode.name-enabled" : "admin.gui.hub.mode.name-disabled"),
+                tl(player, "admin.gui.hub.mode.lore", map("state", onOff(player, hubEnabled)))));
 
-        place(inventory, 12, createMenuItem(new String[]{"GRASS_BLOCK", "GRASS"}, ChatColor.DARK_PURPLE + "Hub Worlds",
-                loreLines(
-                        valueLine("Count", worldCount),
-                        ChatColor.YELLOW + "Worlds: " + ChatColor.WHITE + worldSummary,
-                        ChatColor.YELLOW + "Left-click: " + ChatColor.GRAY + "Add current world",
-                        ChatColor.YELLOW + "Right-click: " + ChatColor.GRAY + "Remove current world"
-                )));
+        place(inventory, 12, createMenuItem(new String[]{"GRASS_BLOCK", "GRASS"}, t(player, "admin.gui.hub.worlds.name"),
+                tl(player, "admin.gui.hub.worlds.lore", map("count", String.valueOf(worldCount), "worlds", worldSummary))));
 
-        place(inventory, 14, createMenuItem(new String[]{"COMPASS"}, ChatColor.DARK_PURPLE + "Open Server Selector",
-                loreLines(
-                        ChatColor.GRAY + "Preview the live selector GUI.",
-                        ChatColor.YELLOW + "Reads selector.servers from hub.yml."
-                )));
+        place(inventory, 14, createMenuItem(new String[]{"COMPASS"}, t(player, "admin.gui.hub.selector.name"),
+                tl(player, "admin.gui.hub.selector.lore")));
 
-        place(inventory, 16, createMenuItem(new String[]{"BOOK"}, ChatColor.DARK_PURPLE + "Reload hub.yml",
-                loreLines(
-                        ChatColor.GRAY + "Re-read systems/hub.yml without restarting.",
-                        ChatColor.YELLOW + "Use after editing in a server panel."
-                )));
+        place(inventory, 16, createMenuItem(new String[]{"BOOK"}, t(player, "admin.gui.hub.reload.name"),
+                tl(player, "admin.gui.hub.reload.lore")));
 
-        place(inventory, 19, createMenuItem(new String[]{"CHEST"}, ChatColor.DARK_PURPLE + "Re-apply Kit (All)",
-                loreLines(
-                        ChatColor.GRAY + "Apply the hub kit to every player",
-                        ChatColor.GRAY + "currently in a hub world."
-                )));
+        place(inventory, 19, createMenuItem(new String[]{"CHEST"}, t(player, "admin.gui.hub.kit.name"),
+                tl(player, "admin.gui.hub.kit.lore")));
 
         place(inventory, 21, createMenuItem(new String[]{"FIREWORK_ROCKET", "FIREWORK", "FEATHER"},
-                ChatColor.DARK_PURPLE + "Launchpad Settings",
-                loreLines(
-                        valueLine("Cooldown", cdSeconds + "s"),
-                        ChatColor.YELLOW + "Edit in systems/hub.yml → items.launchpad",
-                        ChatColor.GRAY + "Cooldown shows live above the hotbar."
-                )));
+                t(player, "admin.gui.hub.launchpad.name"),
+                tl(player, "admin.gui.hub.launchpad.lore", map("cooldown", cdSeconds + "s"))));
 
-        place(inventory, 23, createMenuItem(new String[]{"FISHING_ROD"}, ChatColor.DARK_PURPLE + "Jump-To Rod",
-                loreLines(
-                        statusLine("Enabled",
-                                plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null
-                                        && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isJumpRodEnabled()),
-                        ChatColor.GRAY + "Edit in systems/hub.yml → items.jump-rod"
-                )));
+        place(inventory, 23, createMenuItem(new String[]{"FISHING_ROD"}, t(player, "admin.gui.hub.jumprod.name"),
+                tl(player, "admin.gui.hub.jumprod.lore", map("state", onOff(player, jumpRodEnabled)))));
 
         place(inventory, 25, createMenuItem(new String[]{"LIME_DYE", "INK_SACK", "DYE"},
-                ChatColor.DARK_PURPLE + "Players-Visibility Toggle",
-                loreLines(
-                        statusLine("Enabled",
-                                plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null
-                                        && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isVanishAllEnabled()),
-                        ChatColor.GRAY + "Edit in systems/hub.yml → items.vanish-all"
-                )));
+                t(player, "admin.gui.hub.visibility.name"),
+                tl(player, "admin.gui.hub.visibility.lore", map("state", onOff(player, vanishAllEnabled)))));
 
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItem());
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItem(player));
         player.openInventory(inventory);
     }
 
@@ -589,22 +769,27 @@ public final class AdminSubMenu {
         }
     }
 
-    private static ItemStack createGameruleItem(World world, GameruleEntry entry) {
+    private static ItemStack createGameruleItem(Player player, World world, GameruleEntry entry) {
         Boolean enabled = getBooleanGameRule(world, entry.rule());
         String state;
         List<String> lore;
+        String[] materials;
         if (enabled == null) {
-            state = ChatColor.DARK_GRAY + "N/A";
-            lore = loreLines(ChatColor.RED + "Unavailable on this server.");
+            // Unsupported on this server/version — shown as a firework star, separated.
+            state = t(player, "admin.gui.gamerule.item.na");
+            lore = tl(player, "admin.gui.gamerule.item.lore-na", map("rule", entry.rule()));
+            materials = new String[]{"FIREWORK_STAR", "FIREWORK_CHARGE"};
         } else {
-            state = enabled ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF";
-            lore = loreLines("Click to toggle", "Current: " + state);
+            state = t(player, enabled ? "admin.gui.gamerule.on" : "admin.gui.gamerule.off");
+            lore = tl(player, "admin.gui.gamerule.item.lore", map("state", state, "rule", entry.rule()));
+            materials = entry.materials();
         }
-        ItemStack item = new ItemStack(resolveMaterial(entry.materials()));
+        ItemStack item = new ItemStack(resolveMaterial(materials));
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.DARK_PURPLE + entry.display() + ChatColor.GRAY + " [" + state + ChatColor.GRAY + "]");
+            meta.setDisplayName(t(player, "admin.gui.gamerule.item.name", map("name", t(player, entry.nameKey()), "state", state)));
             meta.setLore(lore);
+            hideAttributes(meta);
             item.setItemMeta(meta);
         }
         return item;
@@ -616,99 +801,67 @@ public final class AdminSubMenu {
     // server's actual state — even when another admin changes it (or a reload
     // happens) while the menu is open.
 
-    private static ItemStack serverStateOverviewItem() {
-        return createMenuItem(new String[]{"LEVER"}, ChatColor.DARK_PURPLE + "Server State",
-                Arrays.asList(
-                        ChatColor.GRAY + "Stop/Restart/Lock server.",
-                        statusLine("Whitelist", Bukkit.hasWhitelist()),
-                        statusLine("Join Lock", ServerControlState.isJoinLocked()),
-                        statusLine("Redstone", !ServerControlState.isRedstoneFrozen()),
-                        valueLine("Max Players", Bukkit.getMaxPlayers())
-                ));
+    private static ItemStack serverStateOverviewItem(Player player) {
+        return createMenuItem(new String[]{"LEVER"}, t(player, "admin.gui.sc.server-state.name"),
+                tl(player, "admin.gui.sc.server-state.lore", map(
+                        "whitelist", onOff(player, Bukkit.hasWhitelist()),
+                        "joinlock", onOff(player, ServerControlState.isJoinLocked()),
+                        "redstone", onOff(player, !ServerControlState.isRedstoneFrozen()),
+                        "max", String.valueOf(Bukkit.getMaxPlayers()))));
     }
 
-    private static ItemStack playerAccessOverviewItem() {
-        return createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"},
-                ChatColor.DARK_PURPLE + "Player Access",
-                Arrays.asList(
-                        ChatColor.GRAY + "Whitelist & join control:",
-                        statusLine("Whitelist", Bukkit.hasWhitelist()),
-                        statusLine("Join Lock", ServerControlState.isJoinLocked()),
-                        valueLine("Max Players", Bukkit.getMaxPlayers()),
-                        ChatColor.YELLOW + "Kick non-ops / Spectator-only"
-                ));
+    private static ItemStack playerAccessOverviewItem(Player player) {
+        return createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"}, t(player, "admin.gui.sc.player-access.name"),
+                tl(player, "admin.gui.sc.player-access.lore", map(
+                        "whitelist", onOff(player, Bukkit.hasWhitelist()),
+                        "joinlock", onOff(player, ServerControlState.isJoinLocked()),
+                        "max", String.valueOf(Bukkit.getMaxPlayers()))));
     }
 
-    private static ItemStack performanceOverviewItem() {
-        return createMenuItem(new String[]{"CLOCK", "WATCH"},
-                ChatColor.DARK_PURPLE + "Performance + Health",
-                Arrays.asList(
-                        ChatColor.GRAY + "Server health tools:",
-                        ChatColor.YELLOW + "View TPS / Clear entities",
-                        statusLine("Redstone Updates", !ServerControlState.isRedstoneFrozen())
-                ));
+    private static ItemStack performanceOverviewItem(Player player) {
+        return createMenuItem(new String[]{"CLOCK", "WATCH"}, t(player, "admin.gui.sc.performance.name"),
+                tl(player, "admin.gui.sc.performance.lore", map(
+                        "redstone", onOff(player, !ServerControlState.isRedstoneFrozen()))));
     }
 
-    private static ItemStack worldControlsOverviewItem() {
-        return createMenuItem(new String[]{"GRASS_BLOCK", "GRASS"},
-                ChatColor.DARK_PURPLE + "World Controls",
-                Arrays.asList(
-                        ChatColor.GRAY + "World management:",
-                        statusLine("Autosave", detectAutoSave()),
-                        ChatColor.YELLOW + "Weather / Time / Gamerules",
-                        ChatColor.YELLOW + "World Border"
-                ));
+    private static ItemStack worldControlsOverviewItem(Player player) {
+        return createMenuItem(new String[]{"GRASS_BLOCK", "GRASS"}, t(player, "admin.gui.sc.world-controls.name"),
+                tl(player, "admin.gui.sc.world-controls.lore", map(
+                        "autosave", onOff(player, detectAutoSave()))));
     }
 
-    private static ItemStack lockServerItem() {
-        return createMenuItem(new String[]{"IRON_DOOR"}, ChatColor.YELLOW + LOCK_ICON + " Lock Server",
-                loreLines(
-                        ChatColor.GRAY + "Kicks non-ops and enables the whitelist.",
-                        statusLine("Whitelist", Bukkit.hasWhitelist()),
-                        statusLine("Join Lock", ServerControlState.isJoinLocked())
-                ));
+    private static ItemStack lockServerItem(Player player) {
+        return createMenuItem(new String[]{"IRON_DOOR"}, t(player, "admin.gui.ss.lock.name", map("icon", LOCK_ICON)),
+                tl(player, "admin.gui.ss.lock.lore", map(
+                        "whitelist", onOff(player, Bukkit.hasWhitelist()),
+                        "joinlock", onOff(player, ServerControlState.isJoinLocked()))));
     }
 
-    private static ItemStack unlockServerItem() {
-        return createMenuItem(new String[]{"OAK_DOOR"}, ChatColor.GREEN + UNLOCK_ICON + " Unlock Server",
-                loreLines(
-                        ChatColor.GRAY + "Disables the whitelist and allows joins.",
-                        statusLine("Whitelist", Bukkit.hasWhitelist()),
-                        statusLine("Join Lock", ServerControlState.isJoinLocked())
-                ));
+    private static ItemStack unlockServerItem(Player player) {
+        return createMenuItem(new String[]{"OAK_DOOR"}, t(player, "admin.gui.ss.unlock.name", map("icon", UNLOCK_ICON)),
+                tl(player, "admin.gui.ss.unlock.lore", map(
+                        "whitelist", onOff(player, Bukkit.hasWhitelist()),
+                        "joinlock", onOff(player, ServerControlState.isJoinLocked()))));
     }
 
-    private static ItemStack whitelistToggleItem() {
-        return createMenuItem(new String[]{"PAPER"}, ChatColor.DARK_PURPLE + "Toggle Whitelist",
-                loreLines(
-                        ChatColor.GRAY + "Enable/disable whitelist.",
-                        statusLine("Current", Bukkit.hasWhitelist())
-                ));
+    private static ItemStack whitelistToggleItem(Player player) {
+        return createMenuItem(new String[]{"PAPER"}, t(player, "admin.gui.pa.whitelist.name"),
+                tl(player, "admin.gui.pa.whitelist.lore", map("current", onOff(player, Bukkit.hasWhitelist()))));
     }
 
-    private static ItemStack joinLockToggleItem() {
-        return createMenuItem(new String[]{"IRON_BARS"}, ChatColor.DARK_PURPLE + "Toggle Join Lock",
-                loreLines(
-                        ChatColor.GRAY + "Blocks new joins; kicks non-ops on enable.",
-                        statusLine("Current", ServerControlState.isJoinLocked())
-                ));
+    private static ItemStack joinLockToggleItem(Player player) {
+        return createMenuItem(new String[]{"IRON_BARS"}, t(player, "admin.gui.pa.joinlock.name"),
+                tl(player, "admin.gui.pa.joinlock.lore", map("current", onOff(player, ServerControlState.isJoinLocked()))));
     }
 
-    private static ItemStack maxPlayersItem() {
-        return createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"}, ChatColor.YELLOW + "Max Players",
-                loreLines(
-                        ChatColor.GRAY + "Adjust Paper/Spigot/Velo/Bungee slot cap.",
-                        valueLine("Current", Bukkit.getMaxPlayers()),
-                        ChatColor.YELLOW + "Left-click: -1 | Right-click: +1"
-                ));
+    private static ItemStack maxPlayersItem(Player player) {
+        return createMenuItem(new String[]{"PLAYER_HEAD", "SKULL_ITEM"}, t(player, "admin.gui.pa.maxplayers.name"),
+                tl(player, "admin.gui.pa.maxplayers.lore", map("max", String.valueOf(Bukkit.getMaxPlayers()))));
     }
 
-    private static ItemStack redstoneToggleItem() {
-        return createMenuItem(new String[]{"REDSTONE_TORCH"}, ChatColor.DARK_PURPLE + "Toggle Redstone",
-                loreLines(
-                        statusLine("Redstone Updates", !ServerControlState.isRedstoneFrozen()),
-                        ChatColor.GRAY + "Freezes dust, repeaters, observers, pistons, hoppers, rails, lamps, etc."
-                ));
+    private static ItemStack redstoneToggleItem(Player player) {
+        return createMenuItem(new String[]{"REDSTONE_TORCH"}, t(player, "admin.gui.perf.redstone.name"),
+                tl(player, "admin.gui.perf.redstone.lore", map("redstone", onOff(player, !ServerControlState.isRedstoneFrozen()))));
     }
 
     /**
@@ -717,8 +870,8 @@ public final class AdminSubMenu {
      * Driven by {@link dev.zcripted.obx.feature.staff.gui.AdminMenuRefreshTask}
      * and called immediately after a click that changes server state.
      */
-    public static void refresh(Holder holder) {
-        if (holder == null || holder.getType() == null) {
+    public static void refresh(Holder holder, Player player) {
+        if (holder == null || holder.getType() == null || player == null) {
             return;
         }
         Inventory inventory = holder.getInventory();
@@ -727,23 +880,34 @@ public final class AdminSubMenu {
         }
         switch (holder.getType()) {
             case SERVER_CONTROL:
-                place(inventory, 10, serverStateOverviewItem());
-                place(inventory, 12, playerAccessOverviewItem());
-                place(inventory, 14, performanceOverviewItem());
-                place(inventory, 16, worldControlsOverviewItem());
+                place(inventory, 10, serverStateOverviewItem(player));
+                place(inventory, 12, playerAccessOverviewItem(player));
+                place(inventory, 14, performanceOverviewItem(player));
+                place(inventory, 16, worldControlsOverviewItem(player));
                 break;
             case SERVER_STATE:
-                place(inventory, 16, lockServerItem());
-                place(inventory, 19, unlockServerItem());
+                place(inventory, 16, lockServerItem(player));
+                place(inventory, 19, unlockServerItem(player));
                 break;
             case PLAYER_ACCESS:
-                place(inventory, 10, whitelistToggleItem());
-                place(inventory, 12, joinLockToggleItem());
-                place(inventory, 14, maxPlayersItem());
+                place(inventory, 10, whitelistToggleItem(player));
+                place(inventory, 12, joinLockToggleItem(player));
+                place(inventory, 14, maxPlayersItem(player));
                 break;
             case PERFORMANCE_HEALTH:
-                place(inventory, 14, redstoneToggleItem());
+                place(inventory, 14, redstoneToggleItem(player));
                 break;
+            case ECONOMY: {
+                ObxPlugin plugin = (ObxPlugin) JavaPlugin.getProvidingPlugin(AdminSubMenu.class);
+                dev.zcripted.obx.api.economy.EconomyService economy = plugin.getEconomyService();
+                place(inventory, 4, economyCurrencyItem(player, economy));
+                place(inventory, 11, economyTopItem(player, economy));
+                place(inventory, 12, economyOverviewItem(player, economy));
+                place(inventory, 14, economyWorthItem(plugin, player));
+                place(inventory, 15, economyTransactionsItem(player, economy));
+                place(inventory, 22, economyShopItem(plugin, player));
+                break;
+            }
             default:
                 break;
         }
@@ -848,23 +1012,85 @@ public final class AdminSubMenu {
         return val == null || val;
     }
 
-    private static String detectWeatherState() {
+    private static String weatherStateText(Player player) {
         World world = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
         if (world == null) {
-            return "Unknown";
+            return t(player, "admin.gui.weather.unknown");
         }
         if (world.isThundering()) {
-            return "Thunder";
+            return t(player, "admin.gui.weather.thunder");
         }
         if (world.hasStorm()) {
-            return "Rain";
+            return t(player, "admin.gui.weather.rain");
         }
-        return "Clear";
+        return t(player, "admin.gui.weather.clear");
     }
 
     private static long detectTime() {
         World world = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
         return world == null ? -1L : world.getTime();
+    }
+
+    // ── World Controls overview lore (live, clean-styled) ─────────────────────
+
+    /** Live world-border settings for the player's current world. */
+    private static List<String> worldBorderLore(Player player) {
+        java.util.Locale en = java.util.Locale.ENGLISH;
+        try {
+            org.bukkit.WorldBorder b = player.getWorld().getWorldBorder();
+            org.bukkit.Location c = b.getCenter();
+            String blocks = t(player, "admin.gui.unit.blocks");
+            String buffer = t(player, "admin.gui.unit.buffer");
+            String block = t(player, "admin.gui.unit.block");
+            String diameter = String.format(en, "%,.0f", b.getSize()) + " " + blocks;
+            String center = String.format(en, "%,.1f, %,.1f", c.getX(), c.getZ());
+            String warning = b.getWarningDistance() + " " + blocks + " · " + b.getWarningTime() + "s";
+            String damage = String.format(en, "%.1f", b.getDamageBuffer()) + " " + buffer
+                    + " · " + String.format(en, "%.2f", b.getDamageAmount()) + "/" + block;
+            return tl(player, "admin.gui.wc.border.lore", map(
+                    "world", player.getWorld().getName(),
+                    "diameter", diameter,
+                    "center", center,
+                    "warning", warning,
+                    "damage", damage));
+        } catch (Throwable ignored) {
+            return tl(player, "admin.gui.wc.border.lore-unavailable");
+        }
+    }
+
+    /** Live weather state + available options for the Weather Control item. */
+    private static List<String> weatherControlLore(Player player) {
+        return tl(player, "admin.gui.wc.weather.lore", map("current", weatherStateText(player)));
+    }
+
+    /** Preview of the first 10 alphabetical enabled (ON) gamerules. */
+    private static List<String> gameruleEditorLore(Player player) {
+        World world = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
+        java.util.List<String> on = new java.util.ArrayList<>();
+        for (GameruleEntry entry : GameruleEntry.values()) {
+            Boolean value = getBooleanGameRule(world, entry.rule());
+            if (value != null && value) {
+                on.add(t(player, entry.nameKey()));
+            }
+        }
+        java.util.Collections.sort(on, String.CASE_INSENSITIVE_ORDER);
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add(t(player, "admin.gui.wc.gamerule.lore.header"));
+        lore.add("");
+        lore.add(t(player, "admin.gui.wc.gamerule.lore.count", map("count", String.valueOf(on.size()))));
+        if (on.isEmpty()) {
+            lore.add(t(player, "admin.gui.wc.gamerule.lore.none"));
+        }
+        int shown = Math.min(10, on.size());
+        for (int i = 0; i < shown; i++) {
+            lore.add(t(player, "admin.gui.wc.gamerule.lore.entry", map("name", on.get(i))));
+        }
+        if (on.size() > shown) {
+            lore.add(t(player, "admin.gui.wc.gamerule.lore.more", map("count", String.valueOf(on.size() - shown))));
+        }
+        lore.add("");
+        lore.add(t(player, "admin.gui.wc.gamerule.lore.footer"));
+        return lore;
     }
 
     // Action handlers
@@ -906,12 +1132,18 @@ public final class AdminSubMenu {
             case PLUGIN_SYSTEMS:
                 handlePluginSystemsClick(plugin, player, slot);
                 break;
+            case ECONOMY:
+                handleEconomyMenuClick(plugin, player, slot, click, holder.getPlaceholder());
+                break;
+            case CONFIRM:
+                handleConfirmMenuClick(player, holder, slot);
+                break;
             default:
                 break;
         }
         // Reflect any state change immediately for the clicking admin (the global
         // AdminMenuRefreshTask covers other admins viewing the same menu).
-        refresh(holder);
+        refresh(holder, player);
         try {
             player.updateInventory();
         } catch (Throwable ignored) {
@@ -1011,18 +1243,10 @@ public final class AdminSubMenu {
             for (World world : Bukkit.getWorlds()) {
                 world.save();
             }
-            languages.send(player, "admin.world.saved");
+            ServerControlActions.saveWorldsMessage(plugin, player, Bukkit.getWorlds());
         } else if (slot == 12) {
-            boolean newState = false;
-            if (!Bukkit.getWorlds().isEmpty()) {
-                World world = Bukkit.getWorlds().get(0);
-                newState = !world.isAutoSave();
-            }
-            for (World world : Bukkit.getWorlds()) {
-                world.setAutoSave(newState);
-            }
-            String state = languages.get(player, newState ? "admin.world.autosave.state.enabled" : "admin.world.autosave.state.disabled");
-            languages.send(player, "admin.world.autosave.status", Placeholders.with("state", state));
+            ServerControlActions.toggleAutoSave(plugin, player);
+            openWorldControlsMenu(player); // re-render so the Autosave item lore reflects the new state
         } else if (slot == 14) {
             openWorldBorderMenu(player);
         } else if (slot == 16) {
@@ -1113,7 +1337,12 @@ public final class AdminSubMenu {
                 String state = languages.get(player, newValue ? "admin.time.daylight.state.enabled" : "admin.time.daylight.state.frozen");
                 languages.send(player, "admin.time.daylight.status", Placeholders.with("state", state));
             }
+        } else {
+            return;
         }
+        // Re-render the Time menu so the freeze toggle + "Current Time" lore reflect the new state
+        // immediately (the menu isn't otherwise on the live-refresh task).
+        openTimeMenu(player);
     }
 
     private static void handleGameruleClick(ObxPlugin plugin, Player player, int slot) {
@@ -1142,7 +1371,7 @@ public final class AdminSubMenu {
         LanguageManager languages = plugin.getLanguageManager();
         String state = languages.get(player, now ? "admin.gamerule.state.on" : "admin.gamerule.state.off");
         Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("rule", entry.display());
+        placeholders.put("rule", languages.get(player, entry.nameKey()));
         placeholders.put("state", state);
         languages.send(player, "admin.gamerule.toggled", placeholders);
         openGameruleMenu(player);
@@ -1188,11 +1417,7 @@ public final class AdminSubMenu {
 
     private static void toggleRedstone(ObxPlugin plugin, Player player) {
         boolean frozen = ServerControlState.toggleRedstoneFrozen();
-        LanguageManager languages = plugin.getLanguageManager();
-        String state = languages.get(player, frozen ? "admin.redstone.state.frozen" : "admin.redstone.state.resumed");
-        ServerControlActions.boxMessage(plugin, player, "Redstone", "admin.redstone.state-message", Placeholders.with("state", state));
-        dev.zcripted.obx.util.message.ConsoleLog.info(plugin,
-                "Redstone updates " + (frozen ? "frozen" : "resumed") + " by " + player.getName());
+        ServerControlActions.redstoneMessage(plugin, player, frozen);
     }
 
     private static void adjustMaxPlayers(int delta) {
@@ -1208,26 +1433,14 @@ public final class AdminSubMenu {
         }
     }
 
-    private static double fetchTps() {
-        try {
-            Object server = Bukkit.getServer();
-            java.lang.reflect.Method method = server.getClass().getMethod("getTPS");
-            Object result = method.invoke(server);
-            if (result instanceof double[]) {
-                double[] tps = (double[]) result;
-                if (tps.length > 0) {
-                    return tps[0];
-                }
-            }
-        } catch (Throwable ignored) {
-            // Fall through to not available
-        }
-        return -1;
-    }
 
     public static final class Holder extends MenuHolder {
         private final AdminMenu.PlaceholderView placeholder;
         private final SubMenuType type;
+        // CONFIRM menus carry their pending action + the "reopen previous menu" cancel.
+        // Consumers receive the CLICKING player so no stale Player reference is held.
+        private java.util.function.Consumer<Player> confirmAction;
+        private java.util.function.Consumer<Player> cancelAction;
 
         public Holder(AdminMenu.PlaceholderView placeholder, SubMenuType type) {
             this.placeholder = placeholder;
@@ -1240,6 +1453,20 @@ public final class AdminSubMenu {
 
         public SubMenuType getType() {
             return type;
+        }
+
+        void setConfirmActions(java.util.function.Consumer<Player> confirm,
+                               java.util.function.Consumer<Player> cancel) {
+            this.confirmAction = confirm;
+            this.cancelAction = cancel;
+        }
+
+        java.util.function.Consumer<Player> confirmAction() {
+            return confirmAction;
+        }
+
+        java.util.function.Consumer<Player> cancelAction() {
+            return cancelAction;
         }
     }
 
@@ -1256,30 +1483,28 @@ public final class AdminSubMenu {
 
     public static void openWorldBorderMenu(Player player) {
         Holder holder = new Holder(null, SubMenuType.WORLD_BORDER);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("World Border"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.world-border"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
         double size = borderSize(player);
         String world = player.getWorld() == null ? "?" : player.getWorld().getName();
-        place(inventory, 10, createMenuItem(new String[]{"RED_CONCRETE", "REDSTONE_BLOCK"}, ChatColor.RED + "− 1000",
-                loreLines(ChatColor.GRAY + "Shrink the border by 1000 blocks.")));
-        place(inventory, 11, createMenuItem(new String[]{"PINK_CONCRETE", "REDSTONE"}, ChatColor.RED + "− 100",
-                loreLines(ChatColor.GRAY + "Shrink the border by 100 blocks.")));
-        place(inventory, 13, createMenuItem(new String[]{"MAP"}, ChatColor.DARK_PURPLE + "World Border",
-                loreLines(
-                        valueLine("World", world),
-                        valueLine("Diameter", String.format(java.util.Locale.ENGLISH, "%.0f", size) + " blocks"),
-                        ChatColor.GRAY + "Adjust with the buttons.")));
-        place(inventory, 15, createMenuItem(new String[]{"LIME_CONCRETE", "EMERALD_BLOCK"}, ChatColor.GREEN + "+ 100",
-                loreLines(ChatColor.GRAY + "Grow the border by 100 blocks.")));
-        place(inventory, 16, createMenuItem(new String[]{"GREEN_CONCRETE", "EMERALD"}, ChatColor.GREEN + "+ 1000",
-                loreLines(ChatColor.GRAY + "Grow the border by 1000 blocks.")));
-        place(inventory, 20, createMenuItem(new String[]{"COMPASS"}, ChatColor.YELLOW + "Center On Me",
-                loreLines(ChatColor.GRAY + "Recenter the border on your position.")));
-        place(inventory, 24, createMenuItem(new String[]{"BARRIER"}, ChatColor.LIGHT_PURPLE + "Reset",
-                loreLines(ChatColor.GRAY + "Reset to the vanilla default", ChatColor.GRAY + "(60,000,000 wide, centered 0, 0).")));
-        place(inventory, CLOSE_SLOT, createCloseItem());
-        place(inventory, SERVER_BACK_SLOT, createBackItemToWorldControls());
+        String diameter = String.format(java.util.Locale.ENGLISH, "%.0f", size) + " " + t(player, "admin.gui.unit.blocks");
+        place(inventory, 10, createMenuItem(new String[]{"RED_CONCRETE", "REDSTONE_BLOCK"}, t(player, "admin.gui.wb.minus-1000.name"),
+                tl(player, "admin.gui.wb.minus-1000.lore")));
+        place(inventory, 11, createMenuItem(new String[]{"PINK_CONCRETE", "REDSTONE"}, t(player, "admin.gui.wb.minus-100.name"),
+                tl(player, "admin.gui.wb.minus-100.lore")));
+        place(inventory, 13, createMenuItem(new String[]{"MAP"}, t(player, "admin.gui.wb.info.name"),
+                tl(player, "admin.gui.wb.info.lore", map("world", world, "diameter", diameter))));
+        place(inventory, 15, createMenuItem(new String[]{"LIME_CONCRETE", "EMERALD_BLOCK"}, t(player, "admin.gui.wb.plus-100.name"),
+                tl(player, "admin.gui.wb.plus-100.lore")));
+        place(inventory, 16, createMenuItem(new String[]{"GREEN_CONCRETE", "EMERALD"}, t(player, "admin.gui.wb.plus-1000.name"),
+                tl(player, "admin.gui.wb.plus-1000.lore")));
+        place(inventory, 20, createMenuItem(new String[]{"COMPASS"}, t(player, "admin.gui.wb.center.name"),
+                tl(player, "admin.gui.wb.center.lore")));
+        place(inventory, 24, createMenuItem(new String[]{"BARRIER"}, t(player, "admin.gui.wb.reset.name"),
+                tl(player, "admin.gui.wb.reset.lore")));
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
+        place(inventory, SERVER_BACK_SLOT, createBackItemToWorldControls(player));
         player.openInventory(inventory);
     }
 
@@ -1336,22 +1561,19 @@ public final class AdminSubMenu {
 
     public static void openModulesMenu(ObxPlugin plugin, Player player) {
         Holder holder = new Holder(null, SubMenuType.MODULES);
-        Inventory inventory = Bukkit.createInventory(holder, 36, AdminMenu.gradientTitle("Module Toggles"));
+        Inventory inventory = Bukkit.createInventory(holder, 36, title(player, "admin.gui.title.modules"));
         holder.setInventory(inventory);
         fillWithFiller(inventory);
         for (ModuleEntry module : ModuleEntry.values()) {
             boolean on = module.isEnabled(plugin);
-            place(inventory, module.slot(), createMenuItem(module.materials(),
-                    (on ? ChatColor.GREEN : ChatColor.RED) + module.display(),
-                    loreLines(
-                            statusLine("State", on),
-                            ChatColor.GRAY + "Click to " + (on ? "disable" : "enable") + ".",
-                            ChatColor.YELLOW + "Saved to config and applied live.")));
+            String name = (on ? ChatColor.GREEN : ChatColor.RED) + t(player, module.nameKey());
+            String action = t(player, on ? "admin.gui.modules.action.disable" : "admin.gui.modules.action.enable");
+            place(inventory, module.slot(), createMenuItem(module.materials(), name,
+                    tl(player, "admin.gui.modules.item.lore", map("state", onOff(player, on), "action", action))));
         }
-        place(inventory, CLOSE_SLOT, createCloseItem());
+        place(inventory, CLOSE_SLOT, createCloseItem(player));
         place(inventory, SERVER_BACK_SLOT, createMenuItem(new String[]{"ARROW", "SPECTRAL_ARROW"},
-                ChatColor.DARK_PURPLE + "Back to Plugin + Systems",
-                loreLines(ChatColor.GRAY + "Return to the Plugin + Systems menu.")));
+                t(player, "admin.gui.back.plugin-systems.name"), tl(player, "admin.gui.back.plugin-systems.lore")));
         player.openInventory(inventory);
     }
 
@@ -1364,7 +1586,7 @@ public final class AdminSubMenu {
         module.setEnabled(plugin, now);
         LanguageManager languages = plugin.getLanguageManager();
         Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("module", module.display());
+        placeholders.put("module", languages.get(player, module.nameKey()));
         placeholders.put("state", languages.get(player, now ? "admin.module.state.enabled" : "admin.module.state.disabled"));
         languages.send(player, "admin.module.toggled", placeholders);
         dev.zcripted.obx.util.message.ConsoleLog.info(plugin,
@@ -1380,25 +1602,33 @@ public final class AdminSubMenu {
      * are managed elsewhere.
      */
     private enum ModuleEntry {
-        CHAT("Chat Formatting", 10, new String[]{"WRITABLE_BOOK", "BOOK_AND_QUILL", "BOOK"}),
-        SCOREBOARD("Scoreboard", 11, new String[]{"OAK_SIGN", "SIGN"}),
-        TABLIST("Tablist", 12, new String[]{"PLAYER_HEAD", "SKULL_ITEM", "PAPER"}),
-        JOIN_LEAVE("Join / Leave Broadcasts", 13, new String[]{"OAK_DOOR", "WOODEN_DOOR", "WOOD_DOOR"}),
-        JOIN_MOTD("Welcome MOTD", 14, new String[]{"PAINTING"}),
-        HUB("Hub / Lobby", 15, new String[]{"COMPASS"});
+        CHAT("Chat Formatting", "admin.gui.module.chat", 10, new String[]{"WRITABLE_BOOK", "BOOK_AND_QUILL", "BOOK"}),
+        SCOREBOARD("Scoreboard", "admin.gui.module.scoreboard", 11, new String[]{"OAK_SIGN", "SIGN"}),
+        TABLIST("Tablist", "admin.gui.module.tablist", 12, new String[]{"PLAYER_HEAD", "SKULL_ITEM", "PAPER"}),
+        JOIN_LEAVE("Join / Leave Broadcasts", "admin.gui.module.join-leave", 13, new String[]{"OAK_DOOR", "WOODEN_DOOR", "WOOD_DOOR"}),
+        JOIN_MOTD("Welcome MOTD", "admin.gui.module.join-motd", 14, new String[]{"PAINTING"}),
+        HUB("Hub / Lobby", "admin.gui.module.hub", 15, new String[]{"COMPASS"}),
+        AFK("AFK System", "admin.gui.module.afk", 16, new String[]{"FEATHER"}),
+        DEATHDROP("Death Grouping", "admin.gui.module.deathdrop", 17, new String[]{"CHEST"});
 
         private final String display;
+        private final String nameKey;
         private final int slot;
         private final String[] materials;
 
-        ModuleEntry(String display, int slot, String[] materials) {
+        ModuleEntry(String display, String nameKey, int slot, String[] materials) {
             this.display = display;
+            this.nameKey = nameKey;
             this.slot = slot;
             this.materials = materials;
         }
 
         String display() {
             return display;
+        }
+
+        String nameKey() {
+            return nameKey;
         }
 
         int slot() {
@@ -1432,6 +1662,10 @@ public final class AdminSubMenu {
                     return plugin.getJoinLeaveService() != null && plugin.getJoinLeaveService().isJoinMotdEnabled();
                 case HUB:
                     return plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null && plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).isEnabled();
+                case AFK:
+                    return plugin.getAfkService() != null && plugin.getAfkService().isEnabled();
+                case DEATHDROP:
+                    return plugin.getModuleManager() != null && plugin.getModuleManager().isEnabled("deathdrop");
                 default:
                     return false;
             }
@@ -1459,6 +1693,12 @@ public final class AdminSubMenu {
                     break;
                 case HUB:
                     if (plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class) != null) plugin.getServiceRegistry().get(dev.zcripted.obx.api.hub.HubApi.class).setEnabled(value);
+                    break;
+                case AFK:
+                    if (plugin.getAfkService() != null) plugin.getAfkService().setEnabled(value);
+                    break;
+                case DEATHDROP:
+                    if (plugin.getModuleManager() != null) plugin.getModuleManager().setEnabled("deathdrop", value);
                     break;
                 default:
                     break;
@@ -1522,20 +1762,53 @@ public final class AdminSubMenu {
 
         private static final Map<Integer, GameruleEntry> BY_SLOT = new HashMap<>();
         private static final Map<GameruleEntry, Integer> SLOT_OF = new java.util.EnumMap<>(GameruleEntry.class);
-        private static final int MAX_SLOT = 44;
+        // Rules occupy slots 0..44 (rows 0-4); the bottom row (45..53) is reserved
+        // for navigation, so nav never mixes with the rules.
+        private static final int GR_AREA_END = 44;
 
-        static {
-            int slot = 0;
-            for (GameruleEntry entry : values()) {
-                while (slot == AdminMenu.CLOSE_SLOT || slot == SERVER_BACK_SLOT) {
-                    slot++; // step over the reserved close / back nav slots
+        /**
+         * Recomputes the editor layout against {@code world}: supported rules first,
+         * sorted A–Z; then the unsupported ones (also A–Z) starting on the next row
+         * for a clean visual break. Called on every menu open since support depends
+         * on the running server version.
+         */
+        static void rebuildLayout(World world) {
+            BY_SLOT.clear();
+            SLOT_OF.clear();
+            java.util.List<GameruleEntry> all = new java.util.ArrayList<>(java.util.Arrays.asList(values()));
+            all.sort((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.display, b.display));
+            java.util.List<GameruleEntry> supported = new java.util.ArrayList<>();
+            java.util.List<GameruleEntry> unsupported = new java.util.ArrayList<>();
+            for (GameruleEntry entry : all) {
+                if (getBooleanGameRule(world, entry.rule) != null) {
+                    supported.add(entry);
+                } else {
+                    unsupported.add(entry);
                 }
-                if (slot > MAX_SLOT) {
-                    break; // safety: never overflow the 45-slot editor
+            }
+            int slot = 0;
+            for (GameruleEntry entry : supported) {
+                if (slot > GR_AREA_END) {
+                    break;
                 }
                 BY_SLOT.put(slot, entry);
                 SLOT_OF.put(entry, slot);
                 slot++;
+            }
+            if (!unsupported.isEmpty() && slot <= GR_AREA_END) {
+                int sep = ((slot + 8) / 9) * 9; // round up to the next row for separation
+                if (sep > GR_AREA_END) {
+                    sep = Math.min(slot + 1, GR_AREA_END); // no room for a full-row gap — small gap
+                }
+                slot = sep;
+                for (GameruleEntry entry : unsupported) {
+                    if (slot > GR_AREA_END) {
+                        break;
+                    }
+                    BY_SLOT.put(slot, entry);
+                    SLOT_OF.put(entry, slot);
+                    slot++;
+                }
             }
         }
 
@@ -1555,6 +1828,11 @@ public final class AdminSubMenu {
 
         public String display() {
             return display;
+        }
+
+        /** Localization key for the per-player display name (DE/ES translated). */
+        public String nameKey() {
+            return "admin.gui.gamerule.name." + rule;
         }
 
         public int slot() {

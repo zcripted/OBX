@@ -8,7 +8,6 @@ import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -149,9 +148,9 @@ public final class LaunchpadCooldownManager {
             return;
         }
         long now = System.currentTimeMillis();
+        // ConcurrentHashMap's iterator is weakly consistent, so a concurrent start() during
+        // iteration is safe without snapshotting.
         Iterator<Map.Entry<UUID, Long>> it = cooldownEndMillis.entrySet().iterator();
-        // Snapshot so concurrent .start() during iteration doesn't surprise us.
-        Map<UUID, Long> snapshot = new HashMap<>(cooldownEndMillis);
         while (it.hasNext()) {
             Map.Entry<UUID, Long> entry = it.next();
             UUID uuid = entry.getKey();
@@ -161,18 +160,24 @@ public final class LaunchpadCooldownManager {
                 it.remove();
                 continue;
             }
-            long remaining = end - now;
+            final long remaining = end - now;
+            final Player target = player;
             if (remaining <= 0L) {
                 it.remove();
                 // Overwrite with empty so the stale countdown clears before fade.
-                ComponentMessenger.sendActionBar(player, "");
+                dispatchToPlayer(target, () -> ComponentMessenger.sendActionBar(target, ""));
                 continue;
             }
-            sendCountdown(player, remaining);
+            dispatchToPlayer(target, () -> sendCountdown(target, remaining));
         }
-        // suppress unused warning when iterator path doesn't touch snapshot
-        if (snapshot.isEmpty()) {
-            return;
+    }
+
+    /** Runs player-touching work on the player's region thread (Folia) or inline (Bukkit). */
+    private void dispatchToPlayer(Player player, Runnable task) {
+        if (plugin.getSchedulerAdapter().isFolia()) {
+            plugin.getSchedulerAdapter().runAtEntity(player, task);
+        } else {
+            task.run();
         }
     }
 
@@ -222,11 +227,5 @@ public final class LaunchpadCooldownManager {
             sb.append('█');
         }
         return sb.toString();
-    }
-
-    // Suppresses unused import warnings if Collections isn't referenced.
-    @SuppressWarnings("unused")
-    private static void touch() {
-        Collections.emptyList();
     }
 }

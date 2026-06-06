@@ -29,6 +29,7 @@ public class KitService {
     private YamlConfiguration kitsConfig;
 
     private final Map<String, Kit> kits = new LinkedHashMap<>();
+    private boolean firstJoinEnabled = true;
 
     public KitService(ObxPlugin plugin) {
         this.plugin = plugin;
@@ -114,6 +115,7 @@ public class KitService {
     private void parseKits() {
         kits.clear();
         if (kitsConfig == null) return;
+        firstJoinEnabled = kitsConfig.getBoolean("first-join.enabled", true);
         ConfigurationSection section = kitsConfig.getConfigurationSection("kits");
         if (section == null) return;
         for (String name : section.getKeys(false)) {
@@ -222,6 +224,22 @@ public class KitService {
         return Collections.unmodifiableCollection(kits.values());
     }
 
+    /** Whether brand-new players should auto-receive first-join kits (kits.yml → first-join.enabled). */
+    public boolean isFirstJoinEnabled() {
+        return firstJoinEnabled;
+    }
+
+    /** Every configured kit flagged {@code first-join: true}, in definition order. */
+    public List<Kit> getFirstJoinKits() {
+        List<Kit> result = new ArrayList<>();
+        for (Kit kit : kits.values()) {
+            if (kit.isFirstJoin()) {
+                result.add(kit);
+            }
+        }
+        return result;
+    }
+
     public long getCooldownRemaining(UUID uuid, Kit kit) {
         if (uuid == null || kit == null || kit.getCooldownSeconds() <= 0 || !store.isAvailable()) return 0L;
         long lastUsed = store.queryFirst("SELECT last_used FROM kit_cooldowns WHERE uuid = ? AND kit_name = ?",
@@ -231,11 +249,31 @@ public class KitService {
         return Math.max(0L, kit.getCooldownSeconds() - elapsed);
     }
 
-    public void markUsed(UUID uuid, Kit kit) {
-        if (uuid == null || kit == null || !store.isAvailable()) return;
-        store.executeUpdateAsync(
-                "INSERT OR REPLACE INTO kit_cooldowns(uuid, kit_name, last_used) VALUES (?, ?, ?)",
-                uuid, kit.getName().toLowerCase(), System.currentTimeMillis());
+    /**
+     * Atomically records a cooldown use <em>only if</em> the kit is off cooldown, in a single
+     * synchronous statement, and returns whether the claim succeeded. This closes the
+     * read-then-async-write window that let {@code /kit} spam duplicate a kit's contents.
+     * Callers must grant items only when this returns {@code true}.
+     */
+    public boolean tryClaimCooldown(UUID uuid, Kit kit) {
+        if (uuid == null || kit == null || !store.isAvailable()) return false;
+        long now = System.currentTimeMillis();
+        String kitName = kit.getName().toLowerCase();
+        if (kit.getCooldownSeconds() <= 0) {
+            store.executeUpdate("INSERT OR REPLACE INTO kit_cooldowns(uuid, kit_name, last_used) VALUES (?, ?, ?)",
+                    uuid, kitName, now);
+            return true;
+        }
+        long cooldownMillis = kit.getCooldownSeconds() * 1000L;
+        // INSERT claims an unseen kit; the conditional UPDATE claims only when the cooldown
+        // has fully elapsed. Either path affects 1 row (= claimed); a still-cooling kit
+        // affects 0 rows.
+        int rows = store.executeUpdateRows(
+                "INSERT INTO kit_cooldowns(uuid, kit_name, last_used) VALUES (?, ?, ?)" +
+                        " ON CONFLICT(uuid, kit_name) DO UPDATE SET last_used = excluded.last_used" +
+                        " WHERE excluded.last_used - kit_cooldowns.last_used >= ?",
+                uuid, kitName, now, cooldownMillis);
+        return rows > 0;
     }
 
     public boolean hasReceivedFirstJoinKit(UUID uuid) {
@@ -248,6 +286,40 @@ public class KitService {
         if (uuid == null || !store.isAvailable()) return;
         store.executeUpdateAsync(
                 "INSERT OR REPLACE INTO kit_first_join(uuid, claimed) VALUES (?, 1)", uuid);
+    }
+
+    /**
+     * Atomically records the first-join claim <em>only if</em> it hasn't been claimed yet, in a single
+     * synchronous statement, returning whether THIS call won the claim. Mirrors {@link #tryClaimCooldown}
+     * to close the read-then-async-write window that let a relog / double-join duplicate the welcome
+     * kit. Callers must grant the welcome kit only when this returns {@code true}.
+     */
+    public boolean tryClaimFirstJoin(UUID uuid) {
+        if (uuid == null || !store.isAvailable()) return false;
+        // uuid is PRIMARY KEY → OR IGNORE inserts once (1 row) and is a no-op (0 rows) on a repeat.
+        int rows = store.executeUpdateRows(
+                "INSERT OR IGNORE INTO kit_first_join(uuid, claimed) VALUES (?, 1)", uuid);
+        return rows > 0;
+    }
+
+    /**
+     * Conservative free-space check: true when the player has at least as many empty inventory
+     * slots as the kit has item stacks. Checked BEFORE the cooldown is claimed so a player with a
+     * full inventory isn't charged the cooldown only to have the overflow dropped (and possibly
+     * lost in a no-drop region or over the void).
+     */
+    public boolean hasRoomFor(Player player, Kit kit) {
+        if (player == null || kit == null) return false;
+        int needed = 0;
+        for (ItemStack item : kit.getItems()) {
+            if (item != null) needed++;
+        }
+        if (needed == 0) return true;
+        int empty = 0;
+        for (ItemStack slot : player.getInventory().getStorageContents()) {
+            if (slot == null || slot.getType() == org.bukkit.Material.AIR) empty++;
+        }
+        return empty >= needed;
     }
 
     public Map<String, Object> giveItems(Player player, Kit kit) {

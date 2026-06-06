@@ -1,0 +1,77 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# OBX Shop — Main Menu
+# ─────────────────────────────────────────────────────────────────────────────
+# The /shop category menu. Each category points at shops/<file>.yml. Slots are
+# 0-based; the BOTTOM ROW of the menu is reserved for navigation (sell tile,
+# balance, close) — place category tiles above it. Icons/names/lore accept
+# legacy &-color codes. Apply edits with /shop reload (obx.shop.admin) or the
+# Admin GUI → Economy → Shop tile (right-click).
+# ═══════════════════════════════════════════════════════════════════════════
+enabled: true
+# Minutes until finite-stock items (items with a stock: value) restock to full.
+restock-minutes: 60
+# EcoShop-style price drift: buys push an item's price up, sells push it down.
+# Sell prices can only sag BELOW base (never above) so drift can't be exploited.
+dynamic-pricing:
+  enabled: false
+  # Multiplier change per net unit traded (0.0005 = ±5% after 100 net units).
+  sensitivity: 0.0005
+  # Hard bound on drift from the base price (0.15 = ±15%).
+  max-drift: 0.15
+  # Fraction of accumulated volume that decays away per day (prices self-recover).
+  daily-decay: 0.25
+title: "&5▍ &d𝗢𝗕𝗫 &8› &fShop"
+rows: 4
+categories:
+  blocks:
+    slot: 10
+    icon: GRASS_BLOCK
+    name: "&aBlocks"
+    lore:
+      - "&7Building blocks, stone,"
+      - "&7wood, and terrain."
+    file: blocks
+  ores:
+    slot: 12
+    icon: DIAMOND
+    name: "&bOres & Minerals"
+    lore:
+      - "&7Ingots, gems, and"
+      - "&7mining resources."
+    file: ores
+  farming:
+    slot: 14
+    icon: WHEAT
+    name: "&eFarming"
+    lore:
+      - "&7Crops, seeds, and"
+      - "&7everything that grows."
+    file: farming
+  food:
+    slot: 16
+    icon: COOKED_BEEF
+    name: "&6Food"
+    lore:
+      - "&7Cooked meals and"
+      - "&7snacks for the road."
+    file: food
+  mobdrops:
+    slot: 20
+    icon: ROTTEN_FLESH
+    name: "&cMob Drops"
+    lore:
+      - "&7Loot from the things"
+      - "&7that go bump at night."
+    file: mobdrops
+  redstone:
+    slot: 24
+    icon: REDSTONE
+    name: "&4Redstone"
+    lore:
+      - "&7Dust, components, and"
+      - "&7contraption parts."
+    file: redstone
+#
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                          END OF FILE                         ║
+# ╚══════════════════════════════════════════════════════════════╝

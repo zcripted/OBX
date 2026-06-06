@@ -15,7 +15,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JailService implements dev.zcripted.obx.api.jail.JailApi {
 
@@ -57,6 +59,8 @@ public class JailService implements dev.zcripted.obx.api.jail.JailApi {
     private final File jailsFile;
     private YamlConfiguration jailsConfig;
     private final Map<String, Jail> jails = new LinkedHashMap<>();
+    /** Max blocks a jailed player may stray from their anchor before being pulled back. */
+    private volatile double containmentRadius = 10.0;
 
     public JailService(ObxPlugin plugin) {
         this.plugin = plugin;
@@ -84,6 +88,10 @@ public class JailService implements dev.zcripted.obx.api.jail.JailApi {
             jailsConfig = YamlConfiguration.loadConfiguration(jailsFile);
         } catch (IOException exception) {
             plugin.getLogger().severe("Failed to load jails.yml: " + exception.getMessage());
+        }
+        if (jailsConfig != null) {
+            // Optional top-level key in jails.yml; clamped so a jail can never be smaller than 2 blocks.
+            containmentRadius = Math.max(2.0, jailsConfig.getDouble("containment-radius", 10.0));
         }
         parseJails();
     }
@@ -144,13 +152,50 @@ public class JailService implements dev.zcripted.obx.api.jail.JailApi {
         return true;
     }
 
-    public JailState getState(UUID uuid) {
+    // In-memory jail-state cache so the PlayerMove handler (every step a jailed player
+    // takes) never queries SQLite on the main thread. Loaded on join; evicted on quit.
+    private final Map<UUID, JailState> stateCache = new ConcurrentHashMap<>();
+    private final Set<UUID> notJailedCache = ConcurrentHashMap.newKeySet();
+
+    /** Loads a player's jail state from the DB into the cache — call on join. */
+    public void refreshCache(UUID uuid) {
+        if (uuid == null) return;
+        JailState state = queryStateFromDb(uuid);
+        if (state != null) {
+            stateCache.put(uuid, state);
+            notJailedCache.remove(uuid);
+        } else {
+            stateCache.remove(uuid);
+            notJailedCache.add(uuid);
+        }
+    }
+
+    /** Drops a player's cached jail state — call on quit. */
+    public void evictCache(UUID uuid) {
+        if (uuid == null) return;
+        stateCache.remove(uuid);
+        notJailedCache.remove(uuid);
+    }
+
+    private JailState queryStateFromDb(UUID uuid) {
         if (uuid == null || !store.isAvailable()) return null;
         return store.queryFirst(
                 "SELECT jail_name, jailed_at, duration_seconds, reason FROM jail_state WHERE uuid = ?",
                 rs -> new JailState(uuid, rs.getString("jail_name"), rs.getLong("jailed_at"),
                         rs.getLong("duration_seconds"), rs.getString("reason")),
                 uuid).orElse(null);
+    }
+
+    public JailState getState(UUID uuid) {
+        if (uuid == null) return null;
+        JailState cached = stateCache.get(uuid);
+        if (cached != null) {
+            return cached;
+        }
+        if (notJailedCache.contains(uuid)) {
+            return null; // known not jailed — no DB hit on the hot path
+        }
+        return queryStateFromDb(uuid); // not cached (e.g. an offline lookup) — read directly
     }
 
     public boolean isJailed(UUID uuid) {
@@ -170,11 +215,37 @@ public class JailService implements dev.zcripted.obx.api.jail.JailApi {
                         " ON CONFLICT(uuid) DO UPDATE SET jail_name = excluded.jail_name, jailed_at = excluded.jailed_at," +
                         " duration_seconds = excluded.duration_seconds, reason = excluded.reason",
                 uuid, jailName.toLowerCase(), System.currentTimeMillis(), durationSeconds, reason);
+        notJailedCache.remove(uuid);
+        // Only hold a cache entry for online players (loaded on join, evicted on quit). Caching an
+        // offline target would leak an entry that quit never fires for; their join reloads it from DB.
+        if (Bukkit.getPlayer(uuid) != null) {
+            stateCache.put(uuid, new JailState(uuid, jailName.toLowerCase(), System.currentTimeMillis(), durationSeconds, reason));
+        } else {
+            stateCache.remove(uuid);
+        }
     }
 
     public void clearState(UUID uuid) {
         if (uuid == null || !store.isAvailable()) return;
-        store.executeUpdateAsync("DELETE FROM jail_state WHERE uuid = ?", uuid);
+        // Synchronous so an unjust crash can't leave a stale jail record after release.
+        store.executeUpdate("DELETE FROM jail_state WHERE uuid = ?", uuid);
+        stateCache.remove(uuid);
+        notJailedCache.add(uuid);
+    }
+
+    /** The jail anchor location for a (cached) jailed player, or null if not jailed / no anchor. */
+    public Location getJailAnchor(UUID uuid) {
+        JailState state = getState(uuid);
+        if (state == null) {
+            return null;
+        }
+        Jail jail = getJail(state.getJailName());
+        return jail == null ? null : jail.getLocation();
+    }
+
+    /** How far a jailed player may stray from their anchor before being pulled back (blocks). */
+    public double getContainmentRadius() {
+        return containmentRadius;
     }
 
     /** Best-effort send to the jail anchor; falls back to whatever location is configured. */
@@ -187,6 +258,52 @@ public class JailService implements dev.zcripted.obx.api.jail.JailApi {
         plugin.getTeleportManager().teleportPlayer(player, jail.getLocation(),
                 "jail.teleporting", dev.zcripted.obx.util.text.Placeholders.with("jail", jail.getName()));
         return true;
+    }
+
+    /**
+     * Where a released player is sent: the optional {@code release-location} in jails.yml,
+     * else the primary world's spawn. Returns {@code null} only if no world is loaded.
+     */
+    public Location getReleaseLocation() {
+        if (jailsConfig != null) {
+            ConfigurationSection sub = jailsConfig.getConfigurationSection("release-location");
+            if (sub != null) {
+                Location loc = LocationSerializer.deserialize(sub, plugin);
+                if (loc != null && loc.getWorld() != null) {
+                    return loc;
+                }
+            }
+        }
+        return Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0).getSpawnLocation();
+    }
+
+    /**
+     * Teleports a freed player out of the jail to the release location. Dispatched on the
+     * player's region thread so it is correct on Folia, and immediate (no warmup) so a
+     * just-released player can't be left standing inside the jail build.
+     */
+    public void teleportToRelease(final org.bukkit.entity.Player player) {
+        if (player == null) return;
+        final Location release = getReleaseLocation();
+        if (release == null || release.getWorld() == null) return;
+        plugin.getSchedulerAdapter().runAtEntity(player, () -> player.teleport(release));
+    }
+
+    /**
+     * Releases any online player whose jail term has expired: clears their state, teleports
+     * them out, and notifies them. Runs on a low-frequency sweep so an expired player is freed
+     * promptly rather than only on their next movement. Reads the online-only cache, so it
+     * never touches the DB for un-jailed players.
+     */
+    public void sweepExpired() {
+        for (org.bukkit.entity.Player player : Bukkit.getOnlinePlayers()) {
+            JailState state = stateCache.get(player.getUniqueId());
+            if (state != null && state.isExpired()) {
+                clearState(player.getUniqueId());
+                teleportToRelease(player);
+                plugin.getLanguageManager().send(player, "jail.expired");
+            }
+        }
     }
 
     public String formatDuration(long seconds) {
@@ -204,6 +321,11 @@ public class JailService implements dev.zcripted.obx.api.jail.JailApi {
         return result.isEmpty() ? "0s" : result;
     }
 
+    /** Cap on a parsed jail duration (~100 years, seconds) so an oversized value can't overflow
+     *  long and wrap negative — which JailState.isExpired() would misread as already-expired and
+     *  free the player instantly. Anything larger saturates here. */
+    private static final long MAX_DURATION_SECONDS = 100L * 365L * 86400L;
+
     public Long parseDuration(String input) {
         if (input == null || input.isEmpty()) return 0L;
         String trimmed = input.trim().toLowerCase();
@@ -219,20 +341,28 @@ public class JailService implements dev.zcripted.obx.api.jail.JailApi {
             } else if (digits.length() > 0) {
                 long value;
                 try { value = Long.parseLong(digits.toString()); }
-                catch (NumberFormatException ignored) { return null; }
+                catch (NumberFormatException tooLarge) { return MAX_DURATION_SECONDS; }
                 digits.setLength(0);
+                long unit;
                 switch (c) {
-                    case 'd': total += value * 86400L; break;
-                    case 'h': total += value * 3600L; break;
-                    case 'm': total += value * 60L; break;
-                    case 's': total += value; break;
+                    case 'd': unit = 86400L; break;
+                    case 'h': unit = 3600L; break;
+                    case 'm': unit = 60L; break;
+                    case 's': unit = 1L; break;
                     default: return null;
                 }
+                // Saturating multiply+add: an oversized component clamps to the cap instead of
+                // wrapping negative.
+                try { total = Math.addExact(total, Math.multiplyExact(value, unit)); }
+                catch (ArithmeticException overflow) { return MAX_DURATION_SECONDS; }
+                if (total >= MAX_DURATION_SECONDS) return MAX_DURATION_SECONDS;
             }
         }
         if (digits.length() > 0) {
-            try { total += Long.parseLong(digits.toString()); }
-            catch (NumberFormatException ignored) { return null; }
+            try { total = Math.addExact(total, Long.parseLong(digits.toString())); }
+            catch (NumberFormatException tooLarge) { return MAX_DURATION_SECONDS; }
+            catch (ArithmeticException overflow) { return MAX_DURATION_SECONDS; }
+            if (total >= MAX_DURATION_SECONDS) return MAX_DURATION_SECONDS;
         }
         return total;
     }
@@ -243,7 +373,18 @@ public class JailService implements dev.zcripted.obx.api.jail.JailApi {
         for (org.bukkit.entity.Player online : Bukkit.getOnlinePlayers()) {
             if (online.getName().equalsIgnoreCase(name)) return online.getUniqueId();
         }
-        org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(name);
-        return offline.getUniqueId();
+        // Paper: non-blocking cached lookup — avoids a synchronous Mojang web request that
+        // would hang the main thread for an un-cached name. Returns null when not cached.
+        try {
+            Object cached = Bukkit.class.getMethod("getOfflinePlayerIfCached", String.class).invoke(null, name);
+            if (cached == null) {
+                return null;
+            }
+            return (java.util.UUID) cached.getClass().getMethod("getUniqueId").invoke(cached);
+        } catch (Throwable noPaperApi) {
+            // Older/non-Paper forks: fall back to the (potentially blocking) lookup.
+            org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(name);
+            return offline.getUniqueId();
+        }
     }
 }

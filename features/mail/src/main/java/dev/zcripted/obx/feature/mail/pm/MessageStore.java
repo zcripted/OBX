@@ -14,6 +14,11 @@ import java.util.UUID;
  * Persists private messages queued for offline players to {@code messages.yml}.
  * Each recipient keeps a capped, newest-last list of {@link InboxMessage}s stored as
  * plain YAML maps under {@code inbox.<uuid>}.
+ *
+ * <p>Every public method is {@code synchronized} so the shared {@link YamlConfiguration}'s
+ * read-modify-write-save cycle can't be interleaved by two threads (e.g. a main-thread {@code /msg}
+ * and an async delivery), which would otherwise corrupt {@code messages.yml} or drop messages. The
+ * monitor is reentrant, so the nested {@code add → get → writeAll → save} calls are safe.
  */
 public final class MessageStore {
 
@@ -29,7 +34,7 @@ public final class MessageStore {
         this.file = new File(plugin.getDataFolder(), "messages.yml");
     }
 
-    public void load() {
+    public synchronized void load() {
         if (!file.exists()) {
             config = new YamlConfiguration();
             return;
@@ -37,14 +42,14 @@ public final class MessageStore {
         config = YamlConfiguration.loadConfiguration(file);
     }
 
-    private YamlConfiguration config() {
+    private synchronized YamlConfiguration config() {
         if (config == null) {
             load();
         }
         return config;
     }
 
-    public void save() {
+    public synchronized void save() {
         if (config == null) {
             return;
         }
@@ -59,7 +64,7 @@ public final class MessageStore {
         }
     }
 
-    public List<InboxMessage> get(UUID recipient) {
+    public synchronized List<InboxMessage> get(UUID recipient) {
         List<InboxMessage> result = new ArrayList<InboxMessage>();
         List<Map<?, ?>> raw = config().getMapList("inbox." + recipient);
         for (Map<?, ?> entry : raw) {
@@ -71,11 +76,11 @@ public final class MessageStore {
         return result;
     }
 
-    public int count(UUID recipient) {
+    public synchronized int count(UUID recipient) {
         return config().getMapList("inbox." + recipient).size();
     }
 
-    public void add(UUID recipient, InboxMessage message) {
+    public synchronized void add(UUID recipient, InboxMessage message) {
         List<InboxMessage> messages = get(recipient);
         messages.add(message);
         while (messages.size() > CAP) {
@@ -84,13 +89,13 @@ public final class MessageStore {
         writeAll(recipient, messages);
     }
 
-    public void clear(UUID recipient) {
+    public synchronized void clear(UUID recipient) {
         config().set("inbox." + recipient, null);
         save();
     }
 
     /** Marks the message with {@code id} as read. No-op if it isn't found. */
-    public void markRead(UUID recipient, String id) {
+    public synchronized void markRead(UUID recipient, String id) {
         if (id == null) {
             return;
         }
@@ -108,7 +113,7 @@ public final class MessageStore {
     }
 
     /** Sets the bookmark flag on the message with {@code id}. No-op if it isn't found. */
-    public void setBookmarked(UUID recipient, String id, boolean bookmarked) {
+    public synchronized void setBookmarked(UUID recipient, String id, boolean bookmarked) {
         if (id == null) {
             return;
         }
@@ -126,7 +131,7 @@ public final class MessageStore {
     }
 
     /** Removes the message with {@code id}. */
-    public void delete(UUID recipient, String id) {
+    public synchronized void delete(UUID recipient, String id) {
         if (id == null) {
             return;
         }
@@ -144,7 +149,7 @@ public final class MessageStore {
     }
 
     /** Removes every non-bookmarked message and returns how many were cleared. */
-    public int clearNonBookmarked(UUID recipient) {
+    public synchronized int clearNonBookmarked(UUID recipient) {
         List<InboxMessage> messages = get(recipient);
         int before = messages.size();
         List<InboxMessage> kept = new ArrayList<InboxMessage>();
@@ -160,7 +165,7 @@ public final class MessageStore {
         return removed;
     }
 
-    private void writeAll(UUID recipient, List<InboxMessage> messages) {
+    private synchronized void writeAll(UUID recipient, List<InboxMessage> messages) {
         List<Map<String, Object>> serialized = new ArrayList<Map<String, Object>>();
         for (InboxMessage message : messages) {
             serialized.add(message.toMap());

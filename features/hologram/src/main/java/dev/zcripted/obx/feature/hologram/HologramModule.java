@@ -4,6 +4,7 @@ import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.hologram.command.HologramCommand;
 import dev.zcripted.obx.feature.hologram.gui.HologramEditorMenu;
+import dev.zcripted.obx.feature.hologram.listener.HologramChunkListener;
 import dev.zcripted.obx.feature.hologram.listener.HologramConnectionListener;
 import dev.zcripted.obx.feature.hologram.listener.HologramJoinListener;
 import dev.zcripted.obx.feature.hologram.listener.HologramResourcePackListener;
@@ -33,6 +34,7 @@ public final class HologramModule extends AbstractModule {
         listener(new HologramJoinListener(plugin, holo));
         listener(new HologramResourcePackListener(plugin, holo));
         listener(new HologramConnectionListener(plugin, holo));
+        listener(new HologramChunkListener(plugin, holo));
         listener(editor);
 
         onDisable(() -> {

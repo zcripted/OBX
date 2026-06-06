@@ -15,6 +15,7 @@ import dev.zcripted.obx.feature.mail.mail.MailService;
 import dev.zcripted.obx.feature.mail.pm.MessageStore;
 import dev.zcripted.obx.feature.mail.pm.PrivateMessageService;
 import dev.zcripted.obx.feature.mail.pm.gui.InboxMenuListener;
+import dev.zcripted.obx.feature.mail.staffchat.StaffChatService;
 
 /**
  * Mail / messaging feature: private {@code /msg}+reply+inbox (PrivateMessageService,
@@ -35,8 +36,10 @@ public final class MailModule extends AbstractModule {
         PrivateMessageService pm = service(PrivateMessageService.class, new PrivateMessageService(plugin, store));
         MailService mail = service(MailService.class, new MailService(plugin));
         mail.load();
+        StaffChatService staffChat = service(StaffChatService.class, new StaffChatService(plugin));
 
         listener(pm);
+        listener(staffChat);
         listener(new InboxMenuListener(plugin));
 
         command("msg", new MsgCommand(plugin));

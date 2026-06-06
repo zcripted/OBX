@@ -13,10 +13,13 @@ import dev.zcripted.obx.feature.warp.service.WarpAccess;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.inventory.Inventory;
 
 public class WarpMenuListener implements Listener {
 
@@ -36,8 +39,21 @@ public class WarpMenuListener implements Listener {
     }
 
     @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        // Warp menus are read-only; cancel drags so items can't be deposited into the menu's
+        // empty content slots (which would be lost on close).
+        Inventory top = event.getView().getTopInventory();
+        if (top != null && top.getHolder() instanceof WarpMenuHolder) {
+            event.setCancelled(true);
+            event.setResult(Event.Result.DENY);
+        }
+    }
+
+    @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof WarpMenuHolder)) {
+        // Use the TOP inventory's holder (consistent with the drag handler) rather than the
+        // ambiguous getInventory(), so shift-clicks from the bottom inventory are still gated.
+        if (!(event.getView().getTopInventory().getHolder() instanceof WarpMenuHolder)) {
             return;
         }
         event.setCancelled(true);
@@ -45,9 +61,17 @@ public class WarpMenuListener implements Listener {
             return;
         }
         Player player = (Player) event.getWhoClicked();
-        WarpMenuHolder holder = (WarpMenuHolder) event.getInventory().getHolder();
+        WarpMenuHolder holder = (WarpMenuHolder) event.getView().getTopInventory().getHolder();
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getInventory().getSize()) {
+            return;
+        }
+        // Re-verify the manage permission on EVERY click of an admin-mode menu. The authorization was
+        // captured at open time as the holder's adminMode flag; without this re-check a player who
+        // loses obx.warp.manage while the manage GUI is open (or is handed the inventory) could still
+        // delete/move/rename/re-visibility warps. Browse-mode menus stay fully usable.
+        if (holder.isAdminMode() && !player.hasPermission("obx.warp.manage")) {
+            player.closeInventory();
             return;
         }
 
@@ -563,10 +587,13 @@ public class WarpMenuListener implements Listener {
     }
 
     private void reopenAfterEdit(Player player, WarpMenuHolder holder, WarpService.WarpEntry entry) {
-        if (holder.getBackTarget() == holder.getBackTarget()) {
-            WarpMenu.openManage(plugin, player, holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getBackTarget());
-        } else {
+        // Return to where the edit was triggered: the per-warp details screen if that was the
+        // back-context, otherwise the manage list. (Previously a `x == x` tautology always reopened
+        // manage, leaving the details branch dead.)
+        if (holder.getBackTarget() == WarpMenuHolder.BackTarget.DETAILS && entry != null) {
             WarpMenu.openDetails(plugin, player, entry, holder.isAdminMode(), holder.getBackTarget(), holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm());
+        } else {
+            WarpMenu.openManage(plugin, player, holder.getReturnPage(), holder.getCategoryFilter(), holder.getSearchTerm(), holder.getBackTarget());
         }
     }
 

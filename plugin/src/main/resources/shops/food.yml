@@ -1,0 +1,36 @@
+# OBX Shop — Food. buy = per bundle, sell = PER UNIT; 0 disables.
+# Unknown materials are skipped per server version (1.8.8 → latest).
+# Optional stock: N caps units buyable per restock window (restock-minutes in shop.yml); omit = unlimited.
+title: "&5Shop &8› &6Food"
+items:
+  # ── 1.8.8 baseline ─────────────────────────────────────────────────────────
+  - {material: BREAD, amount: 8, buy: 6.00, sell: 0.50}
+  - {material: COOKED_BEEF, amount: 8, buy: 10.00, sell: 0.90}
+  - {material: COOKED_CHICKEN, amount: 8, buy: 8.00, sell: 0.70}
+  - {material: COOKED_MUTTON, amount: 8, buy: 8.00, sell: 0.70}
+  - {material: COOKED_RABBIT, amount: 8, buy: 8.00, sell: 0.70}
+  - {material: COOKED_PORKCHOP, amount: 8, buy: 10.00, sell: 0.90}
+  # sell kept BELOW the shop-bought potato unit (0.3125) so buy→smelt→sell isn't a faucet.
+  - {material: BAKED_POTATO, amount: 8, buy: 6.00, sell: 0.30}
+  # 8 cookies must sell for less than 2 wheat + 1 cocoa bought here (0.875) — no craft loop.
+  - {material: COOKIE, amount: 16, buy: 4.00, sell: 0.10}
+  - {material: CAKE, amount: 1, buy: 12.00, sell: 2.00}
+  - {material: PUMPKIN_PIE, amount: 4, buy: 8.00, sell: 1.00}
+  - {material: MUSHROOM_STEW, amount: 1, buy: 4.00, sell: 0.80}
+  - {material: APPLE, amount: 8, buy: 5.00, sell: 0.40}
+  - {material: GOLDEN_APPLE, amount: 1, buy: 80.00, sell: 30.00}
+  # 8 gold nuggets (4.00) + 1 carrot (0.31) bought here = 4.31 to craft one; sell stays under it.
+  - {material: GOLDEN_CARROT, amount: 4, buy: 30.00, sell: 3.50}
+  # ── 1.8.8 legacy names (skipped on 1.13+) ──────────────────────────────────
+  - {material: GRILLED_PORK, amount: 8, buy: 10.00, sell: 0.90}
+  - {material: COOKED_FISH, amount: 8, buy: 8.00, sell: 0.70}
+  - {material: RAW_FISH, amount: 8, buy: 0, sell: 0.30}
+  # ── 1.13+ ──────────────────────────────────────────────────────────────────
+  - {material: COOKED_COD, amount: 8, buy: 8.00, sell: 0.70}
+  - {material: COOKED_SALMON, amount: 8, buy: 9.00, sell: 0.80}
+  - {material: COD, amount: 8, buy: 0, sell: 0.30}
+  - {material: SALMON, amount: 8, buy: 0, sell: 0.35}
+  - {material: TROPICAL_FISH, amount: 4, buy: 0, sell: 0.60}
+  - {material: PUFFERFISH, amount: 4, buy: 0, sell: 0.50}
+  # ── 1.14+ ──────────────────────────────────────────────────────────────────
+  - {material: SUSPICIOUS_STEW, amount: 1, buy: 0, sell: 1.20}

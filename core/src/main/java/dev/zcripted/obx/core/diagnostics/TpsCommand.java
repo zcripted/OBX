@@ -108,9 +108,9 @@ public final class TpsCommand extends AbstractObxCommand {
         placeholders.put("tps_15m_color", tps15Color);
         placeholders.put("mspt", msptFormatted);
         placeholders.put("mspt_color", msptColor);
-        placeholders.put("tps_1m_tooltip", buildTpsTooltip(tps1, tps1Color, tps1Formatted, "1 minute"));
-        placeholders.put("tps_5m_tooltip", buildTpsTooltip(tps5, tps5Color, tps5Formatted, "5 minutes"));
-        placeholders.put("tps_15m_tooltip", buildTpsTooltip(tps15, tps15Color, tps15Formatted, "15 minutes"));
+        placeholders.put("tps_1m_tooltip", buildTpsTooltip(tps1, tps1Color, tps1Formatted, "1 minute", "1-Minute Average"));
+        placeholders.put("tps_5m_tooltip", buildTpsTooltip(tps5, tps5Color, tps5Formatted, "5 minutes", "5-Minute Average"));
+        placeholders.put("tps_15m_tooltip", buildTpsTooltip(tps15, tps15Color, tps15Formatted, "15 minutes", "15-Minute Average"));
         placeholders.put("mspt_tooltip", buildMsptTooltip(mspt, msptColor, msptFormatted, realMspt));
         placeholders.put("players", Integer.toString(Bukkit.getOnlinePlayers().size()));
         placeholders.put("max_players", Integer.toString(Bukkit.getMaxPlayers()));
@@ -126,9 +126,11 @@ public final class TpsCommand extends AbstractObxCommand {
      * proper multi-line tooltip. Every visible line is kept under 45 characters
      * so the tooltip popup never trims words.
      */
-    private static String buildTpsTooltip(double tps, String color, String formatted, String window) {
+    private static String buildTpsTooltip(double tps, String color, String formatted, String window, String category) {
         StringBuilder builder = new StringBuilder(192);
-        builder.append("&5TPS &8› &fPerformance");
+        // Header carries the unique category/name so each hovered TPS value (1m/5m/15m) is
+        // distinguishable at a glance, not just by the Window row below.
+        builder.append("&5TPS &8› &fPerformance &8· &f").append(category);
         builder.append("\\n").append("&8──────────────────────────");
         builder.append("\\n").append("&7Current  &8›  ").append(color).append(formatted);
         builder.append("\\n").append("&7Best     &8›  ").append(BEST_TPS);

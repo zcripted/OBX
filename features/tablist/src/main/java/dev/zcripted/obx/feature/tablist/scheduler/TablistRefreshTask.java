@@ -1,7 +1,6 @@
 package dev.zcripted.obx.feature.tablist.scheduler;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.feature.tablist.format.TablistRenderer;
 import dev.zcripted.obx.feature.tablist.format.TablistTeams;
 import dev.zcripted.obx.api.tablist.TablistService;
@@ -37,9 +36,16 @@ public final class TablistRefreshTask {
             TablistTeams.reset();
         }
         int interval = service.getRefreshIntervalTicks();
+        // On Folia, the per-player apply (which mutates scoreboard teams + sends tablist
+        // packets) must run on the player's entity region, not the global region.
+        final boolean folia = plugin.getSchedulerAdapter().isFolia();
         Runnable refresh = () -> {
             for (Player player : plugin.getServer().getOnlinePlayers()) {
-                TablistRenderer.apply(plugin, service, player);
+                if (folia) {
+                    plugin.getSchedulerAdapter().runAtEntity(player, () -> TablistRenderer.apply(plugin, service, player));
+                } else {
+                    TablistRenderer.apply(plugin, service, player);
+                }
             }
         };
         if (interval <= 0) {

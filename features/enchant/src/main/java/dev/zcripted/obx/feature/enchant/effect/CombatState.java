@@ -108,7 +108,14 @@ public final class CombatState {
 
     public boolean isStunned(UUID id) {
         Long until = stunnedUntil.get(id);
-        return until != null && until > System.currentTimeMillis();
+        if (until == null) {
+            return false;
+        }
+        if (until <= System.currentTimeMillis()) {
+            stunnedUntil.remove(id); // drop the expired entry instead of leaving it to leak
+            return false;
+        }
+        return true;
     }
 
     // ── Mirror Edge (queued reflect) ────────────────────────────────────────
@@ -231,7 +238,14 @@ public final class CombatState {
     /** Extra damage multiplier-add for a marked target, or 0 if unmarked/expired. */
     public double markBonus(UUID id) {
         Mark mark = marks.get(id);
-        return (mark != null && mark.untilMs > System.currentTimeMillis()) ? mark.bonus : 0.0;
+        if (mark == null) {
+            return 0.0;
+        }
+        if (mark.untilMs <= System.currentTimeMillis()) {
+            marks.remove(id); // drop the expired entry instead of leaving it to leak
+            return 0.0;
+        }
+        return mark.bonus;
     }
 
     // ── Killstreak ──────────────────────────────────────────────────────────
@@ -335,6 +349,55 @@ public final class CombatState {
         return true;
     }
 
+    /**
+     * Purges all state that can be keyed by an arbitrary entity (not just players) when that
+     * entity dies. The target-keyed maps ({@link #marks}, {@link #stunnedUntil},
+     * {@link #tethers}) are overwhelmingly populated with <em>mob</em> UUIDs, which
+     * {@link #clear(UUID)} (wired only to player quit) never reaches — so without this they
+     * grow without bound on a long-running server. Call from {@code EntityDeathEvent}.
+     */
+    /**
+     * Periodic janitor: drops time-expired entries from the entity-keyed maps. A mob that
+     * <em>despawns</em> (chunk unload / distance / removal) without firing {@code EntityDeathEvent}
+     * has a UUID that is never read again, so {@link #removeEntity(UUID)} and the per-read expiry
+     * checks never reach it — without this sweep those entries would persist for the server's
+     * lifetime. Wire to a low-frequency repeating task (entries are short-lived, so a few minutes
+     * is ample). Safe on ConcurrentHashMap (weakly-consistent iteration).
+     */
+    public void sweepExpired() {
+        long now = System.currentTimeMillis();
+        marks.values().removeIf(m -> m.untilMs <= now);
+        stunnedUntil.values().removeIf(until -> until <= now);
+        tethers.values().removeIf(t -> t.untilMs <= now);
+        vengeance.values().removeIf(v -> v.untilMs <= now);
+        cooldowns.values().removeIf(until -> until <= now);
+        pearlLock.values().removeIf(until -> until <= now);
+        grit.values().removeIf(d -> d[0] <= now);
+    }
+
+    public void removeEntity(UUID id) {
+        marks.remove(id);
+        stunnedUntil.remove(id);
+        tethers.remove(id);
+        combos.remove(id);
+        killstreaks.remove(id);
+        vengeance.remove(id);
+        mirrorQueued.remove(id);
+        nextSwingBonus.remove(id);
+        pearlLock.remove(id);
+        // Drop any tether/vengeance that pointed AT the dead entity so references don't dangle.
+        for (java.util.Iterator<Tether> it = tethers.values().iterator(); it.hasNext(); ) {
+            if (id.equals(it.next().binder)) {
+                it.remove();
+            }
+        }
+        for (java.util.Iterator<Vengeance> it = vengeance.values().iterator(); it.hasNext(); ) {
+            if (id.equals(it.next().attacker)) {
+                it.remove();
+            }
+        }
+    }
+
     public void clear(UUID id) {
         soulreaver.remove(id);
         sprintStart.remove(id);
@@ -350,6 +413,9 @@ public final class CombatState {
         killstreaks.remove(id);
         tethers.remove(id);
         pearlLock.remove(id);
+        // cooldowns are keyed "uuid|ability" — purge this player's entries so they don't accumulate
+        // for the server's lifetime (clear() is the player-quit hook).
+        cooldowns.keySet().removeIf(k -> k.startsWith(id + "|"));
         // Drop any tether where this player was the binder so it doesn't dangle.
         for (java.util.Iterator<Tether> it = tethers.values().iterator(); it.hasNext(); ) {
             if (id.equals(it.next().binder)) {

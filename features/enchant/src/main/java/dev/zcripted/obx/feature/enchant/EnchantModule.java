@@ -97,6 +97,13 @@ public final class EnchantModule extends AbstractModule {
         listener(new RangedListener(plugin, combatState, combatParticles, reactiveSpecials, combatHud));
         listener(new ReactiveSpecialsListener(plugin, combatState, reactiveSpecials));
 
+        // Low-frequency janitor (every 2 min): purge time-expired CombatState entries so a mob that
+        // DESPAWNS without dying (chunk unload / distance / removal) — and whose UUID is never read
+        // again — can't leave a permanent mob-keyed entry. EntityDeathEvent already purges on death.
+        dev.zcripted.obx.core.platform.scheduler.CancellableTask combatStateSweep =
+                plugin.getSchedulerAdapter().runRepeating(combatState::sweepExpired, 2400L, 2400L);
+        onDisable(combatStateSweep::cancel);
+
         // Commands.
         command("obxench", new ObxEnchantCommand(plugin));
         command("enchants", new EnchantsBrowseCommand(plugin));

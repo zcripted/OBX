@@ -96,7 +96,11 @@ public class ClearInvCommand extends AbstractObxCommand implements TabCompleter 
         } else {
             sendWithHover(sender, "inventory.clearinv.other", placeholders, hover);
             // Notify the target too (no hover — it's the giver who wants the breakdown).
-            languages.send(target, "inventory.clearinv.self", Placeholders.with("count", String.valueOf(result.total)));
+            Map<String, String> targetPlaceholders = new HashMap<>();
+            targetPlaceholders.put("count", String.valueOf(result.total));
+            targetPlaceholders.put("countpart",
+                    languages.get(target, "inventory.clearinv.count", Placeholders.with("count", String.valueOf(result.total))));
+            languages.send(target, "inventory.clearinv.self", targetPlaceholders);
         }
         return true;
     }
@@ -180,9 +184,39 @@ public class ClearInvCommand extends AbstractObxCommand implements TabCompleter 
         return hover;
     }
 
+    /**
+     * Sends the clear summary where <em>only</em> the {@code (N item(s))} segment carries
+     * the breakdown hover — not the whole line. The localized message embeds a
+     * {@code {countpart}} placeholder; we render it with a private sentinel, split the line
+     * around it, and rebuild it as plain-text + a single hover-bearing count component.
+     * Console (non-player) recipients can't hover, so they get the count substituted inline.
+     */
     private void sendWithHover(CommandSender recipient, String key, Map<String, String> placeholders, List<String> hover) {
-        String message = languages.get(recipient, key, placeholders);
-        ComponentMessenger.sendHoverMessage(recipient, message, hover, null);
+        String countText = languages.get(recipient, "inventory.clearinv.count", placeholders);
+        if (!(recipient instanceof Player)) {
+            Map<String, String> inline = new HashMap<>(placeholders);
+            inline.put("countpart", countText);
+            recipient.sendMessage(languages.get(recipient, key, inline));
+            return;
+        }
+        String sentinel = "CNT";
+        Map<String, String> withSentinel = new HashMap<>(placeholders);
+        withSentinel.put("countpart", sentinel);
+        String full = languages.get(recipient, key, withSentinel);
+        int idx = full.indexOf(sentinel);
+        if (idx < 0) {
+            Map<String, String> inline = new HashMap<>(placeholders);
+            inline.put("countpart", countText);
+            ComponentMessenger.sendHoverMessage(recipient, languages.get(recipient, key, inline), hover, null);
+            return;
+        }
+        String before = full.substring(0, idx);
+        String after = full.substring(idx + sentinel.length());
+        List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<>();
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain(before));
+        parts.add(ComponentMessenger.InteractiveMessagePart.interactive(countText, hover, null, false));
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain(after));
+        ComponentMessenger.sendJoinedHoverMessages(recipient, parts);
     }
 
     /** Turns {@code DIAMOND_PICKAXE} into {@code Diamond Pickaxe} for the hover. */

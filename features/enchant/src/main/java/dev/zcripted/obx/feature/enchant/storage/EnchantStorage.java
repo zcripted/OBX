@@ -82,6 +82,135 @@ public final class EnchantStorage {
         this.styleVanilla = styleVanilla;
     }
 
+    // ── Anti-forge signing ──────────────────────────────────────────────────────
+    //
+    // Custom enchants are stored as parseable item lore (deliberate — see the class
+    // doc: lore is the only store available across 1.8 → 1.21). That makes the raw
+    // enchant level forgeable by anyone who can write lore (anvils, books, NBT). To
+    // close that without abandoning the cross-version lore design, every write stamps
+    // an INVISIBLE HMAC-SHA256 signature line over the canonical enchant set. The
+    // signature is rendered as a run of color codes (§ + hex nibble), so it adds no
+    // visible glyph and {@code ChatColor.stripColor} reduces it to "" — meaning the
+    // existing parser already ignores it. On PDC-capable servers this is equivalent
+    // protection to a PDC tag, but it also works on 1.8 → 1.13 (no PDC) and never
+    // touches a reflective hot path.
+    //
+    // Fully gated: when {@code trustUnsignedLore} is true (default) the read path is
+    // byte-for-byte the legacy behavior — lore is trusted as-is and the signature is
+    // written but not enforced (so flipping the flag to strict later validates items
+    // that were already in circulation). Owners who want strict anti-forge set
+    // {@code enchant.security.trust_unsigned_lore: false}.
+
+    /** Magic hex prefix marking an OBX signature line (distinguishes it from a plain color line). */
+    private static final String SIG_MAGIC = "0b517";
+
+    /** When true (default), lore enchants are trusted without a valid signature (back-compat). */
+    private volatile boolean trustUnsignedLore = true;
+    /** HMAC key; empty disables signing entirely (fail-open). Persisted by the service. */
+    private volatile String signingSecret = "";
+
+    public void setSecurity(boolean trustUnsignedLore, String signingSecret) {
+        this.trustUnsignedLore = trustUnsignedLore;
+        this.signingSecret = signingSecret == null ? "" : signingSecret;
+    }
+
+    /**
+     * Returns the invisible anti-forge signature line for a single (enchant, level), or "" if
+     * signing is disabled. Used by item builders (scrolls / books) that write enchant lore
+     * directly via {@link #renderLine} instead of going through {@link #apply}, so their payload
+     * still verifies under strict {@code trust_unsigned_lore: false} mode.
+     */
+    public String signatureLineFor(String enchantId, int level) {
+        if (enchantId == null) {
+            return "";
+        }
+        Map<String, Integer> one = new LinkedHashMap<String, Integer>(1);
+        one.put(enchantId.toLowerCase(Locale.ENGLISH), level);
+        String sig = computeSig(one);
+        return sig.isEmpty() ? "" : encodeSigLine(sig);
+    }
+
+    /** Canonical, order-independent string form of an enchant set: {@code id:level} pairs, sorted. */
+    private static String canonical(Map<String, Integer> enchants) {
+        List<String> parts = new ArrayList<String>(enchants.size());
+        for (Map.Entry<String, Integer> entry : enchants.entrySet()) {
+            parts.add(entry.getKey().toLowerCase(Locale.ENGLISH) + ":" + entry.getValue());
+        }
+        Collections.sort(parts);
+        StringBuilder joined = new StringBuilder();
+        for (int i = 0; i < parts.size(); i++) {
+            if (i > 0) {
+                joined.append(';');
+            }
+            joined.append(parts.get(i));
+        }
+        return joined.toString();
+    }
+
+    /** {@code SIG_MAGIC} + 8-byte HMAC of the canonical enchant set, as lowercase hex; "" if disabled. */
+    private String computeSig(Map<String, Integer> enchants) {
+        if (signingSecret == null || signingSecret.isEmpty() || enchants.isEmpty()) {
+            return "";
+        }
+        try {
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            mac.init(new javax.crypto.spec.SecretKeySpec(
+                    signingSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] out = mac.doFinal(canonical(enchants).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(SIG_MAGIC);
+            for (int i = 0; i < 8 && i < out.length; i++) {
+                hex.append(Character.forDigit((out[i] >> 4) & 0xF, 16));
+                hex.append(Character.forDigit(out[i] & 0xF, 16));
+            }
+            return hex.toString();
+        } catch (Throwable failure) {
+            return ""; // no HMAC provider on an exotic JVM — fail open (treat as unsigned)
+        }
+    }
+
+    /** Renders a hex string as an invisible color-code run ({@code §<nibble>} per hex char). */
+    private static String encodeSigLine(String hex) {
+        StringBuilder line = new StringBuilder(hex.length() * 2);
+        for (int i = 0; i < hex.length(); i++) {
+            line.append(ChatColor.COLOR_CHAR).append(hex.charAt(i));
+        }
+        return line.toString();
+    }
+
+    /** Decodes an OBX signature line back to its hex payload, or null if the line isn't one. */
+    private static String decodeSigLine(String line) {
+        if (line == null || line.length() < 2) {
+            return null;
+        }
+        StringBuilder hex = new StringBuilder();
+        for (int i = 0; i + 1 < line.length(); i++) {
+            if (line.charAt(i) == ChatColor.COLOR_CHAR) {
+                char c = Character.toLowerCase(line.charAt(i + 1));
+                if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
+                    hex.append(c);
+                }
+                i++;
+            }
+        }
+        String payload = hex.toString();
+        return payload.startsWith(SIG_MAGIC) ? payload : null;
+    }
+
+    /** True if some lore line carries a signature matching the parsed enchant set. */
+    private boolean hasValidSignature(List<String> lore, Map<String, Integer> enchants) {
+        String expected = computeSig(enchants);
+        if (expected.isEmpty()) {
+            return false;
+        }
+        for (String line : lore) {
+            String decoded = decodeSigLine(line);
+            if (decoded != null && decoded.equals(expected)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // ── Read ────────────────────────────────────────────────────────────────────
 
     /** All Arcanum enchantments currently on the item, as {@code enchantId → level}. */
@@ -94,8 +223,16 @@ public final class EnchantStorage {
         if (meta == null || !meta.hasLore()) {
             return result;
         }
-        for (String line : meta.getLore()) {
+        List<String> lore = meta.getLore();
+        for (String line : lore) {
             parseLine(line, result);
+        }
+        // Strict anti-forge mode: a parsed enchant set must carry a matching signature,
+        // otherwise it was hand-written and is ignored (the item behaves as unenchanted).
+        // Default (trustUnsignedLore) and the no-secret fail-open path skip this entirely.
+        if (!trustUnsignedLore && !signingSecret.isEmpty() && !result.isEmpty()
+                && !hasValidSignature(lore, result)) {
+            return new LinkedHashMap<String, Integer>();
         }
         return result;
     }
@@ -259,6 +396,16 @@ public final class EnchantStorage {
                 lore.add("");
             }
             lore.addAll(split.other);
+        }
+        // Stamp the invisible anti-forge signature over the canonical custom-enchant set.
+        // Written unconditionally (even in trust mode) so items minted today validate if the
+        // owner later switches to strict mode. No-op when there are no custom enchants or no
+        // secret is configured.
+        if (hasCustom) {
+            String sig = computeSig(split.enchants);
+            if (!sig.isEmpty()) {
+                lore.add(encodeSigLine(sig));
+            }
         }
         meta.setLore(lore.isEmpty() ? null : lore);
 
@@ -561,6 +708,9 @@ public final class EnchantStorage {
                 split.enchants.putAll(single);
                 continue;
             }
+            if (decodeSigLine(line) != null) {
+                continue; // old anti-forge signature — dropped here, regenerated on write
+            }
             String stripped = ChatColor.stripColor(line).trim();
             if (stripped.isEmpty()) {
                 split.other.add(line);
@@ -574,6 +724,15 @@ public final class EnchantStorage {
         // Drop leading blank separators so repeated writes don't accumulate them.
         while (!split.other.isEmpty() && ChatColor.stripColor(split.other.get(0)).trim().isEmpty()) {
             split.other.remove(0);
+        }
+        // Strict anti-forge: don't carry forward (and re-sign) an existing enchant set that
+        // isn't validly signed. Otherwise a forger could hand-write fake enchant lore, then
+        // trigger any legitimate write (e.g. applying one real enchant) to bless the whole
+        // forged set with a fresh signature. Unsigned/tampered existing enchants are dropped
+        // here; the enchant being applied is re-added by the caller after split().
+        if (!trustUnsignedLore && !signingSecret.isEmpty() && !split.enchants.isEmpty()
+                && !hasValidSignature(meta.getLore(), split.enchants)) {
+            split.enchants.clear();
         }
         return split;
     }

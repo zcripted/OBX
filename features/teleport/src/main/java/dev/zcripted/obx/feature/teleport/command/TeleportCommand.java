@@ -60,6 +60,10 @@ public final class TeleportCommand extends AbstractObxCommand implements TabComp
         if (target == null) {
             return true;
         }
+        if (target.equals(self)) {
+            languages.send(self, "teleport.tp.cannot-here-self");
+            return true;
+        }
         moveTo(target, self, "teleport.tp.brought", self.getName(), target.getName());
         // /tphere shows the sender's own world + coordinates (where the target landed).
         Map<String, String> ph = new LinkedHashMap<String, String>();

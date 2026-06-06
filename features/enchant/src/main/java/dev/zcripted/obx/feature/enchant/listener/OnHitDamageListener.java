@@ -81,6 +81,11 @@ public final class OnHitDamageListener implements Listener {
         this.hud = hud;
     }
 
+    // ORDERING CONTRACT: damage modifiers run at HIGH, status procs run at HIGHEST in
+    // OnHitProcListener. This must stay HIGH < HIGHEST so procs (Bleed/Concussion/etc.)
+    // read the final post-multiplier damage. ignoreCancelled=true means a hit another
+    // plugin cancelled before HIGH is skipped here and never reaches the proc listener.
+    // Do NOT reorder these two priorities.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!service.isEnabled() || !(event.getEntity() instanceof LivingEntity)) {
@@ -147,6 +152,9 @@ public final class OnHitDamageListener implements Listener {
             hud.trackHealth(victim, COMBAT_WINDOW_MS);
         }
 
+        // Read the weapon's enchants ONCE — each storage.level() re-parses all lore, and this
+        // handler checks ~20+ enchants per hit (combat hot path).
+        java.util.Map<String, Integer> levels = storage.read(weapon);
         EnchantRegistry registry = service.getRegistry();
         double base = event.getDamage();
         double multiplier = 1.0;
@@ -154,11 +162,11 @@ public final class OnHitDamageListener implements Listener {
         double pierce = 0.0;
         boolean crit = false;
         boolean phantomProc = false;
-        int apex = storage.level(weapon, "apex_predator");
+        int apex = levels.getOrDefault("apex_predator", 0);
 
         // Whirlwind — make a sweep attack deal real (percent of weapon) damage.
         if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK) {
-            int whirlwind = storage.level(weapon, "whirlwind");
+            int whirlwind = levels.getOrDefault("whirlwind", 0);
             if (whirlwind > 0) {
                 CustomEnchant e = registry.get("whirlwind");
                 double attack = CombatSupport.attackDamage(weapon);
@@ -172,7 +180,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Berserker's Rage — scales with missing HP (in 20% steps).
-        int berserk = storage.level(weapon, "berserkers_rage");
+        int berserk = levels.getOrDefault("berserkers_rage", 0);
         if (berserk > 0) {
             CustomEnchant e = registry.get("berserkers_rage");
             double frac = CombatSupport.healthFraction(attacker);
@@ -192,7 +200,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Momentum — scales with continuous sprint time.
-        int momentum = storage.level(weapon, "momentum");
+        int momentum = levels.getOrDefault("momentum", 0);
         if (momentum > 0 && attacker.isSprinting()) {
             CustomEnchant e = registry.get("momentum");
             double seconds = combatState.sprintSeconds(attacker.getUniqueId());
@@ -205,7 +213,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Wrath of the Wild — scales with nearby hostiles.
-        int wrath = storage.level(weapon, "wrath_of_the_wild");
+        int wrath = levels.getOrDefault("wrath_of_the_wild", 0);
         if (wrath > 0) {
             CustomEnchant e = registry.get("wrath_of_the_wild");
             int mobs = CombatSupport.countNearbyHostiles(attacker, e.levelDouble(wrath, "radius", 6.0));
@@ -216,7 +224,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Soulreaver — consume current kill-stacks for a damage bonus.
-        int soulreaver = storage.level(weapon, "soulreaver");
+        int soulreaver = levels.getOrDefault("soulreaver", 0);
         if (soulreaver > 0) {
             int stacks = combatState.soulreaverStacks(attacker.getUniqueId());
             if (stacks > 0) {
@@ -230,7 +238,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Killstreak — outgoing damage scales with the active kill streak.
-        int killstreak = storage.level(weapon, "killstreak");
+        int killstreak = levels.getOrDefault("killstreak", 0);
         if (killstreak > 0) {
             CustomEnchant e = registry.get("killstreak");
             long window = (long) e.levelInt(killstreak, "window_seconds", 8) * 1000L;
@@ -239,14 +247,14 @@ public final class OnHitDamageListener implements Listener {
                 double add = streak * e.levelDouble(killstreak, "per_step", 0.0);
                 // Apex Predator amplifies killstreak buffs.
                 if (apex > 0) {
-                    add *= registry.get("apex_predator").levelDouble(apex, "killstreak_amp", 1.5);
+                    add *= registry.levelDouble("apex_predator", apex, "killstreak_amp", 1.5);
                 }
                 multiplier += add;
             }
         }
 
         // Endless Hunger — permanent per-item stacks add a flat damage bonus.
-        int hunger = storage.level(weapon, "endless_hunger");
+        int hunger = levels.getOrDefault("endless_hunger", 0);
         if (hunger > 0) {
             multiplier += EndlessHunger.bonus(weapon, registry.get("endless_hunger"), hunger);
         }
@@ -264,7 +272,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Crit Mastery — extra crit chance + crit damage on top of a vanilla crit.
-        int critMastery = storage.level(weapon, "crit_mastery");
+        int critMastery = levels.getOrDefault("crit_mastery", 0);
         if (critMastery > 0) {
             CustomEnchant e = registry.get("crit_mastery");
             boolean vanillaCrit = CombatSupport.isVanillaCrit(attacker);
@@ -275,27 +283,27 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Frostbrand — flat frost damage added on top of the weapon's hit.
-        int frostbrand = storage.level(weapon, "frostbrand");
+        int frostbrand = levels.getOrDefault("frostbrand", 0);
         if (frostbrand > 0) {
-            flatBonus += registry.get("frostbrand").levelDouble(frostbrand, "frost_damage", 0.0);
+            flatBonus += registry.levelDouble("frostbrand", frostbrand, "frost_damage", 0.0);
         }
 
         // Hellforged — bonus damage against non-Nether mobs.
-        int hellforged = storage.level(weapon, "hellforged");
+        int hellforged = levels.getOrDefault("hellforged", 0);
         if (hellforged > 0 && !CombatSupport.isNetherFoe(victim)) {
-            multiplier += registry.get("hellforged").levelDouble(hellforged, "overworld_bonus", 0.0);
+            multiplier += registry.levelDouble("hellforged", hellforged, "overworld_bonus", 0.0);
         }
 
         // Bonecrusher — bonus damage against the undead.
-        int bonecrusher = storage.level(weapon, "bonecrusher");
+        int bonecrusher = levels.getOrDefault("bonecrusher", 0);
         if (bonecrusher > 0 && CombatSupport.isUndead(victim)) {
-            multiplier += registry.get("bonecrusher").levelDouble(bonecrusher, "undead_bonus", 0.0);
+            multiplier += registry.levelDouble("bonecrusher", bonecrusher, "undead_bonus", 0.0);
         }
 
         // Stunlock — bonus damage while the target is stunned.
-        int stunlock = storage.level(weapon, "stunlock");
+        int stunlock = levels.getOrDefault("stunlock", 0);
         if (stunlock > 0 && combatState.isStunned(victim.getUniqueId())) {
-            multiplier += registry.get("stunlock").levelDouble(stunlock, "stunned_bonus", 0.0);
+            multiplier += registry.levelDouble("stunlock", stunlock, "stunned_bonus", 0.0);
         }
 
         // Hunter's Mark — a marked target takes more damage from any attacker.
@@ -305,13 +313,13 @@ public final class OnHitDamageListener implements Listener {
         multiplier += combatState.tetherVulnerability(victim.getUniqueId());
 
         // Devastator — a falling mace smash hits far harder.
-        int devastator = storage.level(weapon, "devastator");
+        int devastator = levels.getOrDefault("devastator", 0);
         if (devastator > 0 && attacker.getFallDistance() > 1.0f) {
-            multiplier += registry.get("devastator").levelDouble(devastator, "smash_bonus", 0.5);
+            multiplier += registry.levelDouble("devastator", devastator, "smash_bonus", 0.5);
         }
 
         // Phantom Edge — chance to phase fully through armor, +extra damage at Lv3.
-        int phantom = storage.level(weapon, "phantom_edge");
+        int phantom = levels.getOrDefault("phantom_edge", 0);
         if (phantom > 0) {
             CustomEnchant e = registry.get("phantom_edge");
             if (Math.random() < e.levelDouble(phantom, "chance", 0.0)) {
@@ -323,7 +331,7 @@ public final class OnHitDamageListener implements Listener {
 
         // Glasscutter — partial armor penetration (+ chance to shatter a piece at Lv4).
         double shatterChance = 0.0;
-        int glasscutter = storage.level(weapon, "glasscutter");
+        int glasscutter = levels.getOrDefault("glasscutter", 0);
         if (glasscutter > 0) {
             CustomEnchant e = registry.get("glasscutter");
             pierce = Math.max(pierce, e.levelDouble(glasscutter, "pierce", 0.0));
@@ -334,13 +342,13 @@ public final class OnHitDamageListener implements Listener {
         multiplier += combatState.consumeNextSwing(attacker.getUniqueId());
 
         // Headsplitter — bonus damage against bare-headed targets.
-        int headsplitter = storage.level(weapon, "headsplitter");
+        int headsplitter = levels.getOrDefault("headsplitter", 0);
         if (headsplitter > 0 && isBareHeaded(victim)) {
-            multiplier += registry.get("headsplitter").levelDouble(headsplitter, "barehead_bonus", 0.0);
+            multiplier += registry.levelDouble("headsplitter", headsplitter, "barehead_bonus", 0.0);
         }
 
         // Combo Strike — consecutive hits on one target build to a burst.
-        int comboStrike = storage.level(weapon, "combo_strike");
+        int comboStrike = levels.getOrDefault("combo_strike", 0);
         if (comboStrike > 0) {
             CustomEnchant e = registry.get("combo_strike");
             int hits = e.levelInt(comboStrike, "hits", 3);
@@ -357,7 +365,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Vengeance — bonus vs the entity that last hit you (Lv3 guarantees the first crit).
-        int vengeance = storage.level(weapon, "vengeance");
+        int vengeance = levels.getOrDefault("vengeance", 0);
         if (vengeance > 0 && combatState.isVengeanceTarget(attacker.getUniqueId(), victim.getUniqueId())) {
             CustomEnchant e = registry.get("vengeance");
             multiplier += e.levelDouble(vengeance, "bonus", 0.0);
@@ -367,7 +375,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Brawler's Grit — spend a readied buff for bonus damage (+ Speed/Resistance).
-        if (storage.level(weapon, "brawlers_grit") > 0) {
+        if (levels.getOrDefault("brawlers_grit", 0) > 0) {
             int gritLevel = combatState.consumeGrit(attacker.getUniqueId());
             if (gritLevel > 0) {
                 CustomEnchant e = registry.get("brawlers_grit");
@@ -382,7 +390,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Quickdraw — first hit shortly after swapping to this weapon.
-        int quickdraw = storage.level(weapon, "quickdraw");
+        int quickdraw = levels.getOrDefault("quickdraw", 0);
         if (quickdraw > 0) {
             CustomEnchant e = registry.get("quickdraw");
             long window = (long) (e.levelDouble(quickdraw, "window_seconds", 2.0) * 1000);
@@ -413,7 +421,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Mirror Edge — chance to ready a reflect that triggers on the next blow you take.
-        int mirror = storage.level(weapon, "mirror_edge");
+        int mirror = levels.getOrDefault("mirror_edge", 0);
         if (mirror > 0) {
             CustomEnchant e = registry.get("mirror_edge");
             if (!combatState.hasMirror(attacker.getUniqueId()) && Math.random() < e.levelDouble(mirror, "chance", 0.0)) {
@@ -429,7 +437,7 @@ public final class OnHitDamageListener implements Listener {
         }
 
         // Lifesteal — heal a percentage of the final damage dealt.
-        int lifesteal = storage.level(weapon, "lifesteal");
+        int lifesteal = levels.getOrDefault("lifesteal", 0);
         if (lifesteal > 0) {
             CustomEnchant e = registry.get("lifesteal");
             double healAmount = finalDamage * e.levelDouble(lifesteal, "percent", 0.0);

@@ -2,7 +2,6 @@
 package dev.zcripted.obx.feature.warp.gui;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.feature.staff.gui.AdminMenu;
 import dev.zcripted.obx.core.gui.WarpMenuStyling;
 import dev.zcripted.obx.core.language.LanguageManager;
 import dev.zcripted.obx.feature.warp.service.WarpService;

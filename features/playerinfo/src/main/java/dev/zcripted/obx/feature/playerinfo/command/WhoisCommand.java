@@ -6,7 +6,6 @@ import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.playerinfo.service.PlaytimeService;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

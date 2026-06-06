@@ -10,5 +10,11 @@ public interface ModerationApi {
 
     String getMuteReason(String playerName);
 
+    /** UUID-keyed mute check — uses the join-loaded cache, avoiding a per-call name->UUID DB lookup. */
+    boolean isMuted(java.util.UUID uuid);
+
+    /** UUID-keyed mute reason — uses the join-loaded cache. */
+    String getMuteReason(java.util.UUID uuid);
+
     void reload();
 }

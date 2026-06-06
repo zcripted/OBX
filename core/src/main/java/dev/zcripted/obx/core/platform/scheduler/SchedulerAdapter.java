@@ -421,13 +421,22 @@ public final class SchedulerAdapter implements Scheduler {
         }
 
         void cancelTasks(Plugin plugin) {
-            if (cancelTasks == null) {
-                return;
+            if (cancelTasks != null) {
+                try {
+                    cancelTasks.invoke(globalScheduler, plugin);
+                } catch (Throwable ignored) {
+                    // best effort
+                }
             }
-            try {
-                cancelTasks.invoke(globalScheduler, plugin);
-            } catch (Throwable ignored) {
-                // best effort
+            // The global scheduler's cancel covers only global tasks; also cancel this plugin's
+            // ASYNC tasks (the async scheduler is a separate Folia scheduler). Per-entity/region
+            // repeating tasks are individually cancelled by their owning features via stored handles.
+            if (asyncScheduler != null) {
+                try {
+                    asyncScheduler.getClass().getMethod("cancelTasks", Plugin.class).invoke(asyncScheduler, plugin);
+                } catch (Throwable ignored) {
+                    // best effort
+                }
             }
         }
 

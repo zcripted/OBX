@@ -1,7 +1,6 @@
 package dev.zcripted.obx.core.diagnostics;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;

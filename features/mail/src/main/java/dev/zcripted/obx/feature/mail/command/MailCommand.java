@@ -103,7 +103,8 @@ public class MailCommand extends AbstractObxCommand implements TabCompleter {
             body.append(args[i]);
         }
         MailService.MailResult result = messageService.sendMail(
-                recipientUuid, recipientName, player.getUniqueId(), player.getName(), body.toString());
+                recipientUuid, recipientName, player.getUniqueId(), player.getName(),
+                dev.zcripted.obx.util.text.MessageSanitizer.sanitize(player, body.toString()));
         if (result == MailService.MailResult.MAILBOX_FULL) {
             languages.send(player, "messaging.mail.full", Placeholders.with("player",
                     recipientName == null ? args[1] : recipientName));

@@ -40,9 +40,12 @@ public final class ChatManagementListener implements Listener {
     public void onChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
 
-        if (plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class) != null && plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class).isMuted(player.getName())) {
+        dev.zcripted.obx.api.moderation.ModerationApi moderation =
+                plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class);
+        if (moderation != null && moderation.isMuted(player.getUniqueId())) {
+            // UUID-keyed (join-loaded cache) — avoids a synchronous name->UUID DB lookup per chat message.
             event.setCancelled(true);
-            String reason = plugin.getServiceRegistry().get(dev.zcripted.obx.api.moderation.ModerationApi.class).getMuteReason(player.getName());
+            String reason = moderation.getMuteReason(player.getUniqueId());
             plugin.getLanguageManager().send(player, "player.moderation.mute.chat-blocked", Placeholders.with("reason", reason));
             return;
         }
@@ -84,14 +87,19 @@ public final class ChatManagementListener implements Listener {
     private Map<String, String> buildPlaceholders(Player player, String rawMessage) {
         Map<String, String> placeholders = new LinkedHashMap<>(8);
         placeholders.put("player", player.getName());
-        placeholders.put("displayname", player.getDisplayName());
+        // Display name may be set by another plugin and could carry MiniMessage tags — neutralize.
+        placeholders.put("displayname", dev.zcripted.obx.util.text.MessageSanitizer.neutralizeTags(player.getDisplayName()));
         placeholders.put("world", player.getWorld() == null ? "" : player.getWorld().getName());
         placeholders.put("uuid", player.getUniqueId().toString());
-        placeholders.put("message", ChatFormatter.sanitiseMessage(rawMessage, service.allowFormattingInMessages()));
-        // Staff tag: OP players get the configured prefix (default red/bold
-        // "ѕᴛᴀꜰꜰ┃") before their name; everyone else gets an empty string.
+        // Honor obx.message.color (consistent with /msg, /me, etc.): plain players can't colorize,
+        // obfuscate, or inject interactive MiniMessage tags via normal chat.
+        placeholders.put("message",
+                dev.zcripted.obx.util.text.MessageSanitizer.sanitizeChat(player, rawMessage, service.allowFormattingInMessages()));
+        // Staff tag: players with obx.chat.staff (default op) get the configured prefix
+        // (default red/bold "ѕᴛᴀꜰꜰ┃") before their name; everyone else gets an empty string.
+        // Permission-driven (not bare isOp()) so permission-managed servers work correctly.
         placeholders.put("prefix",
-                (player.isOp() && service.isStaffPrefixEnabled()) ? service.getStaffPrefix() : "");
+                (service.isStaffPrefixEnabled() && player.hasPermission("obx.chat.staff")) ? service.getStaffPrefix() : "");
         return placeholders;
     }
 }

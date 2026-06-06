@@ -1,11 +1,11 @@
 package dev.zcripted.obx.feature.playerstate.service;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -50,8 +50,31 @@ public class AfkServiceImpl implements Listener, dev.zcripted.obx.api.playerstat
         return uuid != null && Boolean.TRUE.equals(afkState.get(uuid));
     }
 
+    @Override
+    public boolean isEnabled() {
+        return plugin.getConfig().getBoolean("afk.enabled", true);
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        plugin.getConfig().set("afk.enabled", enabled);
+        plugin.saveConfig();
+        if (!enabled) {
+            // Reset everyone so nobody is left stuck AFK while the system is off.
+            afkState.clear();
+        } else {
+            // Re-arm activity timers so re-enabling doesn't instantly flag already-idle players.
+            long now = System.currentTimeMillis();
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                lastActivity.put(online.getUniqueId(), now);
+            }
+        }
+    }
+
     public void setAfk(Player player, boolean afk) {
         if (player == null) return;
+        // Master switch off → the whole AFK system is inert (no state changes, no messages).
+        if (!isEnabled()) return;
         Boolean previous = afkState.put(player.getUniqueId(), afk);
         if (previous != null && previous == afk) {
             return;
@@ -76,25 +99,39 @@ public class AfkServiceImpl implements Listener, dev.zcripted.obx.api.playerstat
     }
 
     private void tick() {
-        long now = System.currentTimeMillis();
+        if (!isEnabled()) return; // master switch off → no auto-detection, no timeout/kick
+        final long now = System.currentTimeMillis();
         long idleSeconds = Math.max(30L, plugin.getConfig().getLong("afk.idle-seconds", 300L));
         long kickSeconds = plugin.getConfig().getLong("afk.kick-seconds", 0L);
-        long idleMillis = idleSeconds * 1000L;
-        long kickMillis = kickSeconds * 1000L;
+        final long idleMillis = idleSeconds * 1000L;
+        final long kickMillis = kickSeconds * 1000L;
+        // Setting AFK (sends messages) and kicking must run on each player's own region thread under
+        // Folia — the repeating task fires on the global thread, so dispatch the per-player work.
+        final boolean folia = plugin.getSchedulerAdapter() != null && plugin.getSchedulerAdapter().isFolia();
         for (Player online : Bukkit.getOnlinePlayers()) {
-            UUID uuid = online.getUniqueId();
-            long last = lastActivity.getOrDefault(uuid, now);
-            long sinceActivity = now - last;
-            if (sinceActivity >= idleMillis && !isAfk(uuid)) {
-                if (online.hasPermission("obx.afk.exempt")) continue;
-                setAfk(online, true);
+            final Player player = online;
+            Runnable work = () -> tickPlayer(player, now, idleMillis, kickMillis);
+            if (folia) {
+                plugin.getSchedulerAdapter().runAtEntity(player, work);
+            } else {
+                work.run();
             }
-            if (kickMillis > 0L && isAfk(uuid) && sinceActivity >= idleMillis + kickMillis) {
-                if (online.hasPermission("obx.afk.exempt-kick")) continue;
-                String reason = plugin.getLanguageManager().get(online, "afk.kick-reason",
-                        Placeholders.with("player", online.getName()));
-                online.kickPlayer(reason);
-            }
+        }
+    }
+
+    private void tickPlayer(Player online, long now, long idleMillis, long kickMillis) {
+        UUID uuid = online.getUniqueId();
+        long last = lastActivity.getOrDefault(uuid, now);
+        long sinceActivity = now - last;
+        if (sinceActivity >= idleMillis && !isAfk(uuid)) {
+            if (online.hasPermission("obx.afk.exempt")) return;
+            setAfk(online, true);
+        }
+        if (kickMillis > 0L && isAfk(uuid) && sinceActivity >= idleMillis + kickMillis) {
+            if (online.hasPermission("obx.afk.exempt-kick")) return;
+            String reason = plugin.getLanguageManager().get(online, "afk.kick-reason",
+                    Placeholders.with("player", online.getName()));
+            online.kickPlayer(reason);
         }
     }
 
@@ -119,7 +156,7 @@ public class AfkServiceImpl implements Listener, dev.zcripted.obx.api.playerstat
         afkState.remove(uuid);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
         org.bukkit.Location from = event.getFrom();
         org.bukkit.Location to = event.getTo();

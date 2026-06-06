@@ -39,8 +39,9 @@ public final class HubJoinListener implements Listener {
         }
         // Apply on the next tick so any other plugin's join-handler restores
         // can settle first — matches the cleanest behaviour seen in lobby
-        // plugins like CMI/Hub.
-        plugin.getSchedulerAdapter().runLater(() -> applier.apply(player), 2L);
+        // plugins like CMI/Hub. Dispatched on the player's own region (Folia)
+        // since it mutates their inventory.
+        plugin.getSchedulerAdapter().runAtEntityLater(player, () -> applier.apply(player), null, 2L);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -50,12 +51,13 @@ public final class HubJoinListener implements Listener {
         }
         Player player = event.getPlayer();
         // Respawn fires before the player is fully re-placed in the world,
-        // so apply on the next tick when getWorld() is reliable.
-        plugin.getSchedulerAdapter().runLater(() -> {
+        // so apply on the next tick when getWorld() is reliable. On the player's
+        // own region (Folia) since it mutates their inventory.
+        plugin.getSchedulerAdapter().runAtEntityLater(player, () -> {
             if (hub.isInHubWorld(player)) {
                 applier.apply(player);
             }
-        }, 2L);
+        }, null, 2L);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

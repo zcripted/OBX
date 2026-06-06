@@ -62,7 +62,9 @@ public final class ScoreboardRenderer {
         }
         Scoreboard board = boardFor(player, manager);
         Map<String, String> placeholders = buildPlaceholders(plugin, service, player);
-        Objective objective = ensureObjective(board, colorize(applyPlaceholders(service.getTitle(), placeholders)));
+        // Pass the RAW (un-colorized) title so the objective can use the Adventure component API
+        // (no 32-char legacy cap → a real bold purple gradient renders), with a legacy fallback.
+        Objective objective = ensureObjective(board, applyPlaceholders(service.getTitle(), placeholders));
         if (objective == null) {
             return;
         }
@@ -125,12 +127,76 @@ public final class ScoreboardRenderer {
         } catch (Throwable ignored) {
             // slot already set
         }
-        try {
-            objective.setDisplayName(truncate(title, 32));
-        } catch (Throwable ignored) {
-            // display name limits vary by version
+        // Prefer the Adventure component title (no length cap → full bold gradient, best on Paper);
+        // otherwise render the gradient into a legacy display-name string for every other platform.
+        if (!applyComponentTitle(objective, title)) {
+            applyLegacyTitle(objective, title);
         }
         return objective;
+    }
+
+    /**
+     * Sets the objective display name as a legacy section-coded string when the Adventure component
+     * API isn't available (Spigot, or older Paper). The display name has a per-version length cap
+     * (32 on 1.8–1.12; far higher on 1.13+), and a per-glyph {@code §x} hex gradient expands to ~14
+     * chars PER letter — but that easily fits the raised 1.13+ cap, so the FULL smooth gradient
+     * renders on 1.16+ servers via this path. We try, in order:
+     * <ol>
+     *   <li><b>1.16+ smooth {@code §x} gradient</b> — fits the 1.13+ cap, renders true hex on 1.16+ clients;</li>
+     *   <li><b>coarse nearest-standard-color gradient</b> — short enough for the 1.8–1.12 32-char cap,
+     *       and the only form that renders in color on pre-1.16 clients (which can't show {@code §x});</li>
+     *   <li><b>compact bold dark-purple</b> — last resort so the whole word still shows.</li>
+     * </ol>
+     */
+    private static void applyLegacyTitle(Objective objective, String rawTitle) {
+        if (isHexCapable()) {
+            String smooth = dev.zcripted.obx.util.message.AdventureMessageUtil.renderLegacy(rawTitle);
+            if (smooth != null && !smooth.isEmpty() && trySetDisplayName(objective, smooth)) {
+                return;
+            }
+        }
+        String coarse = dev.zcripted.obx.util.message.AdventureMessageUtil.renderLegacyDownsampled(rawTitle);
+        if (coarse != null && !coarse.isEmpty() && trySetDisplayName(objective, truncate(coarse, 32))) {
+            return;
+        }
+        String plain = ChatColor.stripColor(dev.zcripted.obx.util.message.AdventureMessageUtil.renderLegacy(rawTitle));
+        trySetDisplayName(objective, truncate(ChatColor.DARK_PURPLE.toString() + ChatColor.BOLD + plain, 32));
+    }
+
+    private static boolean trySetDisplayName(Objective objective, String name) {
+        try {
+            objective.setDisplayName(name);
+            return true;
+        } catch (Throwable rejected) {
+            // length cap or other per-version validation — caller tries a shorter form
+            return false;
+        }
+    }
+
+    /** Whether the server (a proxy for its clients) can render {@code §x} hex colors (1.16+). */
+    private static boolean isHexCapable() {
+        try {
+            dev.zcripted.obx.core.platform.PlatformInfo info = dev.zcripted.obx.core.platform.PlatformInfo.get();
+            return info == null || info.isAtLeast(1, 16);
+        } catch (Throwable ignored) {
+            return true; // assume a modern server
+        }
+    }
+
+    /** Sets the objective display name via the Adventure {@code displayName(Component)} API. */
+    private static boolean applyComponentTitle(Objective objective, String rawTitle) {
+        Object component = dev.zcripted.obx.util.message.AdventureMessageUtil.toComponent(rawTitle);
+        Class<?> componentClass = dev.zcripted.obx.util.message.AdventureMessageUtil.adventureComponentClass();
+        if (component == null || componentClass == null) {
+            return false;
+        }
+        try {
+            java.lang.reflect.Method method = objective.getClass().getMethod("displayName", componentClass);
+            method.invoke(objective, component);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private static void renderLines(Scoreboard board, Objective objective, List<String> lines) {
@@ -167,6 +233,33 @@ public final class ScoreboardRenderer {
         return values[index % 16].toString();
     }
 
+    /**
+     * Largest split point ≤ {@code max} that doesn't fall inside a legacy {@code §<code>}
+     * pair or a {@code §x§R§R§G§G§B§B} hex run (each treated as atomic, 2 and 14 chars).
+     */
+    private static int safeSplit(String text, int max) {
+        int i = 0;
+        int safe = 0;
+        int n = text.length();
+        while (i < n && i < max) {
+            char c = text.charAt(i);
+            if (c == ChatColor.COLOR_CHAR && i + 1 < n) {
+                char code = text.charAt(i + 1);
+                int unit = (code == 'x' || code == 'X') ? 14 : 2;
+                if (i + unit <= max) {
+                    i += unit;
+                    safe = i;
+                } else {
+                    break; // the code would straddle the boundary — split before it
+                }
+            } else {
+                i += 1;
+                safe = i;
+            }
+        }
+        return safe;
+    }
+
     private static void setTeamText(Scoreboard board, String teamName, String entry, String text) {
         Team team = ensureTeam(board, teamName);
         if (team == null) {
@@ -181,16 +274,22 @@ public final class ScoreboardRenderer {
             prefix = text;
             suffix = "";
         } else {
-            int split = 16;
-            if (text.charAt(15) == ChatColor.COLOR_CHAR) {
-                split = 15; // don't split in the middle of a color code
+            // Split on a boundary that never cuts a §-code pair or a §x§R§R§G§G§B§B hex run.
+            int split = safeSplit(text, 16);
+            if (split <= 0) {
+                split = Math.min(16, text.length());
             }
             prefix = text.substring(0, split);
             suffix = ChatColor.getLastColors(prefix) + text.substring(split);
         }
         try {
             team.setPrefix(prefix);
-        } catch (Throwable ignored) {
+        } catch (Throwable tooLong) {
+            // Pre-1.13 caps prefixes at 16 chars; truncate rather than silently dropping the line.
+            try {
+                team.setPrefix(prefix.substring(0, Math.min(16, prefix.length())));
+            } catch (Throwable ignored) {
+            }
         }
         try {
             team.setSuffix(suffix);
@@ -257,15 +356,6 @@ public final class ScoreboardRenderer {
         }
     }
 
-    private static void clearEntries(Team team) {
-        for (String entry : new HashSet<>(team.getEntries())) {
-            try {
-                team.removeEntry(entry);
-            } catch (Throwable ignored) {
-            }
-        }
-    }
-
     private static Team ensureTeam(Scoreboard board, String name) {
         Team team = board.getTeam(name);
         if (team == null) {
@@ -288,7 +378,9 @@ public final class ScoreboardRenderer {
         int percent = maxHealth <= 0 ? 0 : (int) Math.round(health / maxHealth * 100.0);
         placeholders.put("plugin", plugin.getDescription().getName());
         placeholders.put("player", player.getName());
-        placeholders.put("displayname", player.getDisplayName());
+        // Neutralize tags: a display name set by a nick/3rd-party plugin could otherwise inject
+        // MiniMessage (e.g. <click>/<hover>) into the sidebar via the Adventure render path.
+        placeholders.put("displayname", dev.zcripted.obx.util.text.MessageSanitizer.neutralizeTags(player.getDisplayName()));
         placeholders.put("world", player.getWorld() == null ? "" : player.getWorld().getName());
         placeholders.put("online", Integer.toString(server.getOnlinePlayers().size()));
         placeholders.put("max", Integer.toString(server.getMaxPlayers()));
@@ -300,7 +392,16 @@ public final class ScoreboardRenderer {
         placeholders.put("website", service.getServerWebsite());
         // Full economy balance with the configured currency symbol (e.g. "$1,250.00").
         dev.zcripted.obx.api.economy.EconomyService economy = plugin.getEconomyService();
-        String balance = economy == null ? "0" : economy.format(economy.getBalance(player.getUniqueId()));
+        String balance;
+        if (economy == null) {
+            balance = "0";
+        } else if (plugin.getDataStore() != null && !plugin.getDataStore().isAvailable()) {
+            // Never render a misleading "$0.00" when the data store is down — that reads as a wipe to
+            // players. Show a neutral "unavailable" marker until the store recovers.
+            balance = economy.getCurrencySymbol() + "—";
+        } else {
+            balance = economy.format(economy.getBalance(player.getUniqueId()));
+        }
         placeholders.put("balance", balance);
         placeholders.put("bank", balance);
         return placeholders;
@@ -376,20 +477,17 @@ public final class ScoreboardRenderer {
      * board. Color codes count as zero width.
      */
     private static void substituteDividers(List<String> lines) {
-        int maxWidth = 0;
+        int maxPixels = 0;
         for (String line : lines) {
             if (line == null || line.contains(DIVIDER_SENTINEL)) {
                 continue;
             }
-            int width = visibleLength(line);
-            if (width > maxWidth) {
-                maxWidth = width;
+            int width = visiblePixels(line);
+            if (width > maxPixels) {
+                maxPixels = width;
             }
         }
-        if (maxWidth < DIVIDER_MIN_SPACES) {
-            maxWidth = DIVIDER_MIN_SPACES;
-        }
-        String divider = buildDivider(maxWidth);
+        String divider = buildDivider(maxPixels);
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line != null && line.contains(DIVIDER_SENTINEL)) {
@@ -403,13 +501,58 @@ public final class ScoreboardRenderer {
      * spaces. Each color/format token contributes 0 visible chars, so the
      * resulting line renders as a strikethrough bar exactly {@code width} wide.
      */
-    private static String buildDivider(int width) {
-        StringBuilder builder = new StringBuilder(4 + width);
+    private static String buildDivider(int pixelWidth) {
+        // Minecraft's font is PROPORTIONAL, so a divider of N spaces (each ~4px wide with the
+        // strikethrough line drawn across it) must be sized by PIXEL width, not character count —
+        // otherwise a space-count divider is far too short for a letter-heavy line. Floor the
+        // division so the divider never widens the sidebar past the longest content line.
+        int spaces = Math.max(DIVIDER_MIN_SPACES, pixelWidth / SPACE_PIXELS);
+        StringBuilder builder = new StringBuilder(4 + spaces);
         builder.append(ChatColor.DARK_GRAY).append(ChatColor.STRIKETHROUGH);
-        for (int i = 0; i < width; i++) {
+        for (int i = 0; i < spaces; i++) {
             builder.append(' ');
         }
         return builder.toString();
+    }
+
+    /** Advance width (px) of a strikethrough space in Minecraft's default font. */
+    private static final int SPACE_PIXELS = 4;
+
+    /**
+     * Visible PIXEL width of a legacy-colored string in Minecraft's default (proportional) font.
+     * Color/format {@code §X} pairs contribute 0; everything else uses its glyph advance width.
+     */
+    private static int visiblePixels(String s) {
+        if (s == null || s.isEmpty()) {
+            return 0;
+        }
+        int width = 0;
+        int i = 0;
+        while (i < s.length()) {
+            char c = s.charAt(i);
+            if (c == ChatColor.COLOR_CHAR && i + 1 < s.length()) {
+                i += 2;
+                continue;
+            }
+            width += charPixels(c);
+            i++;
+        }
+        return width;
+    }
+
+    /** Approximate default-font advance width (px) for one character. */
+    private static int charPixels(char c) {
+        switch (c) {
+            case ' ': return 4;
+            case '!': case ',': case '.': case ':': case ';': case 'i': case '|': return 2;
+            case '\'': case 'l': case '`': return 3;
+            case 'I': case 't': case '[': case ']': case '"': case '{': case '}': return 4;
+            case '(': case ')': case '<': case '>': case '*': case 'f': case 'k': return 5;
+            case '@': case '~': return 7;
+            default:
+                if (c > 0x7F) return 8; // hearts ❤ ♡ and other wide glyphs (approximate)
+                return 6;
+        }
     }
 
     /**

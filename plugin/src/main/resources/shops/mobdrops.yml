@@ -1,0 +1,46 @@
+# OBX Shop — Mob Drops. buy = per bundle, sell = PER UNIT; 0 disables.
+# Unknown materials are skipped per server version (1.8.8 → latest).
+# Optional stock: N caps units buyable per restock window (restock-minutes in shop.yml); omit = unlimited.
+title: "&5Shop &8› &cMob Drops"
+items:
+  # ── 1.8.8 baseline ─────────────────────────────────────────────────────────
+  - {material: ROTTEN_FLESH, amount: 16, buy: 0, sell: 0.05}
+  - {material: BONE, amount: 16, buy: 4.00, sell: 0.15}
+  - {material: STRING, amount: 16, buy: 4.00, sell: 0.15}
+  - {material: SPIDER_EYE, amount: 8, buy: 4.00, sell: 0.25}
+  - {material: GUNPOWDER, amount: 8, buy: 8.00, sell: 0.60}
+  - {material: ENDER_PEARL, amount: 4, buy: 16.00, sell: 2.00}
+  - {material: BLAZE_ROD, amount: 4, buy: 20.00, sell: 2.50}
+  - {material: GHAST_TEAR, amount: 1, buy: 20.00, sell: 6.00}
+  - {material: SLIME_BALL, amount: 8, buy: 8.00, sell: 0.60}
+  - {material: MAGMA_CREAM, amount: 8, buy: 10.00, sell: 0.80}
+  - {material: FEATHER, amount: 16, buy: 3.00, sell: 0.10}
+  - {material: LEATHER, amount: 8, buy: 8.00, sell: 0.60}
+  - {material: RABBIT_HIDE, amount: 8, buy: 4.00, sell: 0.25}
+  - {material: RABBIT_FOOT, amount: 1, buy: 15.00, sell: 4.00}
+  - {material: BEEF, amount: 8, buy: 0, sell: 0.45}
+  - {material: PORKCHOP, amount: 8, buy: 0, sell: 0.45}
+  - {material: CHICKEN, amount: 8, buy: 0, sell: 0.35}
+  - {material: MUTTON, amount: 8, buy: 0, sell: 0.35}
+  - {material: RABBIT, amount: 8, buy: 0, sell: 0.35}
+  # ── 1.8.8 legacy names (skipped on 1.13+) ──────────────────────────────────
+  - {material: SULPHUR, amount: 8, buy: 8.00, sell: 0.60}
+  - {material: PORK, amount: 8, buy: 0, sell: 0.45}
+  - {material: RAW_BEEF, amount: 8, buy: 0, sell: 0.45}
+  - {material: RAW_CHICKEN, amount: 8, buy: 0, sell: 0.35}
+  # ── 1.9 – 1.12 ─────────────────────────────────────────────────────────────
+  - {material: SHULKER_SHELL, amount: 1, buy: 60.00, sell: 20.00}
+  - {material: PRISMARINE_SHARD, amount: 8, buy: 6.00, sell: 0.50}
+  - {material: PRISMARINE_CRYSTALS, amount: 8, buy: 8.00, sell: 0.70}
+  - {material: DRAGON_BREATH, amount: 1, buy: 0, sell: 15.00}
+  # ── 1.13+ ──────────────────────────────────────────────────────────────────
+  - {material: PHANTOM_MEMBRANE, amount: 4, buy: 12.00, sell: 1.50}
+  - {material: NAUTILUS_SHELL, amount: 1, buy: 30.00, sell: 10.00}
+  - {material: SCUTE, amount: 4, buy: 16.00, sell: 2.50}
+  # ── 1.17+ ──────────────────────────────────────────────────────────────────
+  - {material: GLOW_INK_SAC, amount: 8, buy: 8.00, sell: 0.70}
+  - {material: INK_SAC, amount: 8, buy: 4.00, sell: 0.25}
+  # ── 1.21+ (SCUTE became TURTLE_SCUTE; armadillos arrived) ──────────────────
+  - {material: TURTLE_SCUTE, amount: 4, buy: 16.00, sell: 2.50}
+  - {material: ARMADILLO_SCUTE, amount: 4, buy: 12.00, sell: 1.80}
+  - {material: BREEZE_ROD, amount: 4, buy: 24.00, sell: 3.00}

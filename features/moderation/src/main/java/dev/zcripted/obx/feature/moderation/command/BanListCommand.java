@@ -29,12 +29,13 @@ public class BanListCommand extends AbstractObxCommand {
         }
 
         List<ModerationService.BanView> activeBans = moderationService.getActiveBans();
-        sender.sendMessage(" ");
-        sender.sendMessage(languages.get(sender, "core.divider"));
-        languages.send(sender, "player.moderation.banlist.header", Placeholders.with("count", activeBans.size()));
+        Map<String, String> meta = Placeholders.with("count", activeBans.size());
+        for (String line : languages.list(sender, "player.moderation.banlist.header", meta)) {
+            sender.sendMessage(line);
+        }
         if (activeBans.isEmpty()) {
             languages.send(sender, "player.moderation.banlist.none");
-            sender.sendMessage(languages.get(sender, "core.divider"));
+            sender.sendMessage("");
             return true;
         }
 
@@ -48,7 +49,9 @@ public class BanListCommand extends AbstractObxCommand {
                     : moderationService.formatDate(ban.getExpiresAt()));
             languages.send(sender, "player.moderation.banlist.entry", placeholders);
         }
-        sender.sendMessage(languages.get(sender, "core.divider"));
+        for (String line : languages.list(sender, "player.moderation.banlist.footer", meta)) {
+            sender.sendMessage(line);
+        }
         return true;
     }
 }

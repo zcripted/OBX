@@ -35,5 +35,7 @@ public final class WorldModule extends AbstractModule {
         command("pweather", new PWeatherCommand(plugin));
         listener(new RedstoneControlListener());
         listener(new JoinLockListener(plugin.getLanguageManager()));
+        // Cancel the legacy time-freeze fallback task on disable so it can't leak across a reload.
+        onDisable(dev.zcripted.obx.feature.world.service.DaylightCycleFallback::shutdown);
     }
 }

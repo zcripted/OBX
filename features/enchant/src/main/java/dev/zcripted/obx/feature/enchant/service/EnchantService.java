@@ -89,6 +89,10 @@ public final class EnchantService {
         mysticInPvp = config.getBoolean("pvp.mystic_in_pvp", true);
         styleVanilla = config.getBoolean("lore.style_vanilla_enchants", true);
         storage.setStyleVanilla(styleVanilla);
+        // Anti-forge: stamp/verify an invisible HMAC signature on enchanted gear. Default
+        // trusts unsigned lore (back-compat); owners flip this to false for strict enforcement.
+        boolean trustUnsignedLore = config.getBoolean("security.trust_unsigned_lore", true);
+        storage.setSecurity(trustUnsignedLore, loadOrCreateSigningSecret());
         combatSettings = new CombatSettings(config.getConfigurationSection("combat_global"));
 
         registry.load();
@@ -99,6 +103,45 @@ public final class EnchantService {
 
     public void reload() {
         load();
+    }
+
+    /**
+     * Returns the server-local HMAC secret used to sign enchanted gear, generating and
+     * persisting a fresh random key on first run. Kept in a separate {@code enchant-signing.key}
+     * file (not the shared config) so it isn't casually copied between servers — a server's
+     * signatures only validate on that server. An unreadable/unwritable key fails open
+     * (returns "" → signing disabled) rather than bricking enchant reads.
+     */
+    private String loadOrCreateSigningSecret() {
+        try {
+            File keyFile = new File(plugin.getDataFolder(), "enchant-signing.key");
+            if (keyFile.isFile()) {
+                String existing = new String(java.nio.file.Files.readAllBytes(keyFile.toPath()),
+                        java.nio.charset.StandardCharsets.UTF_8).trim();
+                if (!existing.isEmpty()) {
+                    return existing;
+                }
+            }
+            File parent = keyFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+            byte[] raw = new byte[32];
+            new java.security.SecureRandom().nextBytes(raw);
+            StringBuilder hex = new StringBuilder(raw.length * 2);
+            for (byte b : raw) {
+                hex.append(Character.forDigit((b >> 4) & 0xF, 16));
+                hex.append(Character.forDigit(b & 0xF, 16));
+            }
+            String secret = hex.toString();
+            java.nio.file.Files.write(keyFile.toPath(),
+                    secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return secret;
+        } catch (Throwable failure) {
+            plugin.getLogger().warning("Could not load/create enchant signing key (anti-forge signing disabled): "
+                    + failure.getMessage());
+            return "";
+        }
     }
 
     private void buildConflicts(ConfigurationSection groups) {

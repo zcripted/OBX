@@ -1,95 +1,35 @@
 package dev.zcripted.obx;
 
-import dev.zcripted.obx.feature.playerstate.command.KillCommand;
 import dev.zcripted.obx.core.command.PluginListCommand;
 import dev.zcripted.obx.core.diagnostics.TpsCommand;
 import dev.zcripted.obx.core.command.HelpGuiCommand;
-import dev.zcripted.obx.core.command.ListCommand;
 import dev.zcripted.obx.core.command.ObxCommand;
-import dev.zcripted.obx.feature.teleport.command.BackCommand;
-import dev.zcripted.obx.feature.teleport.command.DelHomeCommand;
-import dev.zcripted.obx.feature.teleport.command.HomeCommand;
-import dev.zcripted.obx.feature.teleport.command.HomesCommand;
-import dev.zcripted.obx.feature.hub.command.HubCommand;
-import dev.zcripted.obx.feature.teleport.command.SetHomeCommand;
-import dev.zcripted.obx.feature.teleport.command.SpawnCommand;
-import dev.zcripted.obx.feature.teleport.command.TopCommand;
-import dev.zcripted.obx.feature.warp.command.WarpCommand;
 import dev.zcripted.obx.feature.hub.service.HubService;
 import dev.zcripted.obx.api.hub.HubKitApplier;
 import dev.zcripted.obx.feature.hub.launchpad.LaunchpadCooldownManager;
 import dev.zcripted.obx.feature.hub.messaging.BungeeMessenger;
-import dev.zcripted.obx.feature.enchant.command.EnchantsBrowseCommand;
-import dev.zcripted.obx.feature.enchant.command.RecallCommand;
-import dev.zcripted.obx.feature.enchant.command.SatchelCommand;
-import dev.zcripted.obx.feature.enchant.command.ObxEnchantCommand;
-import dev.zcripted.obx.feature.enchant.effect.BoundMovement;
-import dev.zcripted.obx.feature.enchant.effect.EnchantState;
-import dev.zcripted.obx.feature.enchant.effect.EnchantTickTask;
 import dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu;
-import dev.zcripted.obx.feature.enchant.gui.EnchantMenuListener;
 import dev.zcripted.obx.feature.enchant.item.EnchantItems;
-import dev.zcripted.obx.feature.enchant.listener.CombatEnchantListener;
-import dev.zcripted.obx.feature.enchant.listener.CursedEnchantListener;
-import dev.zcripted.obx.feature.enchant.listener.DefenseEnchantListener;
-import dev.zcripted.obx.feature.enchant.listener.FarmingEnchantListener;
-import dev.zcripted.obx.feature.enchant.listener.MovementEnchantListener;
-import dev.zcripted.obx.feature.enchant.listener.ToolEnchantListener;
-import dev.zcripted.obx.feature.enchant.listener.UtilityEnchantListener;
 import dev.zcripted.obx.feature.enchant.loot.EnchantLoot;
-import dev.zcripted.obx.feature.enchant.scroll.AnvilEnchantListener;
-import dev.zcripted.obx.feature.enchant.scroll.ScrollApplyService;
-import dev.zcripted.obx.feature.enchant.scroll.ScrollDragListener;
 import dev.zcripted.obx.feature.enchant.service.EnchantFeedback;
 import dev.zcripted.obx.feature.enchant.service.EnchantService;
-import dev.zcripted.obx.feature.hub.listener.HubFallDamageListener;
-import dev.zcripted.obx.feature.hub.listener.HubFishingListener;
-import dev.zcripted.obx.feature.hub.listener.HubItemProtectionListener;
 import dev.zcripted.obx.api.hub.HubItemUseListener;
-import dev.zcripted.obx.feature.hub.listener.HubJoinListener;
-import dev.zcripted.obx.feature.hub.listener.HubLaunchpadListener;
-import dev.zcripted.obx.feature.hub.gui.ServerSelectorListener;
 import dev.zcripted.obx.core.language.LanguageCommand;
-import dev.zcripted.obx.feature.item.command.AnvilCommand;
-import dev.zcripted.obx.feature.item.command.CraftCommand;
-import dev.zcripted.obx.feature.item.command.EnchantCommand;
-import dev.zcripted.obx.feature.playerstate.command.FeedCommand;
-import dev.zcripted.obx.feature.playerstate.command.GamemodeCommand;
-import dev.zcripted.obx.feature.playerstate.command.GodCommand;
-import dev.zcripted.obx.feature.playerstate.command.HealCommand;
-import dev.zcripted.obx.feature.item.command.MapCommand;
-import dev.zcripted.obx.feature.item.command.ResearchCommand;
-import dev.zcripted.obx.feature.item.command.SmithCommand;
-import dev.zcripted.obx.feature.item.command.VirtualStationCommand;
-import dev.zcripted.obx.feature.playerstate.command.VitalCommand;
-import dev.zcripted.obx.feature.staff.command.InvSeeCommand;
-import dev.zcripted.obx.feature.staff.command.VanishCommand;
 import dev.zcripted.obx.feature.chat.ChatModule;
 import dev.zcripted.obx.api.chat.ChatService;
 import dev.zcripted.obx.feature.nickname.NicknameModule;
 import dev.zcripted.obx.feature.kit.KitModule;
 import dev.zcripted.obx.feature.jail.JailModule;
 import dev.zcripted.obx.feature.moderation.ModerationModule;
-import dev.zcripted.obx.feature.tablist.listener.TablistJoinListener;
-import dev.zcripted.obx.feature.tablist.scheduler.TablistRefreshTask;
 import dev.zcripted.obx.api.tablist.TablistService;
-import dev.zcripted.obx.feature.scoreboard.listener.ScoreboardJoinListener;
-import dev.zcripted.obx.feature.scoreboard.scheduler.ScoreboardRefreshTask;
 import dev.zcripted.obx.api.scoreboard.ScoreboardService;
 import dev.zcripted.obx.feature.scoreboard.ScoreboardModule;
 import dev.zcripted.obx.feature.tablist.TablistModule;
 import dev.zcripted.obx.feature.economy.EconomyModule;
-import dev.zcripted.obx.feature.warp.gui.WarpMenuInputListener;
-import dev.zcripted.obx.feature.teleport.listener.BackListener;
 import dev.zcripted.obx.core.command.CommandOverrideListener;
-import dev.zcripted.obx.feature.world.listener.JoinLockListener;
-import dev.zcripted.obx.feature.playerinfo.listener.JoinListener;
-import dev.zcripted.obx.feature.playerinfo.listener.JoinLeaveListener;
 import dev.zcripted.obx.core.gui.help.HelpGuiListener;
 import dev.zcripted.obx.core.gui.main.MainMenuListener;
-import dev.zcripted.obx.feature.warp.gui.WarpMenuListener;
 import dev.zcripted.obx.core.motd.MotdPingListener;
-import dev.zcripted.obx.feature.world.listener.RedstoneControlListener;
 import dev.zcripted.obx.core.platform.PlatformInfo;
 import dev.zcripted.obx.core.platform.resourcepack.AutoResourcePackManager;
 import dev.zcripted.obx.core.platform.resourcepack.ResourcePackListener;
@@ -136,6 +76,7 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
     private AutoResourcePackManager resourcePackManager;
     private TpsService tpsService;
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
+    private dev.zcripted.obx.util.update.UpdateNotificationService updateNotificationService;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
     private String releaseDate = "Unknown";
@@ -175,6 +116,13 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         resourcePackManager.prepareHosting();
         tpsService = new TpsService(this);
 
+        // Update notifications: registered before commands bind so ObxCommand can resolve the
+        // shared instance; started after listeners so the startup-check result and any periodic
+        // announces find a fully wired plugin. Holders of obx.updates.notify are notified by
+        // default; /obx updates notify records a persisted opt-out.
+        updateNotificationService = new dev.zcripted.obx.util.update.UpdateNotificationService(this);
+        serviceRegistry.register(dev.zcripted.obx.util.update.UpdateNotificationService.class, updateNotificationService);
+
         registerModules();
         moduleManager.enableAll();
 
@@ -182,6 +130,7 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         registerListeners();
 
         tpsService.start();
+        updateNotificationService.start();
 
         lastLoadDurationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - enableStart);
         printBanner(true);
@@ -189,12 +138,24 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
 
     @Override
     public void onDisable() {
+        // Switch the store to inline writes BEFORE anything saves: the server cancels the
+        // plugin's async pool on stop, so module/per-player final writes must run sync.
+        if (dataStore != null) {
+            dataStore.beginShutdown();
+        }
         moduleManager.disableAll();
+        if (updateNotificationService != null) {
+            updateNotificationService.stop();
+        }
         if (tpsService != null) {
             tpsService.stop();
         }
         if (dataService != null) {
             dataService.save();
+        }
+        // Checkpoint the WAL and close the connection so nothing is left only in obx.db-wal.
+        if (dataStore != null) {
+            dataStore.close();
         }
         printBanner(false);
     }
@@ -417,6 +378,10 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
             times.put("resource-pack", System.nanoTime() - s);
         }
         s = System.nanoTime(); moduleManager.reloadAll(); times.put("modules", System.nanoTime() - s);
+        if (updateNotificationService != null) {
+            // Re-reads updates.check-interval-minutes and reschedules the periodic check.
+            s = System.nanoTime(); updateNotificationService.reload(); times.put("update-checker", System.nanoTime() - s);
+        }
         return times;
     }
 
@@ -448,15 +413,20 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         moduleManager.register(new dev.zcripted.obx.feature.hub.HubModule());
         moduleManager.register(new dev.zcripted.obx.feature.enchant.EnchantModule());
         moduleManager.register(new dev.zcripted.obx.feature.hologram.HologramModule());
+        moduleManager.register(new dev.zcripted.obx.feature.deathdrop.DeathDropModule());
+        moduleManager.register(new dev.zcripted.obx.feature.backpack.BackpackModule());
     }
 
     private void registerCommands() {
         bind("obx", new ObxCommand(this, languageManager));
         bind("help", new HelpGuiCommand(this));
         bind("tps", new TpsCommand(this));
+        bind("health", new dev.zcripted.obx.core.diagnostics.HealthCommand(this));
         bind("pl", new PluginListCommand(this));
+        bind("preview", new dev.zcripted.obx.core.command.PreviewCommand(this));
         bind("language", new LanguageCommand(this));
         bind("sprache", new LanguageCommand(this));
+        bind("idioma", new LanguageCommand(this));
     }
 
     private void registerListeners() {
@@ -503,9 +473,10 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
 
     private static final PrintWriter DIRECT_CONSOLE = createDirectConsole();
     private static final Map<Character, String> ANSI_CODES = createAnsiMap();
-    // OBX obsidian palette: deep violet (#2A0A45) -> magenta fleck (#6A1B9A). "Forged from Obsidian."
-    private static final int[] GRADIENT_START = {42, 10, 69};
-    private static final int[] GRADIENT_END = {106, 27, 154};
+    // OBX logo palette — purple -> magenta gradient (#b794f6 -> #e879f9): the "obsidian"
+    // identity used to tint the ASCII wordmark in the enable/disable banner.
+    private static final int[] GRADIENT_START = {183, 148, 246};
+    private static final int[] GRADIENT_END = {232, 121, 249};
 
     private void printBanner(boolean starting) {
         for (String line : buildBannerLines(starting)) {
@@ -536,32 +507,219 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         }
     }
 
+    /**
+     * Builds the styled enable/disable console banner: the purple→magenta gradient OBX
+     * block wordmark (Unicode █ glyphs with a dimmed box-drawing shadow ╔ ═ ║ ╚ ╝ ╗) with
+     * an aligned info column (bold near-white name + light-purple version, italic gray
+     * tagline, author, environment line with gray labels / white values and {@code ·}
+     * separators), then — on enable — soft-dependency &amp; storage status markers
+     * (green {@code ✔} found · amber {@code ⚠} optional missing · red {@code ✗} required
+     * missing) and the teal Docs/Support rows with light-blue URLs. Dividers are
+     * dark-gray {@code ═} rules. The disable banner is the wordmark block only.
+     */
     private List<String> buildBannerLines(boolean starting) {
-        String divider = ChatColor.DARK_PURPLE.toString() + ChatColor.STRIKETHROUGH + "----------------------------------------------------";
-        String pluginName = getDescription().getName();
+        // console.banner-style gate: "compact" → two-line summary; anything else → full
+        // block banner. Read from the live config at PRINT time, so editing config.yml and
+        // running /obx reload applies the new style to the next banner (e.g. the disable
+        // banner on stop, and the enable banner on the following start).
+        String style = getConfig().getString("console.banner-style", "full");
+        if (style != null && style.trim().equalsIgnoreCase("compact")) {
+            return buildCompactBannerLines(starting);
+        }
+        String divider = ChatColor.DARK_GRAY + "══════════════════════════════════════════════════";
         List<String> authors = getDescription().getAuthors();
         String developer = authors == null || authors.isEmpty() ? "Unknown" : String.join(", ", authors);
         String version = getDescription().getVersion();
-        String release = releaseDate != null ? releaseDate : "Unknown";
-        String builtByBit = getLinkOrDefault("links.builtbybit", "https://builtbybit.com/resources/OBX");
-        String wiki = getLinkOrDefault("links.wiki", "https://github.com/zcripted/OBX");
-        String discord = getLinkOrDefault("links.discord", "https://discord.gg/zcripted");
-        String loadTime = formatLoadDuration(lastLoadDurationMs);
+
+        // 6-line OBX wordmark in Unicode block/box-drawing characters (ANSI-shadow style),
+        // space-padded to one width so the info column lines up. █ glyphs carry the full
+        // gradient; the box-drawing outline renders as a dimmed shadow of the same hue.
+        String[] art = {
+                " ██████╗ ██████╗ ██╗  ██╗",
+                "██╔═══██╗██╔══██╗╚██╗██╔╝",
+                "██║   ██║██████╔╝ ╚███╔╝ ",
+                "██║   ██║██╔══██╗ ██╔██╗ ",
+                "╚██████╔╝██████╔╝██╔╝ ██╗",
+                " ╚═════╝ ╚═════╝ ╚═╝  ╚═╝"
+        };
+
+        String name = "\u001B[1m" + ansiRgb(245, 245, 245) + "OBSIDIAN EXTENDED" + ChatColor.RESET
+                + "  " + ansiRgb(199, 125, 255) + "v" + version;
+        String tagline = "" + ChatColor.GRAY + ChatColor.ITALIC + "Forged from Obsidian";
+        String author = ChatColor.GRAY + "by " + ChatColor.WHITE + developer;
+        String platform = platformInfo == null ? "Unknown" : platformInfo.getServerName();
+        String mcVersion = platformInfo == null ? "?" : platformInfo.getMinecraftVersion();
+        String javaVersion = System.getProperty("java.specification.version", "?");
+        String state = starting
+                ? ChatColor.GRAY + "enabled in " + ChatColor.WHITE + formatLoadDuration(lastLoadDurationMs)
+                : "" + ChatColor.RED + "disabling…";
+        String environment = ChatColor.GRAY + platform + " " + ChatColor.WHITE + mcVersion
+                + ChatColor.DARK_GRAY + " · " + ChatColor.GRAY + "Java " + ChatColor.WHITE + javaVersion
+                + ChatColor.DARK_GRAY + " · " + state;
 
         List<String> lines = new ArrayList<>();
         lines.add(" ");
+        lines.add(gradientArt(art[0], ""));
+        lines.add(gradientArt(art[1], "   " + name));
+        lines.add(gradientArt(art[2], "   " + tagline));
+        lines.add(gradientArt(art[3], "   " + author));
+        lines.add(gradientArt(art[4], "   " + environment));
+        lines.add(gradientArt(art[5], ""));
         lines.add(divider);
-        lines.add(gradient(" OBX", starting ? ChatColor.GREEN + ": Enabled" : ChatColor.RED + ": Disabling..."));
-        lines.add(gradient(" Obsidian eXtended", ChatColor.DARK_GRAY + " — " + ChatColor.GRAY + "Forged from Obsidian."));
-        lines.add(gradient(" Developer:", " " + ChatColor.YELLOW + developer));
-        lines.add(gradient(" Version:", " " + ChatColor.YELLOW + version + ChatColor.DARK_PURPLE + " (Released " + release + ")"));
-        lines.add(gradient(" Load Time:", " " + ChatColor.YELLOW + loadTime));
-        lines.add(gradient(" BuiltByBit:", " " + ChatColor.LIGHT_PURPLE + builtByBit));
-        lines.add(gradient(" Wiki:", " " + ChatColor.LIGHT_PURPLE + wiki));
-        lines.add(gradient(" Discord:", " " + ChatColor.LIGHT_PURPLE + discord));
-        lines.add(divider);
+        if (starting) {
+            // Hook + storage status row(s). The hologram count only renders while the
+            // hologram service is registered (it's gone by the time the disable banner prints).
+            lines.add(" " + hookLabel("PlaceholderAPI") + "   " + hookLabel("Vault")
+                    + "   " + hookLabel("ProtocolLib"));
+            StringBuilder storageRow = new StringBuilder(" ").append(storageStatus());
+            int holograms = hologramCount();
+            if (holograms >= 0) {
+                storageRow.append("   ").append("§a✔ §fLoaded §d").append(holograms)
+                        .append(" §fhologram").append(holograms == 1 ? "" : "s");
+            }
+            lines.add(storageRow.toString());
+            lines.add(divider);
+            String wiki = getLinkOrDefault("links.wiki", "https://github.com/zcripted/OBX");
+            String discord = getLinkOrDefault("links.discord", "https://discord.gg/UxktSyT9Ag");
+            // OSC 8 hyperlinks: the rows display the clean scheme-less text but CLICK
+            // through to the full URL on terminals that support it.
+            lines.add(ChatColor.DARK_AQUA + " Docs     " + ChatColor.AQUA + hyperlink(wiki, stripScheme(wiki)));
+            lines.add(ChatColor.DARK_AQUA + " Support  " + ChatColor.AQUA + hyperlink(discord, stripScheme(discord)));
+        }
         lines.add(" ");
         return lines;
+    }
+
+    /**
+     * Compact banner ({@code console.banner-style: compact}): a gradient OBX word with the
+     * same live values as the full banner — version, platform + MC version, Java version,
+     * measured load time — plus one status line with the real hook/storage/hologram checks.
+     */
+    private List<String> buildCompactBannerLines(boolean starting) {
+        String version = getDescription().getVersion();
+        String platform = platformInfo == null ? "Unknown" : platformInfo.getServerName();
+        String mcVersion = platformInfo == null ? "?" : platformInfo.getMinecraftVersion();
+        String javaVersion = System.getProperty("java.specification.version", "?");
+        String dot = ChatColor.DARK_GRAY + " · ";
+        String state = starting
+                ? ChatColor.GRAY + "enabled in " + ChatColor.WHITE + formatLoadDuration(lastLoadDurationMs)
+                : "" + ChatColor.RED + "disabling…";
+        List<String> lines = new ArrayList<>();
+        lines.add(" ");
+        lines.add(" " + gradientText("OBX") + " " + ansiRgb(199, 125, 255) + "v" + version + dot
+                + ChatColor.GRAY + platform + " " + ChatColor.WHITE + mcVersion + dot
+                + ChatColor.GRAY + "Java " + ChatColor.WHITE + javaVersion + dot + state);
+        if (starting) {
+            StringBuilder status = new StringBuilder(" ")
+                    .append(hookLabel("PlaceholderAPI")).append(dot)
+                    .append(hookLabel("Vault")).append(dot)
+                    .append(hookLabel("ProtocolLib")).append(dot)
+                    .append(storageStatus());
+            int holograms = hologramCount();
+            if (holograms >= 0) {
+                status.append(dot).append("§a✔ §f").append(holograms)
+                        .append(" hologram").append(holograms == 1 ? "" : "s");
+            }
+            lines.add(status.toString());
+        }
+        lines.add(" ");
+        return lines;
+    }
+
+    /**
+     * Three-state soft-dependency marker, reflection-probed live at print time:
+     * <ul>
+     *   <li>green {@code ✔} — plugin enabled AND its integration point is actually usable
+     *       (Vault: an Economy provider is registered with the services manager;
+     *       PlaceholderAPI / ProtocolLib: the API class resolves);</li>
+     *   <li>amber {@code ⚠ (note)} — plugin installed but the integration is NOT usable
+     *       (failed to enable · no economy provider · api unreachable);</li>
+     *   <li>amber {@code ⚠ (optional)} — plugin not installed.</li>
+     * </ul>
+     * plugin.yml declares these as {@code softdepend}, so OBX enables after them — by
+     * banner time their enable state and service registrations are final, not racing.
+     */
+    private String hookLabel(String pluginName) {
+        org.bukkit.plugin.Plugin hook = getServer().getPluginManager().getPlugin(pluginName);
+        if (hook == null) {
+            return "§e⚠ §7" + pluginName + " §8(optional)";
+        }
+        String problem = hookProblem(pluginName, hook);
+        if (problem == null) {
+            return "§a✔ §f" + pluginName;
+        }
+        return "§e⚠ §7" + pluginName + " §8(" + problem + ")";
+    }
+
+    /**
+     * Reflection-based functional probe for one hook (OBX never compiles against these
+     * plugins): returns a short problem note, or {@code null} when the integration is
+     * actually usable right now.
+     */
+    private String hookProblem(String pluginName, org.bukkit.plugin.Plugin hook) {
+        if (!hook.isEnabled()) {
+            // Loaded but not running — with softdepend in place this means it FAILED to
+            // enable, not that it simply hasn't been reached yet.
+            return "failed to enable";
+        }
+        try {
+            if ("Vault".equals(pluginName)) {
+                // Usable = an Economy provider is registered with the services manager
+                // (normally OBX's own VaultEconomyProvider, registered during enable).
+                Class<?> economy = Class.forName("net.milkbowl.vault.economy.Economy");
+                return getServer().getServicesManager().getRegistration(economy) == null
+                        ? "no economy provider" : null;
+            }
+            if ("PlaceholderAPI".equals(pluginName)) {
+                Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+                return null;
+            }
+            if ("ProtocolLib".equals(pluginName)) {
+                Class.forName("com.comphenix.protocol.ProtocolLibrary");
+                return null;
+            }
+            // Unknown hook name: enabled is the best signal available.
+            return null;
+        } catch (Throwable apiUnreachable) {
+            return "api unreachable";
+        }
+    }
+
+    /** SQLite store status — red ✗ when unavailable (the one dependency OBX truly requires). */
+    private String storageStatus() {
+        boolean available = dataStore != null && dataStore.isAvailable();
+        if (available) {
+            return "§a✔ §fStorage §dSQLite";
+        }
+        return "§c✗ §7Storage SQLite §8(unavailable)";
+    }
+
+    /** Loaded hologram count, or {@code -1} when the hologram service isn't up. */
+    private int hologramCount() {
+        try {
+            dev.zcripted.obx.feature.hologram.service.HologramService holograms = getHologramService();
+            return holograms == null || holograms.getRegistry() == null ? -1 : holograms.getRegistry().size();
+        } catch (Throwable unavailable) {
+            return -1;
+        }
+    }
+
+    /** {@code https://github.com/x} → {@code github.com/x} for the banner's link rows. */
+    private static String stripScheme(String url) {
+        return url == null ? "" : url.replaceFirst("^https?://(www\\.)?", "");
+    }
+
+    /**
+     * Wraps {@code text} in an OSC 8 terminal hyperlink ({@code ESC ] 8 ; ; url ESC \}) so it
+     * is clickable in consoles that support it — Windows Terminal, iTerm2, and most modern
+     * emulators / hosting web consoles. Terminals without support consume the escape sequence
+     * and render just the text. Only emitted on the direct-stdout path; {@link #stripAnsi}
+     * removes the wrapper for the plain-logger fallback.
+     */
+    private static String hyperlink(String url, String text) {
+        char esc = (char) 27;
+        String terminator = "" + esc + '\\';
+        return esc + "]8;;" + url + terminator + text + esc + "]8;;" + terminator;
     }
 
     private String formatLoadDuration(long millis) {
@@ -577,7 +735,13 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         return value;
     }
 
-    private String gradient(String label, String suffix) {
+    /**
+     * Tints one wordmark row with the horizontal logo gradient and appends {@code suffix}
+     * (the aligned info column) after a color reset. Solid █ glyphs get the full gradient
+     * color for their column; every other glyph (the ╔ ═ ║ ╚ ╝ ╗ outline) gets the same
+     * hue dimmed to ~55% so the wordmark reads with a shadowed, two-tone depth.
+     */
+    private String gradientArt(String label, String suffix) {
         StringBuilder builder = new StringBuilder();
         int len = label.length();
         for (int i = 0; i < len; i++) {
@@ -587,17 +751,34 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
                 continue;
             }
             double ratio = len <= 1 ? 0 : (double) i / (len - 1);
-            builder.append(ansiForRatio(ratio)).append(c);
+            builder.append(ansiForRatio(ratio, c == '█' ? 1.0 : 0.55)).append(c);
         }
         return builder.append(ChatColor.RESET).append(suffix).toString();
     }
 
-    private String ansiForRatio(double ratio) {
+    /** Tints plain text with the full-brightness logo gradient (compact banner wordmark). */
+    private String gradientText(String label) {
+        StringBuilder builder = new StringBuilder();
+        int len = label.length();
+        for (int i = 0; i < len; i++) {
+            double ratio = len <= 1 ? 0 : (double) i / (len - 1);
+            builder.append(ansiForRatio(ratio, 1.0)).append(label.charAt(i));
+        }
+        return builder.append(ChatColor.RESET).toString();
+    }
+
+    /** Gradient color at {@code ratio} (0..1 across the wordmark), scaled by {@code brightness}. */
+    private String ansiForRatio(double ratio, double brightness) {
         ratio = Math.max(0, Math.min(1, ratio));
-        int r = (int) Math.round(GRADIENT_START[0] + (GRADIENT_END[0] - GRADIENT_START[0]) * ratio);
-        int g = (int) Math.round(GRADIENT_START[1] + (GRADIENT_END[1] - GRADIENT_START[1]) * ratio);
-        int b = (int) Math.round(GRADIENT_START[2] + (GRADIENT_END[2] - GRADIENT_START[2]) * ratio);
-        return "\u001B[38;2;" + r + ";" + g + ";" + b + "m";
+        int r = (int) Math.round((GRADIENT_START[0] + (GRADIENT_END[0] - GRADIENT_START[0]) * ratio) * brightness);
+        int g = (int) Math.round((GRADIENT_START[1] + (GRADIENT_END[1] - GRADIENT_START[1]) * ratio) * brightness);
+        int b = (int) Math.round((GRADIENT_START[2] + (GRADIENT_END[2] - GRADIENT_START[2]) * ratio) * brightness);
+        return ansiRgb(r, g, b);
+    }
+
+    /** 24-bit (truecolor) ANSI foreground escape. */
+    private static String ansiRgb(int r, int g, int b) {
+        return (char) 27 + "[38;2;" + r + ";" + g + ";" + b + "m";
     }
 
     private static Map<Character, String> createAnsiMap() {
@@ -645,6 +826,11 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
     }
 
     private String stripAnsi(String value) {
-        return value.replaceAll("\u001B\\[[;\\d]*m", "").replace(ChatColor.COLOR_CHAR, '&');
+        return value
+                // OSC 8 hyperlink wrappers (ESC ] 8 ; ; url ESC \) — drop, keep the display text.
+                .replaceAll("\\x1B\\]8;;[^\\x1B]*\\x1B\\\\", "")
+                // CSI color/style sequences (ESC [ ... m).
+                .replaceAll("\\x1B\\[[;\\d]*m", "")
+                .replace(ChatColor.COLOR_CHAR, '&');
     }
 }

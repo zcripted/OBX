@@ -377,12 +377,22 @@ public class VanishManager implements Listener, dev.zcripted.obx.api.staff.Vanis
         if (vanished.isEmpty()) {
             return;
         }
+        // The action bar must be sent on each player's own region thread under Folia; this loop fires
+        // on the global thread, so dispatch the per-player send to that player's region.
+        final boolean folia = plugin.getSchedulerAdapter() != null && plugin.getSchedulerAdapter().isFolia();
         for (Map.Entry<UUID, Tier> entry : vanished.entrySet()) {
             Player p = Bukkit.getPlayer(entry.getKey());
             if (p == null) {
                 continue;
             }
-            sendActionBarFor(p, entry.getValue());
+            final Player player = p;
+            final Tier tier = entry.getValue();
+            Runnable work = () -> sendActionBarFor(player, tier);
+            if (folia) {
+                plugin.getSchedulerAdapter().runAtEntity(player, work);
+            } else {
+                work.run();
+            }
         }
     }
 

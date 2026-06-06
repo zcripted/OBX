@@ -55,6 +55,9 @@ public final class OnKillListener implements Listener {
             return;
         }
         LivingEntity dead = event.getEntity();
+        // Purge any target-keyed combat state (marks / stuns / tethers) for the dead entity.
+        // Must run regardless of killer so mob-keyed entries can't accumulate forever.
+        combatState.removeEntity(dead.getUniqueId());
         Player killer = dead.getKiller();
         if (killer == null) {
             return;

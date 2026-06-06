@@ -147,8 +147,16 @@ public final class ModuleManager {
             active.put(module.id(), true);
         } catch (Throwable t) {
             active.put(module.id(), false);
-            plugin.getLogger().severe("[" + module.id() + "] failed to enable: " + t.getMessage());
-            t.printStackTrace();
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "[" + module.id() + "] failed to enable: " + t.getMessage(), t);
+            // Roll back any partial registrations (listeners/commands/services/tasks) made before the
+            // module threw, so a failed enable doesn't leak handlers or double-register on a later retry.
+            try {
+                module.disable(plugin);
+            } catch (Throwable cleanup) {
+                plugin.getLogger().warning("[" + module.id() + "] cleanup after a failed enable also failed: "
+                        + cleanup.getMessage());
+            }
         }
     }
 

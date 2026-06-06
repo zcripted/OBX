@@ -111,7 +111,13 @@ public final class ChatFormatter {
     /** Wraps {@code username} in a MiniMessage suggest-command click + hover for /msg. */
     private static String wrapClickable(String username, String name, String hover) {
         String hoverText = hover == null ? "" : hover;
-        return "<click:suggest_command:'/msg " + name + " '><hover:show_text:'" + hoverText + "'>"
+        // Quote both arguments with a delimiter NOT present in the payload (shared quoteArg util)
+        // rather than backslash-escaping: a name with an apostrophe (e.g. a Geyser/Bedrock gamertag)
+        // can't terminate the argument early and spill the tag — and unlike `\'`, this also survives
+        // the Adventure-core fallback's regex tokenizer.
+        String suggest = dev.zcripted.obx.util.text.MessageSanitizer.quoteArg("/msg " + name + " ");
+        String hoverArg = dev.zcripted.obx.util.text.MessageSanitizer.quoteArg(hoverText);
+        return "<click:suggest_command:" + suggest + "><hover:show_text:" + hoverArg + ">"
                 + username + "</hover></click>";
     }
 

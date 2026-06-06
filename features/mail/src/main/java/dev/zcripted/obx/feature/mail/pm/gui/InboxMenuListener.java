@@ -28,7 +28,7 @@ public final class InboxMenuListener implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         Inventory top = event.getView().getTopInventory();
-        if (!(top.getHolder() instanceof InboxMenuHolder)) {
+        if (top == null || !(top.getHolder() instanceof InboxMenuHolder)) {
             return;
         }
         event.setCancelled(true);

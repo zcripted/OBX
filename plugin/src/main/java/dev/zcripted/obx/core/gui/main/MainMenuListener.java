@@ -66,7 +66,7 @@ public final class MainMenuListener implements Listener {
             return;
         }
         if (topInventory.getHolder() instanceof AdminMenuHolder) {
-            AdminMenu.PlaceholderView view = AdminMenu.placeholderForSlot(event.getRawSlot());
+            AdminMenu.PlaceholderView view = AdminMenu.placeholderForSlot(plugin, (Player) clicker, event.getRawSlot());
             if (view != null) {
                 AdminSubMenu.open(plugin, (Player) clicker, view);
                 return;
@@ -150,7 +150,7 @@ public final class MainMenuListener implements Listener {
                     ((Player) clicker).performCommand("smite");
                 } else if (slot == 16) {
                     ((Player) clicker).closeInventory();
-                    ((Player) clicker).performCommand("tree");
+                    growRandomTree(plugin, (Player) clicker);
                 }
                 break;
             case SERVER_STATE:
@@ -160,14 +160,13 @@ public final class MainMenuListener implements Listener {
             case PLUGIN_SYSTEMS:
             case WEATHER:
             case TIME:
-            case GAMERULES:
                 if (slot == 31) {
                     if (holder.getType() == AdminSubMenu.SubMenuType.WEATHER
                             || holder.getType() == AdminSubMenu.SubMenuType.TIME
                             || holder.getType() == AdminSubMenu.SubMenuType.GAMERULES) {
                         AdminSubMenu.openWorldControlsMenu((Player) clicker);
                     } else {
-                        AdminMenu.PlaceholderView serverPlaceholder = AdminMenu.placeholderForSlot(19); // server control slot index
+                        AdminMenu.PlaceholderView serverPlaceholder = AdminMenu.placeholderForSlot(plugin, (Player) clicker, 19); // server control slot index
                         if (serverPlaceholder != null) {
                             AdminSubMenu.open(plugin, (Player) clicker, serverPlaceholder);
                         } else {
@@ -175,6 +174,16 @@ public final class MainMenuListener implements Listener {
                         }
                     }
                 } else if (slot == AdminMenu.CLOSE_SLOT) {
+                    ((Player) clicker).closeInventory();
+                } else {
+                    AdminSubMenu.handleAction(plugin, (Player) clicker, holder, slot, event.getClick());
+                }
+                break;
+            case GAMERULES:
+                // Dedicated bottom-row nav (slots 45 / 53); everything else is a rule toggle.
+                if (slot == AdminSubMenu.GAMERULE_BACK_SLOT) {
+                    AdminSubMenu.openWorldControlsMenu((Player) clicker);
+                } else if (slot == AdminSubMenu.GAMERULE_CLOSE_SLOT) {
                     ((Player) clicker).closeInventory();
                 } else {
                     AdminSubMenu.handleAction(plugin, (Player) clicker, holder, slot, event.getClick());
@@ -205,6 +214,24 @@ public final class MainMenuListener implements Listener {
                         ((Player) clicker).closeInventory();
                     } else {
                         AdminSubMenu.handleHubMenuClick(plugin, (Player) clicker, slot, event.getClick());
+                    }
+                    break;
+                case ECONOMY:
+                    // Dedicated nav row (back 30 / close 32) — slot 22 hosts the Shop tile,
+                    // so the generic BACK_SLOT must NOT route here.
+                    if (slot == AdminSubMenu.ECONOMY_BACK_SLOT) {
+                        AdminMenu.open(plugin, (Player) clicker);
+                    } else if (slot == AdminSubMenu.ECONOMY_CLOSE_SLOT || slot == AdminMenu.CLOSE_SLOT) {
+                        ((Player) clicker).closeInventory();
+                    } else {
+                        AdminSubMenu.handleAction(plugin, (Player) clicker, holder, slot, event.getClick());
+                    }
+                    break;
+                case CONFIRM:
+                    if (slot == AdminMenu.CLOSE_SLOT) {
+                        ((Player) clicker).closeInventory();
+                    } else {
+                        AdminSubMenu.handleAction(plugin, (Player) clicker, holder, slot, event.getClick());
                     }
                     break;
                 default:
@@ -247,6 +274,47 @@ public final class MainMenuListener implements Listener {
     private boolean isTrackedMenu(Inventory inventory) {
         InventoryHolder holder = inventory.getHolder();
         return holder instanceof MainMenuHolder || holder instanceof AdminMenuHolder || holder instanceof AdminSubMenu.Holder;
+    }
+
+    /**
+     * OBX-native "Grow Tree" for the Mob Tools button. Picks a random tree type from
+     * the running server's {@link org.bukkit.TreeType} enum — which is automatically
+     * version-correct (e.g. Cherry/Mangrove only exist on newer versions) — and grows
+     * it at the player's crosshair. Generated directly via the Bukkit API rather than
+     * dispatching {@code /tree}, so it never collides with WorldEdit's global
+     * {@code /tree} command.
+     */
+    private void growRandomTree(ObxPlugin plugin, Player player) {
+        org.bukkit.block.Block block = player.getTargetBlock((java.util.Set<org.bukkit.Material>) null, 100);
+        org.bukkit.Location target = (block == null ? player.getLocation() : block.getLocation().add(0, 1, 0));
+        if (target.getWorld() == null) {
+            return;
+        }
+        java.util.List<org.bukkit.TreeType> types = new java.util.ArrayList<>(java.util.Arrays.asList(org.bukkit.TreeType.values()));
+        java.util.Collections.shuffle(types);
+        for (org.bukkit.TreeType type : types) {
+            if (target.getWorld().generateTree(target, type)) {
+                plugin.getLanguageManager().send(player, "mob.tree.grown",
+                        dev.zcripted.obx.util.text.Placeholders.with("type", prettyTreeName(type)));
+                return;
+            }
+        }
+        plugin.getLanguageManager().send(player, "mob.tree.failed");
+    }
+
+    private static String prettyTreeName(org.bukkit.TreeType type) {
+        String[] words = type.name().toLowerCase(java.util.Locale.ENGLISH).split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
+            sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return sb.toString();
     }
 }
 

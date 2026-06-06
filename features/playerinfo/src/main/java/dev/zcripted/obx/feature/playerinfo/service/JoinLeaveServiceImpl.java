@@ -5,7 +5,9 @@ import dev.zcripted.obx.core.language.LanguageRegistry;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Centralised access to the join/leave broadcast and welcome MOTD configuration.
@@ -42,6 +44,11 @@ public final class JoinLeaveServiceImpl implements dev.zcripted.obx.api.playerin
     private volatile List<String> joinMotdLines = Collections.emptyList();
     private volatile List<String> firstJoinMotdLines = Collections.emptyList();
 
+    // MOTD lines resolved per language (EN/DE/ES), so a player who set /language sees the welcome
+    // in their own language. Pre-resolved at load/reload/toggle, so the join hot path is a map read.
+    private volatile Map<LanguageRegistry, List<String>> joinMotdByLang = Collections.emptyMap();
+    private volatile Map<LanguageRegistry, List<String>> firstJoinMotdByLang = Collections.emptyMap();
+
     public JoinLeaveServiceImpl(ObxPlugin plugin) {
         this.plugin = plugin;
         cacheSnapshot();
@@ -72,6 +79,8 @@ public final class JoinLeaveServiceImpl implements dev.zcripted.obx.api.playerin
             firstJoinMessage = "";
             joinMotdLines = Collections.emptyList();
             firstJoinMotdLines = Collections.emptyList();
+            joinMotdByLang = Collections.emptyMap();
+            firstJoinMotdByLang = Collections.emptyMap();
             return;
         }
         joinMessage = lang.rawTemplate(LanguageRegistry.EN, "welcome.join-message");
@@ -79,10 +88,30 @@ public final class JoinLeaveServiceImpl implements dev.zcripted.obx.api.playerin
         firstJoinMessage = lang.rawTemplate(LanguageRegistry.EN, "welcome.first-join-message");
 
         // MOTD lists are structured (mixed plain-string + {text,hover,click} nodes);
-        // resolveMotdLines reassembles each node into a renderable MiniMessage line.
-        joinMotdLines = freezeList(lang.resolveMotdLines(LanguageRegistry.EN, "welcome.motd-lines"));
-        List<String> firstLines = lang.resolveMotdLines(LanguageRegistry.EN, "welcome.motd-first-join-lines");
-        firstJoinMotdLines = freezeList(firstLines.isEmpty() ? joinMotdLines : firstLines);
+        // resolveMotdLines reassembles each node into a renderable MiniMessage line. Resolve every
+        // language up front so the per-player lookup on join is a cheap map read.
+        Map<LanguageRegistry, List<String>> join = new EnumMap<>(LanguageRegistry.class);
+        Map<LanguageRegistry, List<String>> firstJoin = new EnumMap<>(LanguageRegistry.class);
+        for (LanguageRegistry registry : LanguageRegistry.values()) {
+            List<String> lines = freezeList(lang.resolveMotdLines(registry, "welcome.motd-lines"));
+            List<String> firstLines = lang.resolveMotdLines(registry, "welcome.motd-first-join-lines");
+            join.put(registry, lines);
+            firstJoin.put(registry, freezeList(firstLines.isEmpty() ? lines : firstLines));
+        }
+        joinMotdByLang = Collections.unmodifiableMap(join);
+        firstJoinMotdByLang = Collections.unmodifiableMap(firstJoin);
+        // Keep the no-arg getters returning the EN catalog (unchanged public behaviour).
+        joinMotdLines = joinMotdByLang.getOrDefault(LanguageRegistry.EN, Collections.emptyList());
+        firstJoinMotdLines = firstJoinMotdByLang.getOrDefault(LanguageRegistry.EN, Collections.emptyList());
+    }
+
+    private List<String> motdFor(Map<LanguageRegistry, List<String>> byLang, String languageCode, List<String> fallback) {
+        LanguageRegistry registry = LanguageRegistry.fromInput(languageCode);
+        if (registry == null) {
+            return fallback;
+        }
+        List<String> lines = byLang.get(registry);
+        return (lines == null || lines.isEmpty()) ? fallback : lines;
     }
 
     private static List<String> freezeList(List<String> input) {
@@ -90,10 +119,6 @@ public final class JoinLeaveServiceImpl implements dev.zcripted.obx.api.playerin
             return Collections.emptyList();
         }
         return Collections.unmodifiableList(new java.util.ArrayList<>(input));
-    }
-
-    private static String orEmpty(String value) {
-        return value == null ? "" : value;
     }
 
     // ---------------------------------------------------------------------
@@ -154,5 +179,15 @@ public final class JoinLeaveServiceImpl implements dev.zcripted.obx.api.playerin
 
     public List<String> getFirstJoinMotdLines() {
         return firstJoinMotdLines;
+    }
+
+    @Override
+    public List<String> getJoinMotdLines(String languageCode) {
+        return motdFor(joinMotdByLang, languageCode, joinMotdLines);
+    }
+
+    @Override
+    public List<String> getFirstJoinMotdLines(String languageCode) {
+        return motdFor(firstJoinMotdByLang, languageCode, firstJoinMotdLines);
     }
 }

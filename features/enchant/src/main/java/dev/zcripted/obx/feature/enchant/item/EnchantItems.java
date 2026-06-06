@@ -7,7 +7,6 @@ import dev.zcripted.obx.feature.enchant.storage.EnchantStorage;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -65,6 +64,12 @@ public final class EnchantItems {
         lore.add(ChatColor.GRAY + "Drag " + ChatColor.DARK_GRAY + "» " + ChatColor.WHITE + "drop onto a matching item");
         lore.add(DIVIDER);
         lore.add(MARKER + ScrollKind.ENCHANT_SCROLL.getLabel());
+        // Sign the payload so the scroll's enchant verifies under strict anti-forge mode
+        // (scrolls write lore directly via renderLine, bypassing the signing in storage.apply).
+        String scrollSig = service.getStorage().signatureLineFor(enchant.getId(), level);
+        if (!scrollSig.isEmpty()) {
+            lore.add(scrollSig);
+        }
         meta.setLore(lore);
         if (rarity.ordinal() >= EnchantRarity.EPIC.ordinal() || enchant.isGlow()) {
             addGlow(meta);
@@ -96,6 +101,10 @@ public final class EnchantItems {
         lore.add(ChatColor.GRAY + "Combine in an anvil to apply.");
         lore.add(DIVIDER);
         lore.add(MARKER + ScrollKind.BOOK.getLabel());
+        String bookSig = service.getStorage().signatureLineFor(enchant.getId(), level);
+        if (!bookSig.isEmpty()) {
+            lore.add(bookSig);
+        }
         meta.setLore(lore);
         addGlow(meta);
         if (enchant.getCustomModelData() > 0) {

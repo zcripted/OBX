@@ -41,6 +41,16 @@ public final class EnchantMenuListener implements Listener {
         if (!(who instanceof Player)) {
             return;
         }
+        Player player = (Player) who;
+        EnchantMenuHolder menuHolder = (EnchantMenuHolder) holder;
+        // Re-verify the admin permission on EVERY click of an admin (non-browse) menu. The
+        // authorization was captured at open time as the holder's browse flag; without this re-check a
+        // player who loses obx.enchants.admin while the console is open (or is handed the inventory)
+        // could keep minting max-level scrolls/books and applying enchants. Browse menus are read-only.
+        if (!menuHolder.isBrowse() && !player.hasPermission("obx.enchants.admin")) {
+            player.closeInventory();
+            return;
+        }
         // Only act on clicks within the menu itself (not the player's own inventory).
         if (event.getRawSlot() < 0 || event.getRawSlot() >= top.getSize()) {
             return;
@@ -48,7 +58,7 @@ public final class EnchantMenuListener implements Listener {
         if (plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu.class) == null) {
             return;
         }
-        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu.class).handleClick((Player) who, (EnchantMenuHolder) holder, event.getRawSlot(), event.getClick());
+        plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.gui.EnchantAdminMenu.class).handleClick(player, menuHolder, event.getRawSlot(), event.getClick());
     }
 
     @EventHandler

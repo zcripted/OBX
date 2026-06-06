@@ -51,4 +51,21 @@ public class WorthService {
     public boolean hasPrice(Material material) {
         return getPrice(material) > 0.0;
     }
+
+    /**
+     * Number of worth.yml entries with a positive price that resolve to a material
+     * ON THIS SERVER VERSION — the bundled database spans 1.8.8 → latest, so entries
+     * for materials this version doesn't know are simply not counted (or sellable).
+     */
+    public int pricedCount() {
+        if (config == null) return 0;
+        ConfigurationSection section = config.getConfigurationSection("worth");
+        if (section == null) return 0;
+        int count = 0;
+        for (String key : section.getKeys(false)) {
+            if (section.getDouble(key, 0.0) <= 0.0) continue;
+            if (Material.matchMaterial(key.toUpperCase(Locale.ROOT)) != null) count++;
+        }
+        return count;
+    }
 }

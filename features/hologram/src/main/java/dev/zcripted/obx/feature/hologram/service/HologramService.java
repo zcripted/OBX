@@ -22,11 +22,12 @@ import java.io.IOException;
  * backend selection — mirrors {@link dev.zcripted.obx.feature.hub.service.HubService}
  * and {@link dev.zcripted.obx.api.chat.ChatService}.
  *
- * <p>Dormant by default — the {@code enabled} flag in
- * {@code systems/holograms.yml} starts as {@code false}, and {@link #load()}
- * logs a one-line dormancy notice without selecting a backend, registering a
- * tick loop, or doing any work. Operators flip {@code enabled: true} (or use
- * {@code /holo enable} once the command tree lands in Phase 2) to activate.
+ * <p>Enabled by default — the {@code enabled} flag in
+ * {@code systems/holograms.yml} ships {@code true}, so {@link #load()} selects a backend
+ * and registers the tick loop, making holograms work out of the box. When an operator sets
+ * {@code enabled: false} (or runs {@code /holo disable}), the service stays dormant:
+ * {@code load()} logs a one-line notice without selecting a backend, registering a tick
+ * loop, or doing any work.
  *
  * <p>When enabled, the service:
  * <ul>
@@ -119,24 +120,54 @@ public final class HologramService {
         // Tear down live entities, stop the tick loop, then re-run load() so
         // a new backend can be chosen if the YAML changed.
         if (raycastTargeter != null) {
-            raycastTargeter.stop();
+            try {
+                raycastTargeter.stop();
+            } catch (Throwable ignored) {
+                // best-effort — never abort the reload
+            }
             raycastTargeter = null;
         }
         if (tickLoop != null) {
-            tickLoop.stop();
+            try {
+                tickLoop.stop();
+            } catch (Throwable ignored) {
+                // best-effort
+            }
             tickLoop = null;
         }
-        if (renderer != null) {
-            renderer.destroyAll();
-            renderer = null;
-        } else if (backend != null) {
-            for (dev.zcripted.obx.feature.hologram.model.Hologram hologram : registry.all()) {
-                backend.destroy(hologram);
+        // Entity teardown: a throwing destroyAll must not abort the reload mid-way
+        // (which previously skipped registry.clear() + load(), leaving the service
+        // broken AND entities orphaned). Fall back to per-hologram destroys, and
+        // ALWAYS reset state in finally so load() runs from a clean slate.
+        try {
+            if (renderer != null) {
+                renderer.destroyAll();
+            } else if (backend != null) {
+                for (dev.zcripted.obx.feature.hologram.model.Hologram hologram : registry.all()) {
+                    try {
+                        backend.destroy(hologram);
+                    } catch (Throwable ignored) {
+                        // one bad hologram must not orphan the rest
+                    }
+                }
             }
+        } catch (Throwable destroyFailure) {
+            // Renderer-wide destroy failed — best-effort per-hologram cleanup.
+            if (backend != null) {
+                for (dev.zcripted.obx.feature.hologram.model.Hologram hologram : registry.all()) {
+                    try {
+                        backend.destroy(hologram);
+                    } catch (Throwable ignored) {
+                        // best-effort
+                    }
+                }
+            }
+        } finally {
+            renderer = null;
+            active = false;
+            backend = null;
+            registry.clear();
         }
-        active = false;
-        backend = null;
-        registry.clear();
         load();
         // Re-spawn anything storage repopulated (Phase 2+) — registry is empty in Phase 1
         // so this is a no-op until persistence lands.
@@ -165,7 +196,7 @@ public final class HologramService {
     }
 
     public boolean isEnabled() {
-        return config != null && config.getBoolean("enabled", false);
+        return config != null && config.getBoolean("enabled", true);
     }
 
     public boolean isActive() {

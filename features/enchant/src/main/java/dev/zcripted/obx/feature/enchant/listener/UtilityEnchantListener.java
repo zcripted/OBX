@@ -1,7 +1,6 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.feature.enchant.effect.EffectUtil;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
 import dev.zcripted.obx.feature.enchant.service.EnchantService;
 import dev.zcripted.obx.feature.enchant.storage.EnchantStorage;

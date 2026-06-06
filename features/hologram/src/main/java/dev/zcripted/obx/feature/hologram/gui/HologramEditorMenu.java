@@ -11,16 +11,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Chest-GUI overview / editor for a hologram. Implements the plan §I main
@@ -38,14 +36,34 @@ public final class HologramEditorMenu implements Listener {
     private static final String TITLE_PREFIX = ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Hologram " + ChatColor.GRAY + "› ";
 
     private final ObxPlugin plugin;
-    private final Map<UUID, String> openFor = new HashMap<>();
 
     public HologramEditorMenu(ObxPlugin plugin) {
         this.plugin = plugin;
     }
 
+    /**
+     * Marker holder so click/drag handlers identify this menu by inventory ownership rather
+     * than its (spoofable) title string, and so the hologram id rides on the inventory itself
+     * (no per-player tracking map to leak on disconnect).
+     */
+    private static final class EditorHolder implements InventoryHolder {
+        private final String idValue;
+        private Inventory inventory;
+
+        private EditorHolder(String idValue) {
+            this.idValue = idValue;
+        }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
+    }
+
     public void open(Player player, Hologram hologram) {
-        Inventory inv = Bukkit.createInventory(player, 27, TITLE_PREFIX + hologram.getId().value());
+        EditorHolder holder = new EditorHolder(hologram.getId().value());
+        Inventory inv = Bukkit.createInventory(holder, 27, TITLE_PREFIX + hologram.getId().value());
+        holder.inventory = inv;
         // Header: identity / location.
         inv.setItem(4, identityItem(hologram));
         // Body: line previews
@@ -59,7 +77,6 @@ public final class HologramEditorMenu implements Listener {
         inv.setItem(22, interactionItem(hologram));
         inv.setItem(26, deleteItem(hologram));
         player.openInventory(inv);
-        openFor.put(player.getUniqueId(), hologram.getId().value());
     }
 
     private ItemStack identityItem(Hologram hologram) {
@@ -218,25 +235,46 @@ public final class HologramEditorMenu implements Listener {
         return Material.STONE;
     }
 
+    private static EditorHolder holderOf(Inventory top) {
+        if (top == null) {
+            return null;
+        }
+        InventoryHolder holder = top.getHolder();
+        return holder instanceof EditorHolder ? (EditorHolder) holder : null;
+    }
+
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) {
             return;
         }
-        String title = event.getView().getTitle();
-        if (title == null || !title.startsWith(TITLE_PREFIX)) {
+        EditorHolder holder = holderOf(event.getView().getTopInventory());
+        if (holder == null) {
             return;
         }
+        // Cancel every interaction with this read-only menu (covers shift-click, number-key,
+        // and collect-to-cursor, which can otherwise pull GUI items into the player's inventory).
         event.setCancelled(true);
-        if (event.getCurrentItem() == null) {
+        if (event.getCurrentItem() == null || event.getClickedInventory() != event.getView().getTopInventory()) {
             return;
         }
         Player player = (Player) event.getWhoClicked();
-        if (event.getSlot() == 26 && event.isShiftClick()) {
-            String idValue = openFor.get(player.getUniqueId());
-            if (idValue != null) {
-                player.performCommand("sfholo delete " + idValue);
-                player.closeInventory();
+        if (event.getSlot() == 26 && event.isShiftClick() && holder.idValue != null) {
+            player.performCommand("holo delete " + holder.idValue);
+            player.closeInventory();
+        }
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        // A drag can deposit items into the menu's empty slots, which are then lost on close.
+        if (holderOf(event.getView().getTopInventory()) == null) {
+            return;
+        }
+        for (int slot : event.getRawSlots()) {
+            if (slot < event.getView().getTopInventory().getSize()) {
+                event.setCancelled(true);
+                return;
             }
         }
     }

@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class KitCommand extends AbstractObxCommand implements TabCompleter {
 
@@ -157,8 +156,26 @@ public class KitCommand extends AbstractObxCommand implements TabCompleter {
                 languages.send(player, "kit.no-permission", Placeholders.with("kit", kit.getDisplayName()));
                 return false;
             }
-            long remaining = kitService.getCooldownRemaining(player.getUniqueId(), kit);
-            if (remaining > 0) {
+            // First-join kits (e.g. the starter kit) are granted exactly once by
+            // KitFirstJoinListener and are NOT self-claimable afterwards — only the
+            // staff /kit give path (bypassCooldown=true) may re-issue them.
+            if (kit.isFirstJoin()) {
+                languages.send(player, "kit.first-join-only", Placeholders.with("kit", kit.getDisplayName()));
+                return false;
+            }
+        }
+        // Refuse a full inventory BEFORE claiming the cooldown, so the player isn't charged the
+        // cooldown only to have overflow dropped (and possibly lost in a no-drop area / the void).
+        if (!kitService.hasRoomFor(player, kit)) {
+            languages.send(player, "kit.inventory-full", Placeholders.with("kit", kit.getDisplayName()));
+            return false;
+        }
+        if (!bypassCooldown) {
+            // Atomic claim: records the use only if off cooldown, in one synchronous
+            // statement — closing the read-then-async-write window that let /kit spam
+            // duplicate the kit's contents.
+            if (!kitService.tryClaimCooldown(player.getUniqueId(), kit)) {
+                long remaining = kitService.getCooldownRemaining(player.getUniqueId(), kit);
                 Map<String, String> placeholders = new HashMap<>();
                 placeholders.put("kit", kit.getDisplayName());
                 placeholders.put("seconds", String.valueOf(remaining));
@@ -171,9 +188,6 @@ public class KitCommand extends AbstractObxCommand implements TabCompleter {
         Object dropped = result.get("droppedCount");
         if (dropped instanceof Integer && (Integer) dropped > 0) {
             languages.send(player, "kit.overflow", Placeholders.with("count", dropped));
-        }
-        if (!bypassCooldown) {
-            kitService.markUsed(player.getUniqueId(), kit);
         }
         return true;
     }

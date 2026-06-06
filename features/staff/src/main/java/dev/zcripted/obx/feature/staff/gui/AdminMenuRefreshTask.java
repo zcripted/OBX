@@ -58,10 +58,13 @@ public final class AdminMenuRefreshTask {
         }
         InventoryHolder holder = top.getHolder();
         if (holder instanceof AdminSubMenu.Holder) {
-            AdminSubMenu.refresh((AdminSubMenu.Holder) holder);
+            AdminSubMenu.refresh((AdminSubMenu.Holder) holder, player);
         } else if (holder instanceof StaffMenuHolder) {
             // Live online-player list + viewer head session/active timers.
             StaffMenu.refresh(plugin, player, (StaffMenuHolder) holder);
+        } else if (holder instanceof AdminMenuHolder) {
+            // Live Server Control preview — player count + uptime tick while the menu is open.
+            AdminMenu.refreshLive(plugin, player, top);
         } else {
             return;
         }

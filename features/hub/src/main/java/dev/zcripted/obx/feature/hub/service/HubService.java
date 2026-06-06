@@ -203,6 +203,17 @@ public final class HubService implements dev.zcripted.obx.api.hub.HubApi {
         return config == null || config.getBoolean("kit.clear-inventory", true);
     }
 
+    /**
+     * Whether this server is a DEDICATED hub/lobby with no survival worlds to protect. The
+     * destructive inventory wipe in the kit applier only runs when this is {@code true}, so on a
+     * single mixed server a player walking into a hub world never has their survival inventory
+     * deleted. Default {@code false} (safe); set {@code dedicated-server: true} in systems/hub.yml
+     * only when the whole server is a hub/lobby.
+     */
+    public boolean dedicatedServer() {
+        return config != null && config.getBoolean("dedicated-server", false);
+    }
+
     public boolean kitGiveOnRespawn() {
         return config == null || config.getBoolean("kit.give-on-respawn", true);
     }

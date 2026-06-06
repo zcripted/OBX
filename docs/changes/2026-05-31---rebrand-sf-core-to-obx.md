@@ -106,7 +106,7 @@ Rebuild after this round: **BUILD SUCCESS** (exit 0).
 - **Website placeholder:** `website` is set to `https://obx.zcripted.dev` as a
   best-effort placeholder. Banner links (`links.builtbybit`, `links.wiki`,
   `links.discord`) derived to `…/obx-core/`, `github.com/zcripted/OBX/wiki`,
-  `discord.gg/zcripted`. Replace with real URLs when available.
+  `discord.gg/UxktSyT9Ag`. Replace with real URLs when available.
 - **On-disk project folder** (`…/SF-Core`) and IDE/harness files (`.idea/`,
   `.claude/settings.local.json`) were intentionally left unchanged — they
   reference local/external paths, not the plugin brand.

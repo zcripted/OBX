@@ -141,21 +141,42 @@ public final class PluginListCommand extends AbstractObxCommand {
     /**
      * Sends one platform's plugin list as a single chat line where each plugin name
      * is its own component carrying a hover tooltip (name, version, author, software,
-     * status). Console senders fall back to the joined colored names.
+     * status).
+     *
+     * <p>Console senders get the joined colored names through {@link #sendPlain} (the
+     * direct console writer) instead of the component fallback: the fallback's
+     * {@code sender.sendMessage} would route through the LOGGER pipeline, stamping a
+     * {@code [HH:mm:ss INFO]:} prefix on just these rows and flushing on a different
+     * stream than the box's other lines — which reordered the names away from their
+     * platform section header. Direct writes keep the box timestamp-free and each
+     * name row directly under its category.
      */
     private void sendPluginLine(LanguageManager languages, CommandSender sender, List<PluginEntry> entries) {
         List<PluginEntry> sorted = new ArrayList<>(entries);
         Collections.sort(sorted, (a, b) -> a.name.compareToIgnoreCase(b.name));
+        String separator = ChatColor.translateAlternateColorCodes('&', "&8, ");
+        if (sender instanceof ConsoleCommandSender) {
+            StringBuilder line = new StringBuilder("    "); // matches the commands.pl.line indent
+            for (int i = 0; i < sorted.size(); i++) {
+                PluginEntry entry = sorted.get(i);
+                if (i > 0) {
+                    line.append(separator);
+                }
+                line.append(ChatColor.translateAlternateColorCodes('&', statusColor(entry.status) + entry.name));
+            }
+            sendPlain(sender, line.toString());
+            return;
+        }
         List<InteractiveMessagePart> parts = new ArrayList<>();
         parts.add(InteractiveMessagePart.plain("    ")); // matches the commands.pl.line indent
-        String separator = ChatColor.translateAlternateColorCodes('&', "&8, ");
         for (int i = 0; i < sorted.size(); i++) {
             PluginEntry entry = sorted.get(i);
             if (i > 0) {
                 parts.add(InteractiveMessagePart.plain(separator));
             }
             String name = ChatColor.translateAlternateColorCodes('&', statusColor(entry.status) + entry.name);
-            parts.add(InteractiveMessagePart.interactive(name, buildPluginHover(languages, sender, entry), null, false));
+            parts.add(InteractiveMessagePart.interactive(name, buildPluginHover(languages, sender, entry),
+                    "/obx plugininfo " + entry.name, true));
         }
         ComponentMessenger.sendJoinedHoverMessages(sender, parts);
     }
@@ -175,7 +196,175 @@ public final class PluginListCommand extends AbstractObxCommand {
         }
         hover.add(languages.get(sender, "commands.pl.hover.status",
                 Placeholders.with("status", languages.get(sender, "commands.pl.status." + entry.status.name().toLowerCase(Locale.ENGLISH)))));
+        hover.add(languages.get(sender, "core.divider-line"));
+        hover.add(languages.get(sender, "commands.pl.name-hover", Placeholders.with("name", entry.name)));
         return hover;
+    }
+
+    /**
+     * Renders the box-style detailed info card for a single plugin, used as the click
+     * target of each plugin name in the {@code /pl} list (via the hidden
+     * {@code /obx plugininfo <name>} bridge). Shows name, version, author, software,
+     * api, status, total server uptime since the last restart, and the plugin's
+     * description (word-wrapped, no mid-word breaks). Gated by {@code obx.pl}.
+     */
+    public void sendPluginInfo(CommandSender sender, String pluginName) {
+        LanguageManager languages = plugin.getLanguageManager();
+        if (!sender.hasPermission("obx.pl")) {
+            languages.send(sender, "core.no-permission");
+            return;
+        }
+        if (pluginName == null || pluginName.trim().isEmpty()) {
+            return;
+        }
+        Plugin target = Bukkit.getPluginManager().getPlugin(pluginName.trim());
+        PluginEntry entry = new PluginEntry();
+        String description = null;
+        if (target != null) {
+            entry.name = target.getName();
+            entry.status = target.isEnabled() ? Status.ENABLED : Status.DISABLED;
+            File jar = getPluginFile(target);
+            entry.platform = detectPlatform(target, jar);
+            PluginDescriptionFile pdf = target.getDescription();
+            if (pdf != null) {
+                entry.version = pdf.getVersion();
+                List<String> authors = pdf.getAuthors();
+                entry.authors = (authors == null || authors.isEmpty()) ? null : String.join(", ", authors);
+                entry.apiVersion = readApiVersion(pdf);
+                description = pdf.getDescription();
+            }
+        } else {
+            // Not loaded: it may be a broken jar sitting in the plugins folder.
+            PluginEntry broken = findBrokenByName(pluginName.trim());
+            if (broken == null) {
+                languages.send(sender, "commands.pl.info.not-loaded", Placeholders.with("name", pluginName.trim()));
+                return;
+            }
+            entry = broken;
+        }
+
+        String unknown = languages.get(sender, "commands.pl.hover.unknown");
+        sendInfoTitle(sender, entry.name);
+        sendPlain(sender, languages.get(sender, "commands.pl.info.divider"));
+        sendPlain(sender, languages.get(sender, "commands.pl.info.row-name", Placeholders.with("name", entry.name)));
+        sendPlain(sender, languages.get(sender, "commands.pl.info.row-version",
+                Placeholders.with("version", entry.version == null || entry.version.isEmpty() ? unknown : entry.version)));
+        sendPlain(sender, languages.get(sender, "commands.pl.info.row-author",
+                Placeholders.with("author", entry.authors == null || entry.authors.isEmpty() ? unknown : entry.authors)));
+        sendPlain(sender, languages.get(sender, "commands.pl.info.row-software",
+                Placeholders.with("platform", entry.platform == null ? unknown : entry.platform)));
+        if (entry.apiVersion != null && !entry.apiVersion.isEmpty()) {
+            sendPlain(sender, languages.get(sender, "commands.pl.info.row-api", Placeholders.with("api", entry.apiVersion)));
+        }
+        sendPlain(sender, languages.get(sender, "commands.pl.info.row-status",
+                Placeholders.with("status", languages.get(sender, "commands.pl.status." + entry.status.name().toLowerCase(Locale.ENGLISH)))));
+        sendPlain(sender, languages.get(sender, "commands.pl.info.row-uptime",
+                Placeholders.with("uptime", formatUptime(java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime()))));
+        if (description == null || description.trim().isEmpty()) {
+            sendPlain(sender, languages.get(sender, "commands.pl.info.desc-none"));
+        } else {
+            sendPlain(sender, languages.get(sender, "commands.pl.info.desc-label"));
+            for (String line : wrapText(description.trim(), 42)) {
+                sendPlain(sender, languages.get(sender, "commands.pl.info.desc-line", Placeholders.with("line", line)));
+            }
+        }
+        sendPlain(sender, languages.get(sender, "commands.pl.info.divider"));
+    }
+
+    /**
+     * Sends the plugin-info box title where the "Plugin" category word is a clickable
+     * link back to the full {@code /pl} list (with a hover hint) — a back button. The
+     * rest of the title line stays plain. Console recipients (no click) get the word
+     * substituted inline.
+     */
+    private void sendInfoTitle(CommandSender sender, String pluginName) {
+        LanguageManager languages = plugin.getLanguageManager();
+        String category = languages.get(sender, "commands.pl.info.category");
+        if (!(sender instanceof Player)) {
+            Map<String, String> inline = new LinkedHashMap<>();
+            inline.put("name", pluginName);
+            inline.put("category", category);
+            sendPlain(sender, languages.get(sender, "commands.pl.info.title", inline));
+            return;
+        }
+        String sentinel = "CAT";
+        Map<String, String> withSentinel = new LinkedHashMap<>();
+        withSentinel.put("name", pluginName);
+        withSentinel.put("category", sentinel);
+        String full = languages.get(sender, "commands.pl.info.title", withSentinel);
+        int idx = full.indexOf(sentinel);
+        if (idx < 0) {
+            Map<String, String> inline = new LinkedHashMap<>();
+            inline.put("name", pluginName);
+            inline.put("category", category);
+            sendPlain(sender, languages.get(sender, "commands.pl.info.title", inline));
+            return;
+        }
+        List<String> hover = Collections.singletonList(languages.get(sender, "commands.pl.info.back-hover"));
+        List<InteractiveMessagePart> parts = new ArrayList<>();
+        parts.add(InteractiveMessagePart.plain(full.substring(0, idx)));
+        parts.add(InteractiveMessagePart.interactive(category, hover, "/pl", true));
+        parts.add(InteractiveMessagePart.plain(full.substring(idx + sentinel.length())));
+        ComponentMessenger.sendJoinedHoverMessages(sender, parts);
+    }
+
+    /** Looks up a not-loaded ("broken") jar in the plugins folder by display name. */
+    private PluginEntry findBrokenByName(String pluginName) {
+        for (PluginEntry broken : findBrokenPlugins(Collections.<String>emptySet())) {
+            if (broken.name != null && broken.name.equalsIgnoreCase(pluginName)) {
+                return broken;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Greedy word-wrap that never splits a word: words longer than {@code width} get
+     * their own (over-long) line rather than being cut. Collapses runs of whitespace.
+     */
+    private static List<String> wrapText(String text, int width) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        for (String word : text.split("\\s+")) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            if (current.length() == 0) {
+                current.append(word);
+            } else if (current.length() + 1 + word.length() <= width) {
+                current.append(' ').append(word);
+            } else {
+                lines.add(current.toString());
+                current.setLength(0);
+                current.append(word);
+            }
+        }
+        if (current.length() > 0) {
+            lines.add(current.toString());
+        }
+        return lines;
+    }
+
+    private static String formatUptime(long millis) {
+        long totalSeconds = millis / 1000L;
+        long days = totalSeconds / 86400L;
+        totalSeconds %= 86400L;
+        long hours = totalSeconds / 3600L;
+        totalSeconds %= 3600L;
+        long minutes = totalSeconds / 60L;
+        long seconds = totalSeconds % 60L;
+        StringBuilder builder = new StringBuilder();
+        if (days > 0) {
+            builder.append(days).append("d ");
+        }
+        if (hours > 0 || days > 0) {
+            builder.append(hours).append("h ");
+        }
+        if (minutes > 0 || hours > 0 || days > 0) {
+            builder.append(minutes).append("m ");
+        }
+        builder.append(seconds).append("s");
+        return builder.toString();
     }
 
     private static String orUnknown(LanguageManager languages, CommandSender sender, String value) {

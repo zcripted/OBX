@@ -1,4 +1,3 @@
-import org.gradle.api.tasks.bundling.Jar
 import proguard.gradle.ProGuardTask
 
 buildscript {
@@ -12,16 +11,22 @@ buildscript {
 plugins {
     id("obx.java-conventions")
     alias(libs.plugins.shadow)
+    // Local live-test harness: `./gradlew runServer` boots a real Paper server with the freshly
+    // shadow-built OBX jar. Test/dev only — not part of the shippable build.
+    id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 
 dependencies {
     implementation(project(":api"))
     implementation(project(":core"))
     listOf(
-        "chat", "economy", "enchant", "hologram", "hub", "item", "jail", "kit", "mail",
-        "moderation", "nickname", "playerinfo", "playerstate", "scoreboard", "staff",
+        "backpack", "chat", "deathdrop", "economy", "enchant", "hologram", "hub", "item", "jail", "kit",
+        "mail", "moderation", "nickname", "playerinfo", "playerstate", "scoreboard", "staff",
         "tablist", "teleport", "warp", "world",
     ).forEach { implementation(project(":features:$it")) }
+    // ProGuard needs the PlaceholderAPI superclass on the library classpath (the
+    // economy module compiles its %obx_*% expansion against it, compileOnly).
+    compileOnly("me.clip:placeholderapi:2.11.6")
 }
 
 // Shadow produces the UNOBFUSCATED merged jar: OBX-<version>-unobf.jar
@@ -29,10 +34,6 @@ tasks.shadowJar {
     archiveBaseName.set("OBX")
     archiveClassifier.set("unobf")
     archiveVersion.set(project.version.toString())
-    // Bundle the Java-17 Paper-native bootstrap/loader classes by merging the
-    // :platform:paper jar directly (a plain project dependency is rejected by
-    // Gradle's JVM-version compatibility check: 8 consumer vs 17 producer).
-    from(zipTree(project(":platform:paper").tasks.named<Jar>("jar").flatMap { it.archiveFile }))
 }
 
 // ProGuard reads the shaded jar and writes the OBFUSCATED jar: OBX-<version>.jar
@@ -58,4 +59,21 @@ tasks.register<ProGuardTask>("proguard") {
 // `build` produces both jars (ProGuard depends on Shadow).
 tasks.named("build") {
     dependsOn("proguard")
+}
+
+// ── Live test harness ───────────────────────────────────────────────────────
+// `./gradlew runServer` downloads Paper 1.21.4 (first run only), then boots it with the unobfuscated
+// shadow jar (readable stack traces) loaded as a plugin. Paper 1.21.4 requires Java 21 to RUN, while
+// the project compiles on JDK 17 — so the server JVM is a Java-21 toolchain (auto-provisioned by the
+// foojay resolver configured in settings.gradle.kts).
+//
+// NOTE: starting the server requires accepting Mojang's EULA. On first run Paper writes
+// `plugin/run/eula.txt` with `eula=false` and stops; set it to `eula=true` to proceed.
+tasks.runServer {
+    minecraftVersion("1.21.4")
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    )
 }

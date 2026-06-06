@@ -34,21 +34,23 @@ public final class CommandOverrideListener implements Listener {
 
     static {
         Map<String, String> map = new HashMap<>();
-        for (String alias : Arrays.asList("heal", "bukkit:heal", "minecraft:heal", "essentials:heal", "obx:heal", "obx:heal")) {
+        for (String alias : Arrays.asList("heal", "bukkit:heal", "minecraft:heal", "essentials:heal", "obx:heal")) {
             map.put(alias, "heal");
         }
-        for (String alias : Arrays.asList("god", "gmode", "godmode", "invincible", "immortal",
-                "bukkit:god", "minecraft:god", "essentials:god", "obx:god", "obx:god")) {
+        // NOTE: "gmode" is intentionally NOT a /god alias — it belongs to /gamemode
+        // ("game mode"). Routing it here would shadow /gamemode at LOWEST priority.
+        for (String alias : Arrays.asList("god", "godmode", "invincible", "immortal",
+                "bukkit:god", "minecraft:god", "essentials:god", "obx:god")) {
             map.put(alias, "god");
         }
         for (String alias : Arrays.asList("tps", "bukkit:tps", "minecraft:tps", "paper:tps",
-                "purpur:tps", "spigot:tps", "essentials:tps", "obx:tps", "obx:tps")) {
+                "purpur:tps", "spigot:tps", "essentials:tps", "obx:tps")) {
             map.put(alias, "tps");
         }
         for (String alias : Arrays.asList("pl", "plugins", "bukkit:pl", "bukkit:plugins",
                 "minecraft:pl", "minecraft:plugins", "paper:pl", "paper:plugins",
                 "purpur:pl", "purpur:plugins", "spigot:pl", "spigot:plugins",
-                "obx:pl", "obx:plugins", "obx:pl", "obx:plugins")) {
+                "obx:pl", "obx:plugins")) {
             map.put(alias, "pl");
         }
         // Replace the vanilla /clear with OBX's /clearinv. The remaining args
@@ -62,7 +64,10 @@ public final class CommandOverrideListener implements Listener {
     }
 
     private static final Set<String> KNOWN_NAMESPACES = new HashSet<>(Arrays.asList(
-            "bukkit", "minecraft", "essentials", "obx", "obx", "paper", "purpur", "spigot"));
+            "bukkit", "minecraft", "essentials", "obx", "paper", "purpur", "spigot"));
+
+    /** Routed commands whose executor self-checks finer-grained permissions (e.g. {@code .others}). */
+    private static final Set<String> SELF_PERMISSION_CHECKED = Collections.singleton("clearinv");
 
     private final ObxPlugin plugin;
 
@@ -93,8 +98,22 @@ public final class CommandOverrideListener implements Listener {
             return;
         }
 
-        event.setCancelled(true);
         Player player = event.getPlayer();
+        // Respect Bukkit's permission gate before re-dispatching (the routed executors also
+        // self-check, but this keeps the override path consistent with normal dispatch and
+        // doesn't silently run a command the sender lacks permission for).
+        //
+        // Exception: commands whose executor has a finer-grained sub-permission (e.g. clearinv's
+        // obx.clearinv.others lets a staffer clear OTHERS without obx.clearinv for self). For those
+        // we defer entirely to the executor's own checks, or this gate would wrongly block a holder
+        // of only the sub-permission.
+        if (!SELF_PERMISSION_CHECKED.contains(target) && !pluginCommand.testPermissionSilent(player)) {
+            event.setCancelled(true);
+            plugin.getLanguageManager().send(player, "core.no-permission");
+            return;
+        }
+
+        event.setCancelled(true);
         String[] args = (spaceIdx == -1 || spaceIdx + 1 >= message.length())
                 ? new String[0]
                 : message.substring(spaceIdx + 1).trim().split("\\s+");

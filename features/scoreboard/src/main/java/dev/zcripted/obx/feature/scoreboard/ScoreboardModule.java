@@ -27,6 +27,15 @@ public final class ScoreboardModule extends AbstractModule {
             if (refreshTask != null) {
                 refreshTask.cancel();
             }
+            // Return every online player to the main scoreboard so a disabled/unloaded module doesn't
+            // leave a frozen OBX sidebar behind until relog.
+            for (org.bukkit.entity.Player online : plugin.getServer().getOnlinePlayers()) {
+                try {
+                    dev.zcripted.obx.feature.scoreboard.format.ScoreboardRenderer.clear(online);
+                } catch (Throwable ignored) {
+                    // best-effort cleanup
+                }
+            }
         });
     }
 

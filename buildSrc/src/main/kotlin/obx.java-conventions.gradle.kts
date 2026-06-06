@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.zcripted"
-version = "1.0.0-beta-b1"
+version = "1.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8

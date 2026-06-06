@@ -10,7 +10,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -18,7 +17,9 @@ import java.util.stream.Collectors;
 
 public class LanguageCommand extends AbstractObxCommand implements TabCompleter {
 
-    private static final List<String> OPTIONS = Arrays.asList("English", "EN", "German", "DE", "Englisch", "Deutsch");
+    private static final List<String> OPTIONS = Arrays.asList(
+            "English", "EN", "German", "DE", "Spanish", "ES",
+            "Englisch", "Deutsch", "Spanisch", "Español");
 
 
     public LanguageCommand(ObxPlugin plugin) {

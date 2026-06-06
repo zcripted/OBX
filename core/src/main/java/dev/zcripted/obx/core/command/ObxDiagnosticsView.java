@@ -72,17 +72,42 @@ class ObxDiagnosticsView {
             }
             String target = args[1];
             File file = new File(plugin.getDataFolder(), target);
+            // Path-traversal guard: reject any target whose resolved path escapes the data folder
+            // (e.g. "../../server.properties") so this admin command can't probe arbitrary files.
+            try {
+                String dataRoot = plugin.getDataFolder().getCanonicalPath() + File.separator;
+                if (!file.getCanonicalPath().startsWith(dataRoot)) {
+                    languages.send(sender, "commands.obx.reload.file.missing", Collections.singletonMap("file", target));
+                    return;
+                }
+            } catch (java.io.IOException pathError) {
+                languages.send(sender, "commands.obx.reload.file.missing", Collections.singletonMap("file", target));
+                return;
+            }
             if (!file.exists() || !file.isFile()) {
                 languages.send(sender, "commands.obx.reload.file.missing", Collections.singletonMap("file", target));
                 return;
             }
             try {
+                long fileStart = System.nanoTime();
                 YamlConfiguration.loadConfiguration(file);
+                String fileDuration = formatMillis(System.nanoTime() - fileStart);
                 Map<String, String> placeholders = new LinkedHashMap<>();
                 placeholders.put("file", target);
                 placeholders.put("path", file.getAbsolutePath());
                 placeholders.put("size", String.valueOf(file.length()));
-                sendHoverMessage(sender, languages.get(sender, "commands.obx.reload.file.success", placeholders), languages.list(sender, "commands.obx.reload.file.hover", placeholders), null);
+                placeholders.put("duration", fileDuration);
+                if (sender instanceof Player) {
+                    // Hover scoped to ONLY the "Reloaded file <file> (time)" segment, prefix plain.
+                    List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<>();
+                    parts.add(ComponentMessenger.InteractiveMessagePart.plain(languages.get(sender, "system.prefix")));
+                    parts.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                            languages.get(sender, "commands.obx.reload.file.body", placeholders),
+                            languages.list(sender, "commands.obx.reload.file.hover", placeholders), null, false));
+                    ComponentMessenger.sendJoinedHoverMessages(sender, parts);
+                } else {
+                    languages.send(sender, "commands.obx.reload.file.body", placeholders);
+                }
             } catch (Exception exception) {
                 Map<String, String> placeholders = new LinkedHashMap<>();
                 placeholders.put("file", target);
@@ -100,12 +125,15 @@ class ObxDiagnosticsView {
         String totalText = formatMillis(duration);
         String who = (sender instanceof Player) ? sender.getName() : "Console";
 
-        // Player executor: styled in-game message + per-component hover. (Console's
-        // feedback is the console summary below.)
+        // Player executor: styled in-game message with the hover scoped to ONLY the
+        // "reload complete (time)" segment — the prefix stays a plain, non-hover part.
         if (sender instanceof Player) {
-            sendHoverMessage(sender,
-                    languages.get(sender, "commands.obx.reload.full.base", Collections.singletonMap("duration", totalText)),
-                    buildReloadHover(sender, times, totalText), "/obx diagnostics");
+            List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<>();
+            parts.add(ComponentMessenger.InteractiveMessagePart.plain(languages.get(sender, "system.prefix")));
+            parts.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                    languages.get(sender, "commands.obx.reload.full.body", Collections.singletonMap("duration", totalText)),
+                    buildReloadHover(sender, times, totalText), "/obx diagnostics", false));
+            ComponentMessenger.sendJoinedHoverMessages(sender, parts);
         }
 
         // Always log a clean console summary with who executed it.
@@ -187,30 +215,204 @@ class ObxDiagnosticsView {
         } else if (!ensurePermission(sender, "obx.admin.diagnostics")) {
             return;
         }
+        // ── Quick health check: platform, modules, config, storage, overall status ──
+        dev.zcripted.obx.core.platform.PlatformInfo platform = plugin.getPlatformInfo();
+        Map<String, Boolean> moduleStates = plugin.getModuleManager().states();
+        int total = moduleStates.size();
+        int enabledCount = 0;
+        List<String> disabledModules = new ArrayList<>();
+        for (Map.Entry<String, Boolean> entry : moduleStates.entrySet()) {
+            if (Boolean.TRUE.equals(entry.getValue())) {
+                enabledCount++;
+            } else {
+                disabledModules.add(entry.getKey());
+            }
+        }
+        Collections.sort(disabledModules, String.CASE_INSENSITIVE_ORDER);
+
+        List<String> missingConfigs = new ArrayList<>();
+        for (String keyFile : new String[]{"config.yml", "moderation.yml", "systems/tablist.yml", "systems/scoreboard.yml"}) {
+            if (!new File(plugin.getDataFolder(), keyFile).exists()) {
+                missingConfigs.add(keyFile);
+            }
+        }
+        boolean storageOk = plugin.getDataStore() != null && plugin.getDataStore().isAvailable();
+        int issues = disabledModules.size() + missingConfigs.size() + (storageOk ? 0 : 1);
+
+        String platformStr = (platform == null)
+                ? Bukkit.getName() + " " + Bukkit.getBukkitVersion()
+                : platform.getServerName() + " " + platform.getMinecraftVersion();
+        if (platform != null && platform.isFolia()) {
+            platformStr += " &8(&dFolia&8)";
+        }
+
         Map<String, String> placeholders = new LinkedHashMap<>();
-        placeholders.put("version", plugin.getDescription().getVersion());
-        placeholders.put("server", Bukkit.getVersion());
-        placeholders.put("bukkit", Bukkit.getBukkitVersion());
-        placeholders.put("debug", String.valueOf(plugin.getConfig().getBoolean("debug")));
-        placeholders.put("data", plugin.getDataFolder().getAbsolutePath());
+        placeholders.put("platform", platformStr);
+        placeholders.put("modules", "&f" + enabledCount + "&8/&f" + total + " &7enabled"
+                + (disabledModules.isEmpty() ? "" : "  &8(&c" + disabledModules.size() + " off&8)"));
+        placeholders.put("config", missingConfigs.isEmpty() ? "&aOK" : "&c" + missingConfigs.size() + " missing");
+        placeholders.put("storage", storageOk ? "&aSQLite ready" : "&cunavailable");
+        placeholders.put("health", issues == 0 ? "&aHealthy" : "&e" + issues + " issue(s)");
+
         for (String line : languages.list(sender, "commands.obx.diagnostics.header", placeholders)) {
             sender.sendMessage(line);
         }
-        languages.send(sender, "commands.obx.diagnostics.version", placeholders);
-        languages.send(sender, "commands.obx.diagnostics.server", placeholders);
-        languages.send(sender, "commands.obx.diagnostics.bukkit", placeholders);
-        languages.send(sender, "commands.obx.diagnostics.debug", placeholders);
-        languages.send(sender, "commands.obx.diagnostics.data", placeholders);
+        languages.send(sender, "commands.obx.diagnostics.platform", placeholders);
+        // Modules row: hover (on just the "X/X enabled" value) lists every module A→Z with its state.
+        sendHoverValueLine(sender, "commands.obx.diagnostics.modules", "modules", placeholders,
+                placeholders.get("modules"), buildModulesHover(moduleStates));
+        languages.send(sender, "commands.obx.diagnostics.config-status", placeholders);
+        languages.send(sender, "commands.obx.diagnostics.storage", placeholders);
+        languages.send(sender, "commands.obx.diagnostics.health", placeholders);
+
+        if (!full) {
+            // A clickable button to jump to the extended report.
+            List<ComponentMessenger.InteractiveMessagePart> btn = new ArrayList<>();
+            btn.add(ComponentMessenger.InteractiveMessagePart.plain(ChatColor.translateAlternateColorCodes('&', "  &8» ")));
+            btn.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                    languages.get(sender, "commands.obx.diagnostics.full-button"),
+                    languages.list(sender, "commands.obx.diagnostics.full-button-hover", Collections.<String, String>emptyMap()),
+                    "/obx diagnostics full", true));
+            ComponentMessenger.sendJoinedHoverMessages(sender, btn);
+        }
+
         if (full) {
+            // ── Extended: registered services, detected third-party hooks, recorded issues ──
+            List<String> services = new ArrayList<>();
+            String[][] known = {
+                    {"Economy", "dev.zcripted.obx.api.economy.EconomyService"},
+                    {"Moderation", "dev.zcripted.obx.api.moderation.ModerationApi"},
+                    {"Hub", "dev.zcripted.obx.api.hub.HubApi"},
+                    {"Jail", "dev.zcripted.obx.api.jail.JailApi"},
+                    {"Scoreboard", "dev.zcripted.obx.api.scoreboard.ScoreboardService"},
+                    {"Tablist", "dev.zcripted.obx.api.tablist.TablistService"},
+                    {"Teleport", "dev.zcripted.obx.api.teleport.TeleportManager"},
+                    {"Chat", "dev.zcripted.obx.api.chat.ChatService"},
+            };
+            for (String[] svc : known) {
+                try {
+                    if (plugin.getServiceRegistry().has(Class.forName(svc[1]))) {
+                        services.add(svc[0]);
+                    }
+                } catch (Throwable ignored) {
+                    // interface not on the classpath — skip
+                }
+            }
+            List<String> hooks = new ArrayList<>();
+            for (String hook : new String[]{"Vault", "PlaceholderAPI", "ProtocolLib", "LuckPerms"}) {
+                if (Bukkit.getPluginManager().getPlugin(hook) != null) {
+                    hooks.add(hook);
+                }
+            }
+            List<String> problems = new ArrayList<>();
+            if (!storageOk) problems.add("storage unavailable");
+            if (!missingConfigs.isEmpty()) problems.add(missingConfigs.size() + " config file(s) missing");
+            if (!disabledModules.isEmpty()) problems.add(disabledModules.size() + " module(s) disabled");
+
             Map<String, String> extra = new LinkedHashMap<>(placeholders);
-            extra.put("services", "DataService, TeleportManager, LanguageManager");
-            extra.put("players", String.valueOf(Bukkit.getOnlinePlayers().size()));
-            extra.put("keys", String.valueOf(plugin.getConfig().getKeys(true).size()));
+            extra.put("services", services.isEmpty() ? "&7none" : "&f" + String.join("&7, &f", services));
+            extra.put("hooks", hooks.isEmpty() ? "&7none detected" : "&f" + String.join("&7, &f", hooks));
+            extra.put("errors", problems.isEmpty() ? "&anone recorded" : "&c" + String.join("&7, &c", problems));
+
+            for (String line : languages.list(sender, "commands.obx.diagnostics.extended", extra)) {
+                sender.sendMessage(line);
+            }
             languages.send(sender, "commands.obx.diagnostics.services", extra);
-            languages.send(sender, "commands.obx.diagnostics.players", extra);
-            languages.send(sender, "commands.obx.diagnostics.keys", extra);
+            languages.send(sender, "commands.obx.diagnostics.hooks", extra);
+            if (problems.isEmpty()) {
+                languages.send(sender, "commands.obx.diagnostics.errors", extra);
+            } else {
+                // Errors row: hover (on just the error text, not the "Errors ›" label) shows the
+                // actual cause/source of each recorded issue.
+                sendHoverValueLine(sender, "commands.obx.diagnostics.errors", "errors", extra,
+                        extra.get("errors"), buildErrorsHover(storageOk, missingConfigs, disabledModules));
+            }
         }
         sender.sendMessage("");
+    }
+
+    /**
+     * Sends a "label › value" diagnostics row where the hover is scoped to ONLY the value (the
+     * label is a plain, non-hover part). Falls back to a plain joined line for console.
+     */
+    private void sendHoverValueLine(CommandSender sender, String lineKey, String placeholderName,
+                                    Map<String, String> placeholders, String value, List<String> hoverLines) {
+        Map<String, String> labelOnly = new LinkedHashMap<>(placeholders);
+        labelOnly.put(placeholderName, "");
+        String label = languages.get(sender, lineKey, labelOnly);
+        List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<>();
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain(label));
+        parts.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                ChatColor.translateAlternateColorCodes('&', value), colorizeLines(hoverLines), null, false));
+        ComponentMessenger.sendJoinedHoverMessages(sender, parts);
+    }
+
+    /**
+     * Renders each hover line from legacy {@code &}/{@code &#RRGGBB} markup to section codes.
+     * The hover transport ({@code TextComponent.fromLegacyText}) only understands {@code §} codes,
+     * so we run the full {@link dev.zcripted.obx.util.message.AdventureMessageUtil#renderLegacy}
+     * colorizer (which also handles {@code &#hex}, used by the reload-style purple header) rather
+     * than a plain {@code &}→{@code §} translate.
+     */
+    private static List<String> colorizeLines(List<String> raw) {
+        if (raw == null) {
+            return Collections.emptyList();
+        }
+        List<String> out = new ArrayList<>(raw.size());
+        for (String line : raw) {
+            out.add(dev.zcripted.obx.util.message.AdventureMessageUtil.renderLegacy(line == null ? "" : line));
+        }
+        return out;
+    }
+
+    /** Dark-gray hover divider, matching {@code core.divider-line} used by the /obx reload hover. */
+    private static final String HOVER_DIVIDER = "&8──────────────────────────────";
+
+    /** Reload-style header bar: {@code &#6A1B9A▍ 𝗢𝗕𝗫  &8›  &f<title>} (no &l — bold leaks across hover lines). */
+    private static String hoverHeader(String title) {
+        return "&#6A1B9A▍ 𝗢𝗕𝗫  &8›  &f" + title;
+    }
+
+    /**
+     * Hover body: every module A→Z with a green/red dot marker. Styled like the /obx reload hover —
+     * a hex header bar, a {@code core.divider-line} rule, then clean {@code  ● name} rows (no bold
+     * format codes, which previously leaked down the whole tooltip via legacy style inheritance).
+     */
+    private List<String> buildModulesHover(Map<String, Boolean> moduleStates) {
+        List<String> names = new ArrayList<>(moduleStates.keySet());
+        Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
+        List<String> hover = new ArrayList<>();
+        hover.add(hoverHeader("Module States"));
+        hover.add(HOVER_DIVIDER);
+        for (String name : names) {
+            boolean on = Boolean.TRUE.equals(moduleStates.get(name));
+            hover.add(on ? "  &a● &7" + name : "  &c○ &8" + name + "  &8(off)");
+        }
+        return hover;
+    }
+
+    /** Hover body: each recorded issue with its contents / cause / source, in the /obx reload hover style. */
+    private List<String> buildErrorsHover(boolean storageOk, List<String> missingConfigs, List<String> disabledModules) {
+        List<String> hover = new ArrayList<>();
+        hover.add(hoverHeader("Recorded Issues"));
+        hover.add(HOVER_DIVIDER);
+        if (!storageOk) {
+            hover.add("  &c● &7Storage unavailable");
+            hover.add("    &8• &7The SQLite data store failed to open.");
+            hover.add("    &8• &8source: &7SqliteDataStore");
+        }
+        if (!missingConfigs.isEmpty()) {
+            hover.add("  &c● &7Missing config files");
+            for (String file : missingConfigs) {
+                hover.add("    &8• &7" + file);
+            }
+        }
+        if (!disabledModules.isEmpty()) {
+            hover.add("  &c● &7Disabled modules");
+            hover.add("    &8• &7" + String.join("&8, &7", disabledModules));
+            hover.add("    &8• &8cause: &7enabled:false in config");
+        }
+        return hover;
     }
 
     private String formatMillis(long nanos) {
@@ -290,7 +492,30 @@ class ObxDiagnosticsView {
         for (int i = start; i < end; i++) {
             languages.send(sender, "commands.obx.config.list-entry", Collections.singletonMap("file", files.get(i)));
         }
-        languages.send(sender, "commands.obx.config.list-footer", meta);
+        sendConfigPagination(sender, page, pages, meta);
+    }
+
+    /** Clickable « Prev / Next » pagination row at the bottom of the /obx config box. */
+    private void sendConfigPagination(CommandSender sender, int page, int pages, Map<String, String> meta) {
+        List<ComponentMessenger.InteractiveMessagePart> nav = new ArrayList<>();
+        if (page > 1) {
+            nav.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                    languages.get(sender, "commands.obx.config.nav.prev"),
+                    languages.list(sender, "commands.obx.config.nav.hover", Collections.singletonMap("target", String.valueOf(page - 1))),
+                    "/obx config " + (page - 1), true));
+        } else {
+            nav.add(ComponentMessenger.InteractiveMessagePart.plain(languages.get(sender, "commands.obx.config.nav.prev-off")));
+        }
+        nav.add(ComponentMessenger.InteractiveMessagePart.plain(languages.get(sender, "commands.obx.config.nav.middle", meta)));
+        if (page < pages) {
+            nav.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                    languages.get(sender, "commands.obx.config.nav.next"),
+                    languages.list(sender, "commands.obx.config.nav.hover", Collections.singletonMap("target", String.valueOf(page + 1))),
+                    "/obx config " + (page + 1), true));
+        } else {
+            nav.add(ComponentMessenger.InteractiveMessagePart.plain(languages.get(sender, "commands.obx.config.nav.next-off")));
+        }
+        ComponentMessenger.sendJoinedHoverMessages(sender, nav);
     }
 
     /** Every {@code .yml} under the plugin data folder (recursively), as sorted relative paths. */

@@ -42,8 +42,10 @@ public final class HologramPacketHandler extends ChannelDuplexHandler {
                     if (decoded != null && decoded.entityId > 0) {
                         final HologramId id = service.getRegistry().resolveByEntityId(decoded.entityId);
                         if (id != null) {
-                            // Dispatch on main thread — interaction handlers may run commands.
-                            plugin.getSchedulerAdapter().runNow(new Runnable() {
+                            // Dispatch off the Netty thread onto the VIEWER's region thread —
+                            // interaction handlers may run commands / touch the player, which on
+                            // Folia must happen on that entity's region (runNow = global region).
+                            plugin.getSchedulerAdapter().runAtEntity(viewer, new Runnable() {
                                 @Override
                                 public void run() {
                                     InteractionDispatcher.dispatch(plugin, service, viewer, id, decoded);

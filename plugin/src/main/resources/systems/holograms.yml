@@ -19,8 +19,8 @@
 
 # Master toggle. When false the entire module is dormant — no backend is
 # selected, no listeners run, no tick loop is scheduled. Identical idiom to
-# systems/hub.yml.
-enabled: false
+# systems/hub.yml. Enabled by default so holograms work out of the box.
+enabled: true
 
 # Viewer tracker tick interval. Smaller = snappier range/visibility updates,
 # larger = cheaper. Range 1–20. Default 5 ticks = 4 Hz, more than enough for

@@ -59,8 +59,13 @@ public final class OnHitProcListener implements Listener {
     private static final String[] CLEAVE_PARTICLE = {"SWEEP_ATTACK", "CRIT"};
 
     private final ConcurrentHashMap<UUID, Bleed> bleeds = new ConcurrentHashMap<UUID, Bleed>();
-    /** Re-entrancy guard so Cleave's secondary hits don't cascade into more cleaves. */
-    private boolean inSecondary = false;
+    /**
+     * Re-entrancy guard so Cleave's secondary hits don't cascade into more cleaves.
+     * Thread-local because on Folia {@code EntityDamageByEntityEvent} fires concurrently on
+     * multiple region threads — a shared boolean could be cleared by one thread while another
+     * is mid-cleave.
+     */
+    private final ThreadLocal<Boolean> inSecondary = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     public OnHitProcListener(ObxPlugin plugin, CombatState combatState, CombatParticleService particles, CombatHudService hud) {
         this.plugin = plugin;
@@ -72,6 +77,10 @@ public final class OnHitProcListener implements Listener {
         this.languages = plugin.getLanguageManager();
     }
 
+    // ORDERING CONTRACT: runs at HIGHEST, strictly after OnHitDamageListener's HIGH
+    // damage-modifier pass, so procs apply to the final damage value. ignoreCancelled=true
+    // means a hit cancelled earlier in the chain never procs. Keep HIGHEST > HIGH; see
+    // OnHitDamageListener#onDamage. Do NOT reorder these two priorities.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProc(EntityDamageByEntityEvent event) {
         if (!service.isEnabled() || !(event.getEntity() instanceof LivingEntity)) {
@@ -89,10 +98,13 @@ public final class OnHitProcListener implements Listener {
         if (weapon == null) {
             return;
         }
+        // Read the weapon's enchants ONCE — each storage.level() re-parses all lore, and this
+        // handler checks ~12 enchants per hit (combat hot path).
+        Map<String, Integer> levels = storage.read(weapon);
         EnchantRegistry registry = service.getRegistry();
 
         // Concussion — daze with Slowness + Mining Fatigue (+ Nausea at Lv4).
-        int concussion = storage.level(weapon, "concussion");
+        int concussion = levels.getOrDefault("concussion", 0);
         if (concussion > 0) {
             CustomEnchant e = registry.get("concussion");
             if (Math.random() < e.levelDouble(concussion, "chance", 0.0)) {
@@ -108,7 +120,7 @@ public final class OnHitProcListener implements Listener {
         }
 
         // Frostbrand — chill (Slowness + freeze ticks). Flat frost damage is in OnHitDamageListener.
-        int frostbrand = storage.level(weapon, "frostbrand");
+        int frostbrand = levels.getOrDefault("frostbrand", 0);
         if (frostbrand > 0) {
             CustomEnchant e = registry.get("frostbrand");
             Potions.applyLevel(victim, Potions.SLOWNESS, e.levelInt(frostbrand, "slowness_ticks", 20), e.levelInt(frostbrand, "slowness", 1));
@@ -118,15 +130,15 @@ public final class OnHitProcListener implements Listener {
         }
 
         // Hellforged — ignite. Damage bonus vs non-Nether mobs is in OnHitDamageListener.
-        int hellforged = storage.level(weapon, "hellforged");
+        int hellforged = levels.getOrDefault("hellforged", 0);
         if (hellforged > 0) {
-            int seconds = registry.get("hellforged").levelInt(hellforged, "fire_seconds", 3);
+            int seconds = registry.levelInt("hellforged", hellforged, "fire_seconds", 3);
             victim.setFireTicks(Math.max(victim.getFireTicks(), seconds * 20));
             particles.spawnRing(victim.getLocation().add(0, 1, 0), 0.4, Particles.FLAME, 8);
         }
 
         // Bonecrusher — armor durability on crit, Weakness, and a chance to disable a shield.
-        int bonecrusher = storage.level(weapon, "bonecrusher");
+        int bonecrusher = levels.getOrDefault("bonecrusher", 0);
         if (bonecrusher > 0) {
             CustomEnchant e = registry.get("bonecrusher");
             if (CombatSupport.isVanillaCrit(attacker)) {
@@ -153,7 +165,7 @@ public final class OnHitProcListener implements Listener {
         }
 
         // Voidstrike — chance to blink the target forward, with disorientation.
-        int voidstrike = storage.level(weapon, "voidstrike");
+        int voidstrike = levels.getOrDefault("voidstrike", 0);
         if (voidstrike > 0) {
             CustomEnchant e = registry.get("voidstrike");
             if (Math.random() < e.levelDouble(voidstrike, "chance", 0.0)) {
@@ -171,13 +183,13 @@ public final class OnHitProcListener implements Listener {
         }
 
         // Bloodletter — apply / refresh an armor-bypassing bleed DoT.
-        int bloodletter = storage.level(weapon, "bloodletter");
+        int bloodletter = levels.getOrDefault("bloodletter", 0);
         if (bloodletter > 0) {
             applyBleed(attacker, victim, registry.get("bloodletter"), bloodletter);
         }
 
         // Stunlock — chance to briefly stun the target (movement lock + stun window).
-        int stunlock = storage.level(weapon, "stunlock");
+        int stunlock = levels.getOrDefault("stunlock", 0);
         if (stunlock > 0) {
             CustomEnchant e = registry.get("stunlock");
             if (Math.random() < e.levelDouble(stunlock, "chance", 0.0)) {
@@ -186,25 +198,25 @@ public final class OnHitProcListener implements Listener {
         }
 
         // Cleave — carve a forward cone, dealing a fraction of the hit to extra targets.
-        int cleave = storage.level(weapon, "cleave");
-        if (cleave > 0 && !inSecondary) {
+        int cleave = levels.getOrDefault("cleave", 0);
+        if (cleave > 0 && !inSecondary.get()) {
             cleave(attacker, victim, event.getFinalDamage(), registry.get("cleave"), cleave, registry);
         }
 
         // Tempest Strike — a critical hit unleashes a knockback wave (+ small AoE damage).
-        int tempest = storage.level(weapon, "tempest_strike");
-        if (tempest > 0 && !inSecondary && CombatSupport.isVanillaCrit(attacker)) {
+        int tempest = levels.getOrDefault("tempest_strike", 0);
+        if (tempest > 0 && !inSecondary.get() && CombatSupport.isVanillaCrit(attacker)) {
             tempestStrike(attacker, victim, registry.get("tempest_strike"), tempest);
         }
 
         // Devastator — a falling mace smash quakes the ground around the target.
-        int devastator = storage.level(weapon, "devastator");
-        if (devastator > 0 && !inSecondary && attacker.getFallDistance() > 1.0f) {
+        int devastator = levels.getOrDefault("devastator", 0);
+        if (devastator > 0 && !inSecondary.get() && attacker.getFallDistance() > 1.0f) {
             devastatorShockwave(attacker, victim, registry.get("devastator"), devastator);
         }
 
         // Manaburn — drain the target and bank a bonus for your next swing.
-        int manaburn = storage.level(weapon, "manaburn");
+        int manaburn = levels.getOrDefault("manaburn", 0);
         if (manaburn > 0) {
             CustomEnchant e = registry.get("manaburn");
             if (victim instanceof Player) {
@@ -231,7 +243,7 @@ public final class OnHitProcListener implements Listener {
         double adjacentDamage = e.levelDouble(level, "adjacent_damage", 0.0);
         int slowTicks = e.levelInt(level, "slowness_ticks", 0);
         Location origin = center.getLocation();
-        inSecondary = true;
+        inSecondary.set(Boolean.TRUE);
         try {
             for (Entity near : center.getNearbyEntities(radius, radius, radius)) {
                 if (!(near instanceof LivingEntity) || near.equals(attacker)) {
@@ -259,7 +271,7 @@ public final class OnHitProcListener implements Listener {
                 }
             }
         } finally {
-            inSecondary = false;
+            inSecondary.set(Boolean.FALSE);
         }
         particles.spawnRing(origin, radius, CLEAVE_PARTICLE, 16);
         SoundPalette.playAt(origin, SoundPalette.SWEEP, CombatSupport.volume(service, 0.7f), 1.4f);
@@ -270,7 +282,7 @@ public final class OnHitProcListener implements Listener {
         double damage = e.levelDouble(level, "shockwave_damage", 2.0);
         double knockback = e.levelDouble(level, "knockback", 0.5);
         Location origin = center.getLocation();
-        inSecondary = true;
+        inSecondary.set(Boolean.TRUE);
         try {
             for (Entity near : center.getNearbyEntities(radius, radius, radius)) {
                 if (!(near instanceof LivingEntity) || near.equals(attacker)) {
@@ -293,7 +305,7 @@ public final class OnHitProcListener implements Listener {
                 }
             }
         } finally {
-            inSecondary = false;
+            inSecondary.set(Boolean.FALSE);
         }
         particles.spawnShockwave(origin, radius, new String[]{"BLOCK_CRACK", "CLOUD", "CRIT"}, 8);
         SoundPalette.playAt(origin, new String[]{"ENTITY_GENERIC_EXPLODE", "EXPLODE"}, CombatSupport.volume(service, 0.7f), 0.8f);
@@ -323,7 +335,7 @@ public final class OnHitProcListener implements Listener {
             return;
         }
         facing.normalize();
-        inSecondary = true;
+        inSecondary.set(Boolean.TRUE);
         try {
             for (Entity near : attacker.getNearbyEntities(range, range, range)) {
                 if (!(near instanceof LivingEntity) || near.equals(primary) || near.equals(attacker)) {
@@ -346,7 +358,7 @@ public final class OnHitProcListener implements Listener {
                 }
             }
         } finally {
-            inSecondary = false;
+            inSecondary.set(Boolean.FALSE);
         }
         particles.spawnRing(primary.getLocation(), range * 0.5, CLEAVE_PARTICLE, 12);
     }
@@ -354,11 +366,13 @@ public final class OnHitProcListener implements Listener {
     // ── Bloodletter bleed ────────────────────────────────────────────────────
 
     private static final class Bleed {
-        int remainingTicks;
-        int periodTicks;
-        double damage;
-        UUID source;
-        dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
+        // Volatile: on Folia the refresh path mutates these from the attacker's region thread while
+        // the bleed tick reads them on the victim's region thread.
+        volatile int remainingTicks;
+        volatile int periodTicks;
+        volatile double damage;
+        volatile UUID source;
+        volatile dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
     }
 
     private void applyBleed(Player attacker, final LivingEntity victim, CustomEnchant e, int level) {
@@ -399,25 +413,40 @@ public final class OnHitProcListener implements Listener {
         bleed.task = scheduler.runRepeating(new Runnable() {
             @Override
             public void run() {
-                Bleed current = bleeds.get(id);
-                if (current == null) {
-                    return;
-                }
-                if (victim.isDead() || !victim.isValid() || current.remainingTicks <= 0) {
-                    finish(id, current);
-                    return;
-                }
-                dealBleed(victim, current.damage, source.isOnline() ? source : null);
-                particles.spawnBlood(victim.getLocation().add(0, 1.0, 0));
-                // Keep the blood-loss HUD alive (and its rate current) across the bleed.
-                hud.trackBleed(victim, current.damage * 20.0 / current.periodTicks, current.periodTicks * 50L * 3L);
-                // Refresh the victim's bleed-out countdown each tick.
-                if (!victim.isDead() && victim.isValid()) {
-                    bleedActionbar(victim, current.remainingTicks);
-                }
-                current.remainingTicks -= current.periodTicks;
-                if (current.remainingTicks <= 0) {
-                    finish(id, current);
+                // The repeating task itself fires on the global region (Folia) / main thread.
+                // All of the per-tick work below touches the VICTIM entity (health, location,
+                // a damage event, particles, the action bar), so on Folia it must run on the
+                // victim's own region thread — otherwise every access throws a thread-ownership
+                // error that the dealBleed catch swallows, and bleed silently never ticks.
+                Runnable tick = new Runnable() {
+                    @Override
+                    public void run() {
+                        Bleed current = bleeds.get(id);
+                        if (current == null) {
+                            return;
+                        }
+                        if (victim.isDead() || !victim.isValid() || current.remainingTicks <= 0) {
+                            finish(id, current);
+                            return;
+                        }
+                        dealBleed(victim, current.damage, source.isOnline() ? source : null);
+                        particles.spawnBlood(victim.getLocation().add(0, 1.0, 0));
+                        // Keep the blood-loss HUD alive (and its rate current) across the bleed.
+                        hud.trackBleed(victim, current.damage * 20.0 / current.periodTicks, current.periodTicks * 50L * 3L);
+                        // Refresh the victim's bleed-out countdown each tick.
+                        if (!victim.isDead() && victim.isValid()) {
+                            bleedActionbar(victim, current.remainingTicks);
+                        }
+                        current.remainingTicks -= current.periodTicks;
+                        if (current.remainingTicks <= 0) {
+                            finish(id, current);
+                        }
+                    }
+                };
+                if (scheduler.isFolia()) {
+                    scheduler.runAtEntity(victim, tick);
+                } else {
+                    tick.run();
                 }
             }
         }, period, period);
@@ -538,6 +567,17 @@ public final class OnHitProcListener implements Listener {
     /** Deals damage that ignores armor, routing a lethal tick through {@code damage()} so death credits/drops work. */
     private void dealBleed(LivingEntity victim, double amount, Player source) {
         try {
+            // Gate the tick on the damage pipeline (godmode / region "damage-deny" / invincible
+            // flags can veto) WITHOUT applying armor or re-triggering combat enchants: fire a
+            // plain EntityDamageEvent (not ByEntity, so OBX's combat listeners don't re-proc),
+            // and only apply the armor-bypassing bleed if it isn't cancelled. This stops bleed
+            // ticking inside spawn / PvP-disabled / protected regions.
+            org.bukkit.event.entity.EntityDamageEvent probe = new org.bukkit.event.entity.EntityDamageEvent(
+                    victim, org.bukkit.event.entity.EntityDamageEvent.DamageCause.CUSTOM, amount);
+            org.bukkit.Bukkit.getPluginManager().callEvent(probe);
+            if (probe.isCancelled()) {
+                return;
+            }
             double health = victim.getHealth();
             if (health - amount > 0.0) {
                 victim.setHealth(Math.max(0.0, health - amount));

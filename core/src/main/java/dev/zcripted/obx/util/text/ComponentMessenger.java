@@ -17,10 +17,6 @@ public final class ComponentMessenger {
 
     private static final String TEXT_COMPONENT_CLASS = "net.md_5.bungee.api.chat.TextComponent";
     private static final String BASE_COMPONENT_CLASS = "net.md_5.bungee.api.chat.BaseComponent";
-    private static final String HOVER_EVENT_CLASS = "net.md_5.bungee.api.chat.HoverEvent";
-    private static final String HOVER_EVENT_ACTION_CLASS = "net.md_5.bungee.api.chat.HoverEvent$Action";
-    private static final String CLICK_EVENT_CLASS = "net.md_5.bungee.api.chat.ClickEvent";
-    private static final String CLICK_EVENT_ACTION_CLASS = "net.md_5.bungee.api.chat.ClickEvent$Action";
     private static final String CHAT_MESSAGE_TYPE_CLASS = "net.md_5.bungee.api.ChatMessageType";
     private static final boolean BUNGEE_AVAILABLE = hasClass(TEXT_COMPONENT_CLASS);
     private static final String ADVENTURE_COMPONENT_CLASS = "net.kyori.adventure.text.Component";
@@ -250,101 +246,6 @@ public final class ComponentMessenger {
         } catch (Exception ignored) {
             // Legacy not supported on older APIs.
         }
-    }
-
-    private static Object createHoverEvent(String hoverText, Object hoverComponents) throws Exception {
-        Class<?> hoverEvent = Class.forName(HOVER_EVENT_CLASS);
-        Class<?> hoverAction = Class.forName(HOVER_EVENT_ACTION_CLASS);
-        Object action = Enum.valueOf(castEnum(hoverAction), "SHOW_TEXT");
-        Object hoverContent = createHoverContent(hoverText, hoverComponents);
-        if (hoverContent != null) {
-            try {
-                return hoverEvent.getConstructor(hoverAction, hoverContent.getClass()).newInstance(action, hoverContent);
-            } catch (NoSuchMethodException ignored) {
-                // fallback to legacy constructor
-            }
-            try {
-                Class<?> contentBase = Class.forName("net.md_5.bungee.api.chat.hover.content.Content");
-                return hoverEvent.getConstructor(hoverAction, contentBase).newInstance(action, hoverContent);
-            } catch (NoSuchMethodException ignored) {
-                // fallback to legacy constructor
-            }
-            try {
-                Object array = Array.newInstance(hoverContent.getClass(), 1);
-                Array.set(array, 0, hoverContent);
-                return hoverEvent.getConstructor(hoverAction, array.getClass()).newInstance(action, array);
-            } catch (NoSuchMethodException ignored) {
-                // fallback to legacy constructor
-            }
-            try {
-                Class<?> contentBase = Class.forName("net.md_5.bungee.api.chat.hover.content.Content");
-                Object array = Array.newInstance(contentBase, 1);
-                Array.set(array, 0, hoverContent);
-                return hoverEvent.getConstructor(hoverAction, array.getClass()).newInstance(action, array);
-            } catch (NoSuchMethodException ignored) {
-                // fallback to legacy constructor
-            }
-        }
-        try {
-            return hoverEvent.getConstructor(hoverAction, baseComponentArrayClass()).newInstance(action, hoverComponents);
-        } catch (NoSuchMethodException ignored) {
-            return hoverEvent.getConstructor(hoverAction, hoverComponents.getClass()).newInstance(action, hoverComponents);
-        }
-    }
-
-    private static Object createHoverContent(String hoverText, Object hoverComponents) {
-        try {
-            Class<?> textContent = Class.forName("net.md_5.bungee.api.chat.hover.content.Text");
-            try {
-                return textContent.getConstructor(hoverComponents.getClass()).newInstance(hoverComponents);
-            } catch (Exception ignored) {
-                // try string constructor next
-            }
-            return textContent.getConstructor(String.class).newInstance(hoverText == null ? "" : hoverText);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    private static Object createClickEvent(String actionName, String value) throws Exception {
-        Class<?> clickEvent = Class.forName(CLICK_EVENT_CLASS);
-        Class<?> clickAction = Class.forName(CLICK_EVENT_ACTION_CLASS);
-        Object action = Enum.valueOf(castEnum(clickAction), actionName);
-        return clickEvent.getConstructor(clickAction, String.class).newInstance(action, value);
-    }
-
-    private static void applyEvents(Object components, Object hoverEvent, Object clickEvent) throws Exception {
-        int length = Array.getLength(components);
-        if (length == 0) {
-            return;
-        }
-        Class<?> baseComponent = Class.forName(BASE_COMPONENT_CLASS);
-        Method setHover = hoverEvent != null ? baseComponent.getMethod("setHoverEvent", Class.forName(HOVER_EVENT_CLASS)) : null;
-        Method setClick = clickEvent != null ? baseComponent.getMethod("setClickEvent", Class.forName(CLICK_EVENT_CLASS)) : null;
-        for (int i = 0; i < length; i++) {
-            Object component = Array.get(components, i);
-            if (setHover != null) {
-                setHover.invoke(component, hoverEvent);
-            }
-            if (setClick != null) {
-                setClick.invoke(component, clickEvent);
-            }
-        }
-    }
-
-    private static void sendToPlayer(Player player, Object components) throws Exception {
-        Object spigot = player.spigot();
-        try {
-            Method sendMessage = spigot.getClass().getMethod("sendMessage", baseComponentArrayClass());
-            sendMessage.invoke(spigot, new Object[]{components});
-            return;
-        } catch (NoSuchMethodException ignored) {
-            // Fall back to chat message type if needed.
-        }
-        Class<?> chatMessageType = Class.forName(CHAT_MESSAGE_TYPE_CLASS);
-        Object chat = Enum.valueOf(castEnum(chatMessageType), "CHAT");
-        Method sendMessage = spigot.getClass().getMethod("sendMessage", chatMessageType, baseComponentArrayClass());
-        sendMessage.invoke(spigot, new Object[]{chat, components});
     }
 
     private static Class<?> baseComponentArrayClass() throws ClassNotFoundException {

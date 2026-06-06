@@ -54,10 +54,18 @@
 
 # --- Plugin entry point -----------------------------------------------------
 # Bukkit reads plugin.yml, then loads our Main class by name and invokes its
-# public lifecycle methods. Keep both the class and every public member so
-# nothing gets renamed underneath the platform.
+# lifecycle methods. Keep the class name (referenced by plugin.yml) and the
+# constructor + lifecycle entry points. Everything else (the ~60 internal
+# service getters) is left obfuscatable so the plugin's internal architecture
+# isn't exposed by name in the shipped jar. The nine PUBLIC-API getters are
+# preserved automatically because OBX implements the kept dev.zcripted.obx.api.OBXApi
+# interface; other JavaPlugin overrides (onCommand, etc.) are preserved by
+# ProGuard's library-override detection (Bukkit is on -libraryjars).
 -keep public class dev.zcripted.obx.OBX {
-    public *;
+    public <init>(...);
+    public void onLoad();
+    public void onEnable();
+    public void onDisable();
 }
 
 # --- Bukkit event listeners -------------------------------------------------
@@ -133,9 +141,22 @@
 -keepclassmembers class dev.zcripted.obx.core.language.MessageDefaults {
     public static *;
 }
-# --- Paper-native bootstrap (paper-plugin.yml references these by name) ---------
--keep class dev.zcripted.obx.bootstrap.OBXBootstrap { *; }
--keep class dev.zcripted.obx.bootstrap.OBXPaperLoader { *; }
+# --- Public API surface (consumed by third-party plugins) -------------------
+# Keep the dev.zcripted.obx.api.* contracts and their members with their REAL
+# names (and original package path — kept classes are exempt from -repackageclasses)
+# so external plugins can compile against the interfaces and link against them at
+# runtime in the obfuscated jar. This package holds ONLY public contracts; the
+# feature implementations live elsewhere and stay fully obfuscated. Only the PUBLIC
+# surface is kept (public/protected) — private fields of the api POJOs (Jail,
+# BalanceEntry) are left obfuscatable so nothing beyond the contract is in the clear.
+-keep class dev.zcripted.obx.api.** { public protected *; }
+
+# The public entry point is dev.zcripted.obx.api.OBXApi (kept by the api package rule above).
+# Consumers cast Bukkit.getPluginManager().getPlugin("OBX") to OBXApi — the internal
+# dev.zcripted.obx.core.ObxPlugin interface is intentionally NOT kept, so its name and its
+# internal getters are obfuscated.
+
+# --- Paper classes are only referenced reflectively (Folia/Adventure detection) -
 -dontwarn io.papermc.paper.**
 -dontwarn org.eclipse.aether.**
 -dontwarn org.jetbrains.annotations.**

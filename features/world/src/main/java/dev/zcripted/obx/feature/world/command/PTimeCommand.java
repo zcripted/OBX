@@ -42,7 +42,7 @@ public class PTimeCommand extends AbstractObxCommand implements TabCompleter {
         String input = args[0].toLowerCase();
         if (input.equals("reset")) {
             timeService.reset(player);
-            languages.send(player, "world.ptime.reset");
+            dev.zcripted.obx.feature.world.service.ServerControlActions.pTimeMessage(plugin, player, 0L, true);
             return true;
         }
         Long parsed = parseTime(input);
@@ -51,7 +51,7 @@ public class PTimeCommand extends AbstractObxCommand implements TabCompleter {
             return true;
         }
         timeService.setTime(player, parsed, false);
-        languages.send(player, "world.ptime.set", Placeholders.with("time", parsed));
+        dev.zcripted.obx.feature.world.service.ServerControlActions.pTimeMessage(plugin, player, parsed, false);
         return true;
     }
 

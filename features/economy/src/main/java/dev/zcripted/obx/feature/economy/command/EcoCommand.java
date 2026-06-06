@@ -33,15 +33,37 @@ public class EcoCommand extends AbstractObxCommand implements TabCompleter {
             languages.send(sender, "core.no-permission");
             return true;
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("log")) {
+            return showLog(sender, args);
+        }
         if (args.length < 2) {
             languages.send(sender, "economy.eco.usage");
             return true;
         }
         String action = args[0].toLowerCase();
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-        if (target.getName() == null && target.getFirstPlayed() == 0L) {
-            languages.send(sender, "economy.unknown-player", Placeholders.with("player", args[1]));
-            return true;
+        // Resolve the target: the server's usercache first, then — for players the
+        // server has forgotten (or never knew) — the economy table's last-known
+        // name, so admin actions work fully OFFLINE for anyone who ever held an account.
+        java.util.UUID targetUuid;
+        String targetName;
+        boolean freshAccount = false;
+        OfflinePlayer cached = Bukkit.getOfflinePlayer(args[1]);
+        if (cached.getName() != null || cached.getFirstPlayed() != 0L) {
+            targetUuid = cached.getUniqueId();
+            targetName = cached.getName() == null ? args[1] : cached.getName();
+            // Never seen by this server AND no economy row: acting on this name will
+            // CREATE the account. Seed it at exactly $0 (not the starting balance) so
+            // "/eco give X" yields exactly X — and tell the admin a new account was made.
+            freshAccount = cached.getFirstPlayed() == 0L && !cached.isOnline()
+                    && !economy.findAccount(args[1]).isPresent();
+        } else {
+            java.util.Optional<EconomyService.BalanceEntry> account = economy.findAccount(args[1]);
+            if (!account.isPresent()) {
+                languages.send(sender, "economy.unknown-player", Placeholders.with("player", args[1]));
+                return true;
+            }
+            targetUuid = account.get().getUuid();
+            targetName = account.get().getName() == null ? args[1] : account.get().getName();
         }
         double amount = 0.0;
         if (!action.equals("reset")) {
@@ -60,38 +82,134 @@ public class EcoCommand extends AbstractObxCommand implements TabCompleter {
                 return true;
             }
         }
+        if (freshAccount) {
+            economy.setBalance(targetUuid, targetName, 0.0);
+            languages.send(sender, "economy.eco.created", Placeholders.with("player", targetName));
+        }
         switch (action) {
             case "give":
-                economy.deposit(target.getUniqueId(), target.getName(), amount);
+                economy.deposit(targetUuid, targetName, amount);
                 break;
             case "take":
-                economy.withdraw(target.getUniqueId(), target.getName(), amount);
+                if (!economy.withdraw(targetUuid, targetName, amount)) {
+                    // Not enough to take — don't report a misleading success.
+                    Map<String, String> fail = new HashMap<>();
+                    fail.put("player", targetName);
+                    fail.put("amount", economy.format(amount));
+                    fail.put("balance", economy.format(economy.getBalance(targetUuid)));
+                    languages.send(sender, "economy.eco.take-failed", fail);
+                    return true;
+                }
                 break;
             case "set":
-                economy.setBalance(target.getUniqueId(), target.getName(), amount);
+                economy.setBalance(targetUuid, targetName, amount);
                 break;
             case "reset":
-                economy.resetBalance(target.getUniqueId(), target.getName());
+                economy.resetBalance(targetUuid, targetName);
+                amount = economy.getStartingBalance();
                 break;
             default:
                 languages.send(sender, "economy.eco.usage");
                 return true;
         }
+        double after = economy.getBalance(targetUuid);
+        // Audit trail: every admin money movement is recorded with its actor.
+        economy.logTransaction(sender.getName(), targetUuid, targetName,
+                action.toUpperCase(java.util.Locale.ENGLISH), amount, after);
         Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("player", target.getName());
+        placeholders.put("player", targetName);
         placeholders.put("amount", economy.format(amount));
-        placeholders.put("balance", economy.format(economy.getBalance(target.getUniqueId())));
+        placeholders.put("balance", economy.format(after));
         languages.send(sender, "economy.eco." + action, placeholders);
+        return true;
+    }
+
+    /** Audited actions an admin can filter the log by (tab-complete + validation). */
+    private static final List<String> LOG_ACTIONS = Arrays.asList(
+            "GIVE", "TAKE", "SET", "RESET", "PAY", "RECEIVE", "TAX", "SELL", "SHOP_BUY", "SHOP_SELL",
+            "WITHDRAW", "REDEEM", "BANK_DEPOSIT", "BANK_WITHDRAW", "BANK_INTEREST",
+            "AH_BUY", "AH_SELL", "PAYDAY");
+
+    private static final int LOG_PAGE_SIZE = 10;
+
+    /**
+     * {@code /eco log [player|*] [page] [action]} — newest-first audit entries,
+     * paginated 10/page, optionally filtered to one action type. {@code *} (or
+     * omitting the player) shows the whole economy.
+     */
+    private boolean showLog(CommandSender sender, String[] args) {
+        java.util.UUID filter = null;
+        String filterName = null;
+        if (args.length >= 2 && !args[1].equals("*")) {
+            OfflinePlayer cached = Bukkit.getOfflinePlayer(args[1]);
+            if (cached.getName() != null || cached.getFirstPlayed() != 0L) {
+                filter = cached.getUniqueId();
+                filterName = cached.getName() == null ? args[1] : cached.getName();
+            } else {
+                java.util.Optional<EconomyService.BalanceEntry> account = economy.findAccount(args[1]);
+                if (!account.isPresent()) {
+                    languages.send(sender, "economy.unknown-player", Placeholders.with("player", args[1]));
+                    return true;
+                }
+                filter = account.get().getUuid();
+                filterName = account.get().getName();
+            }
+        }
+        int page = 1;
+        if (args.length >= 3) {
+            try {
+                page = Math.max(1, Math.min(1000, Integer.parseInt(args[2])));
+            } catch (NumberFormatException ignored) {
+                // keep default
+            }
+        }
+        String action = null;
+        if (args.length >= 4) {
+            String wanted = args[3].toUpperCase(java.util.Locale.ENGLISH);
+            if (!LOG_ACTIONS.contains(wanted)) {
+                languages.send(sender, "economy.eco.log.bad-action", Placeholders.with(
+                        "action", args[3], "actions", String.join(", ", LOG_ACTIONS)));
+                return true;
+            }
+            action = wanted;
+        }
+        List<EconomyService.TransactionEntry> entries =
+                economy.recentTransactions(filter, action, LOG_PAGE_SIZE, (page - 1) * LOG_PAGE_SIZE);
+        String scope = filterName == null ? languages.get(sender, "economy.eco.log.scope-all") : filterName;
+        if (action != null) {
+            scope = scope + " §8· §f" + action;
+        }
+        languages.send(sender, "economy.eco.log.header", Placeholders.with(
+                "scope", scope, "count", entries.size(), "page", page));
+        if (entries.isEmpty()) {
+            languages.send(sender, "economy.eco.log.empty");
+        }
+        java.text.SimpleDateFormat time = new java.text.SimpleDateFormat("MM-dd HH:mm");
+        for (EconomyService.TransactionEntry entry : entries) {
+            Map<String, String> row = new HashMap<>();
+            row.put("time", time.format(new java.util.Date(entry.getTime())));
+            row.put("actor", entry.getActor() == null ? "?" : entry.getActor());
+            row.put("target", entry.getTargetName() == null ? "?" : entry.getTargetName());
+            row.put("action", entry.getAction());
+            row.put("amount", economy.format(entry.getAmount()));
+            row.put("balance", economy.format(entry.getBalanceAfter()));
+            languages.send(sender, "economy.eco.log.entry", row);
+        }
+        languages.send(sender, "economy.eco.log.footer");
         return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) return filter(Arrays.asList("give", "take", "set", "reset"), args[0]);
+        if (args.length == 1) return filter(Arrays.asList("give", "take", "set", "reset", "log"), args[0]);
         if (args.length == 2) {
             List<String> names = new ArrayList<>();
+            if (args[0].equalsIgnoreCase("log")) names.add("*");
             for (Player online : Bukkit.getOnlinePlayers()) names.add(online.getName());
             return filter(names, args[1]);
+        }
+        if (args.length == 4 && args[0].equalsIgnoreCase("log")) {
+            return filter(LOG_ACTIONS, args[3]);
         }
         return java.util.Collections.emptyList();
     }

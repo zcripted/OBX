@@ -11,8 +11,6 @@ import java.util.UUID;
 
 public class FlightStateService implements Listener {
 
-    private static final float DEFAULT_SPEED = 0.1f;
-
     private final ObxPlugin plugin;
     private final SqliteDataStore store;
 

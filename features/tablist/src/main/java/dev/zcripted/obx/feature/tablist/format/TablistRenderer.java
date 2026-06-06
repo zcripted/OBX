@@ -34,10 +34,17 @@ import java.util.concurrent.TimeUnit;
 public final class TablistRenderer {
 
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
-    private static final DecimalFormat TPS_FORMAT = new DecimalFormat("0.0");
+    // DecimalFormat is NOT thread-safe and the per-player refresh runs on region
+    // threads on Folia — a shared instance corrupts output or throws under load.
+    private static final ThreadLocal<DecimalFormat> TPS_FORMAT =
+            ThreadLocal.withInitial(() -> new DecimalFormat("0.0"));
 
     private static final Method MISSING = sentinelMethod();
     private static final Field MISSING_FIELD = sentinelField();
+
+    /** Tracks the scoreboard-owns-grouping state across refreshes to detect the handoff exactly once. */
+    private static final java.util.concurrent.atomic.AtomicReference<Boolean> lastScoreboardOwns =
+            new java.util.concurrent.atomic.AtomicReference<>();
 
     private static final ConcurrentHashMap<Class<?>, Method> PING_METHODS = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, Method> HANDLE_METHODS = new ConcurrentHashMap<>();
@@ -61,13 +68,38 @@ public final class TablistRenderer {
         // give them the distinct staff name format.
         boolean grouping = service.isStaffGroupingEnabled();
         boolean staff = grouping && player.isOp();
-        if (grouping) {
+        // Defer the grouping TEAMS to the scoreboard feature when it's active: it moves each
+        // player onto a per-player board whose np_0op/np_1players teams already sort staff
+        // first (0<1) and color names identically — so our main-board teams would have no
+        // effect on those viewers and only fight the scoreboard's. (The staff name format
+        // below still applies regardless.)
+        boolean scoreboardOwns = scoreboardOwnsGrouping(plugin);
+        if (grouping && !scoreboardOwns) {
             TablistTeams.assign(player, player.isOp());
+            lastScoreboardOwns.set(Boolean.FALSE);
+        } else if (grouping && scoreboardOwns) {
+            // Scoreboard just took over grouping — drop our now-inert main-board teams once so stale
+            // obx.0staff/obx.1players entries don't linger. Atomic: only the thread that transitions
+            // the flag to TRUE runs the reset, so concurrent Folia region threads can't double-fire.
+            if (!Boolean.TRUE.equals(lastScoreboardOwns.getAndSet(Boolean.TRUE))) {
+                TablistTeams.reset();
+            }
         }
 
         String nameTemplate = staff ? service.getStaffPlayerFormat() : service.getPlayerFormat();
         if (nameTemplate != null && !nameTemplate.isEmpty()) {
             AdventureMessageUtil.applyTablistName(player, nameTemplate, placeholders);
+        }
+    }
+
+    /** Whether the scoreboard feature is active (it then owns per-player nametag/grouping teams). */
+    private static boolean scoreboardOwnsGrouping(dev.zcripted.obx.core.ObxPlugin plugin) {
+        try {
+            dev.zcripted.obx.api.scoreboard.ScoreboardService sb =
+                    plugin.getServiceRegistry().get(dev.zcripted.obx.api.scoreboard.ScoreboardService.class);
+            return sb != null && sb.isEnabled();
+        } catch (Throwable ignored) {
+            return false;
         }
     }
 
@@ -104,7 +136,9 @@ public final class TablistRenderer {
         int max = server.getMaxPlayers();
 
         placeholders.put("player", player.getName());
-        placeholders.put("displayname", player.getDisplayName());
+        // Neutralize tags: a display name set by a nick/3rd-party plugin could otherwise inject
+        // MiniMessage (e.g. <click>/<hover>) into the tab list via the Adventure render path.
+        placeholders.put("displayname", dev.zcripted.obx.util.text.MessageSanitizer.neutralizeTags(player.getDisplayName()));
         placeholders.put("world", player.getWorld() == null ? "" : player.getWorld().getName());
         placeholders.put("uuid", player.getUniqueId().toString());
         placeholders.put("online", Integer.toString(online));
@@ -112,6 +146,7 @@ public final class TablistRenderer {
         placeholders.put("ping", Integer.toString(resolvePing(player)));
         placeholders.put("time", LocalTime.now().format(TIME_FORMAT));
         placeholders.put("tps", resolveTps(plugin, server));
+        placeholders.put("uptime", formatUptime());
 
         if (plugin.getMotdService() != null) {
             try {
@@ -129,6 +164,33 @@ public final class TablistRenderer {
             placeholders.put("motd-1", "");
         }
         return placeholders;
+    }
+
+    /**
+     * Server uptime since JVM start, taken from the runtime MX bean (millisecond
+     * resolution) so it ticks live in real time. Rendered "Dd HH:mm:ss", dropping
+     * the day segment while under 24h (e.g. "04:21:07", then "3d 04:21:07").
+     */
+    private static String formatUptime() {
+        long millis = java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime();
+        if (millis < 0) {
+            millis = 0;
+        }
+        long totalSeconds = millis / 1000L;
+        long days = totalSeconds / 86400L;
+        long hours = (totalSeconds % 86400L) / 3600L;
+        long minutes = (totalSeconds % 3600L) / 60L;
+        long seconds = totalSeconds % 60L;
+        StringBuilder sb = new StringBuilder();
+        if (days > 0) {
+            sb.append(days).append("d ");
+        }
+        sb.append(two(hours)).append(':').append(two(minutes)).append(':').append(two(seconds));
+        return sb.toString();
+    }
+
+    private static String two(long value) {
+        return value < 10 ? "0" + value : Long.toString(value);
     }
 
     private static int resolvePing(Player player) {
@@ -171,7 +233,7 @@ public final class TablistRenderer {
         TpsService tpsService = plugin.getTpsService();
         if (tpsService != null && tpsService.isReady()) {
             double tps = tpsService.tpsForWindow(TimeUnit.MINUTES.toNanos(1));
-            return TPS_FORMAT.format(Math.min(20.0, tps));
+            return TPS_FORMAT.get().format(Math.min(20.0, tps));
         }
         Method getTps = TPS_METHODS.computeIfAbsent(server.getClass(), TablistRenderer::lookupGetTps);
         if (getTps != MISSING) {
@@ -180,7 +242,7 @@ public final class TablistRenderer {
                 if (value instanceof double[]) {
                     double[] tps = (double[]) value;
                     if (tps.length > 0) {
-                        return TPS_FORMAT.format(Math.min(20.0, tps[0]));
+                        return TPS_FORMAT.get().format(Math.min(20.0, tps[0]));
                     }
                 }
             } catch (Throwable ignored) {

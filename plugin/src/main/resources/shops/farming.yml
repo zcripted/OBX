@@ -1,0 +1,42 @@
+# OBX Shop — Farming. buy = per bundle, sell = PER UNIT; 0 disables.
+# Unknown materials are skipped per server version (1.8.8 → latest).
+# Optional stock: N caps units buyable per restock window (restock-minutes in shop.yml); omit = unlimited.
+title: "&5Shop &8› &eFarming"
+items:
+  # ── 1.8.8 baseline ─────────────────────────────────────────────────────────
+  - {material: WHEAT, amount: 16, buy: 5.00, sell: 0.20}
+  - {material: WHEAT_SEEDS, amount: 16, buy: 1.50, sell: 0.03}
+  - {material: CARROT, amount: 16, buy: 5.00, sell: 0.18}
+  - {material: POTATO, amount: 16, buy: 5.00, sell: 0.18}
+  - {material: SUGAR_CANE, amount: 16, buy: 4.00, sell: 0.15}
+  - {material: PUMPKIN, amount: 8, buy: 6.00, sell: 0.35}
+  - {material: MELON_SLICE, amount: 16, buy: 3.00, sell: 0.10}
+  - {material: CACTUS, amount: 16, buy: 3.00, sell: 0.12}
+  - {material: NETHER_WART, amount: 8, buy: 6.00, sell: 0.40}
+  - {material: COCOA_BEANS, amount: 16, buy: 4.00, sell: 0.15}
+  - {material: EGG, amount: 16, buy: 2.00, sell: 0.08}
+  - {material: SUGAR, amount: 16, buy: 3.00, sell: 0.10}
+  - {material: HAY_BLOCK, amount: 4, buy: 16.00, sell: 1.60}
+  # ── 1.8.8 legacy names (skipped on 1.13+) ──────────────────────────────────
+  - {material: SEEDS, amount: 16, buy: 1.50, sell: 0.03}
+  - {material: CARROT_ITEM, amount: 16, buy: 5.00, sell: 0.18}
+  - {material: POTATO_ITEM, amount: 16, buy: 5.00, sell: 0.18}
+  - {material: MELON, amount: 16, buy: 3.00, sell: 0.10}
+  - {material: NETHER_STALK, amount: 8, buy: 6.00, sell: 0.40}
+  - {material: INK_SACK, amount: 16, buy: 4.00, sell: 0.15}
+  # ── 1.9 – 1.12 ─────────────────────────────────────────────────────────────
+  - {material: BEETROOT, amount: 16, buy: 4.00, sell: 0.15}
+  - {material: BEETROOT_SEEDS, amount: 16, buy: 1.50, sell: 0.03}
+  - {material: CHORUS_FRUIT, amount: 8, buy: 8.00, sell: 0.60}
+  # ── 1.13+ ──────────────────────────────────────────────────────────────────
+  - {material: DRIED_KELP, amount: 16, buy: 2.50, sell: 0.08}
+  - {material: BAMBOO, amount: 16, buy: 2.00, sell: 0.05}
+  - {material: SWEET_BERRIES, amount: 16, buy: 3.00, sell: 0.12}
+  # ── 1.15+ ──────────────────────────────────────────────────────────────────
+  - {material: HONEYCOMB, amount: 8, buy: 6.00, sell: 0.50}
+  - {material: HONEY_BOTTLE, amount: 4, buy: 8.00, sell: 0.80}
+  # ── 1.17+ ──────────────────────────────────────────────────────────────────
+  - {material: GLOW_BERRIES, amount: 8, buy: 5.00, sell: 0.35}
+  # ── 1.20+ ──────────────────────────────────────────────────────────────────
+  - {material: TORCHFLOWER_SEEDS, amount: 4, buy: 0, sell: 1.00}
+  - {material: PITCHER_POD, amount: 4, buy: 0, sell: 1.00}

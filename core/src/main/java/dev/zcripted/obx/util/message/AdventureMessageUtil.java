@@ -4,6 +4,7 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import dev.zcripted.obx.core.platform.PlatformInfo;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.ConsoleCommandSender;
@@ -14,7 +15,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -71,6 +71,13 @@ public final class AdventureMessageUtil {
      * branch on {@link #ADVENTURE_DIRECT_READY}.
      */
     private static final boolean ADVENTURE_DIRECT_READY;
+    /**
+     * The Adventure {@code Component} class as resolved for the direct-build path. Unlike
+     * {@link #ADVENTURE_COMPONENT_CLASS} (which is only set when MiniMessage is present), this is
+     * available whenever Adventure <em>core</em> is on the classpath — so component-building callers
+     * ({@link #toComponent}) work on Paper builds that ship Adventure core but not MiniMessage.
+     */
+    private static final Class<?> ADVENTURE_DIRECT_COMPONENT_CLASS;
     private static final Method ADVENTURE_TEXT_OF_STRING;
     private static final Method ADVENTURE_COMPONENT_APPEND;
     private static final Method ADVENTURE_COMPONENT_COLOR;
@@ -224,6 +231,7 @@ public final class AdventureMessageUtil {
         ADVENTURE_CLICK_OPEN_URL = directReady ? clickOpenUrl : null;
         ADVENTURE_CLICK_COPY = directReady ? clickCopy : null;
         ADVENTURE_CLICK_CHANGE_PAGE = directReady ? clickChangePage : null;
+        ADVENTURE_DIRECT_COMPONENT_CLASS = directReady ? compClass : null;
         ADVENTURE_DIRECT_READY = directReady;
 
     }
@@ -437,6 +445,34 @@ public final class AdventureMessageUtil {
      * blocks; gradients are expanded to explicit per-glyph colors first so the
      * result never depends on a downstream MiniMessage renderer.
      */
+    /**
+     * Renders {@code raw} (legacy {@code &}/hex, named tags, {@code <gradient>}, {@code <bold>}) into
+     * an Adventure {@code Component} object — used where the legacy section-coded string would hit a
+     * length cap (e.g. a scoreboard objective display name). Returns null if Adventure is unavailable.
+     */
+    public static Object toComponent(String raw) {
+        // The direct-build path (not MiniMessage) is what actually assembles the Component, so gate
+        // on its readiness — this lets scoreboard titles render a true gradient on Paper builds that
+        // have Adventure core but not MiniMessage, where ADVENTURE_COMPONENT_CLASS would be null.
+        if (!ADVENTURE_DIRECT_READY || raw == null) {
+            return null;
+        }
+        try {
+            List<Span> spans = parseToSpans(expandGradients(raw));
+            if (spans.isEmpty()) {
+                spans.add(emptyTextSpan());
+            }
+            return buildComponentFromSpans(spans);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /** The Adventure {@code Component} class (or null if Adventure isn't on the classpath). */
+    public static Class<?> adventureComponentClass() {
+        return ADVENTURE_DIRECT_COMPONENT_CLASS != null ? ADVENTURE_DIRECT_COMPONENT_CLASS : ADVENTURE_COMPONENT_CLASS;
+    }
+
     public static String renderLegacy(String raw) {
         if (raw == null || raw.isEmpty()) {
             return raw == null ? "" : raw;
@@ -476,6 +512,74 @@ public final class AdventureMessageUtil {
         }
         return sb.toString();
     }
+
+    /**
+     * Like {@link #renderLegacy} but never emits {@code §x} hex runs — every color is mapped to the
+     * nearest of the 16 standard Minecraft colors (a single {@code §}-code). Use this on pre-1.16
+     * clients (which can't render {@code §x} hex) so a gradient still shows as a coarse, multi-band
+     * approximation in standard colors instead of garbled text. The result is also far shorter, so it
+     * fits the 1.8–1.12 32-char scoreboard-title cap.
+     */
+    public static String renderLegacyDownsampled(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return raw == null ? "" : raw;
+        }
+        List<Span> spans = parseToSpans(expandGradients(raw));
+        if (spans.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder(raw.length() + 16);
+        boolean colorEmitted = false;
+        for (Span span : spans) {
+            if (span == null || span.text == null || span.text.isEmpty()) {
+                continue;
+            }
+            if (span.color != null && span.color.length() == 6) {
+                String code = hexToStandardCode(span.color);
+                char ch = code != null ? code.charAt(0) : closestLegacyColor(span.color).getChar();
+                sb.append(ChatColor.COLOR_CHAR).append(ch);
+                colorEmitted = true;
+            } else if (colorEmitted) {
+                sb.append(ChatColor.COLOR_CHAR).append('r');
+            }
+            if (span.bold) sb.append(ChatColor.COLOR_CHAR).append('l');
+            if (span.italic) sb.append(ChatColor.COLOR_CHAR).append('o');
+            if (span.underlined) sb.append(ChatColor.COLOR_CHAR).append('n');
+            if (span.strikethrough) sb.append(ChatColor.COLOR_CHAR).append('m');
+            if (span.obfuscated) sb.append(ChatColor.COLOR_CHAR).append('k');
+            sb.append(span.text);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Renders {@code raw} to a legacy section-coded string suited to the recipient's client: a
+     * smooth {@code §x} per-glyph hex gradient on 1.16+ (where hex renders), or a coarse
+     * nearest-standard-color approximation on older clients. Used by String-only surfaces (the
+     * legacy tablist header/footer, scoreboard objective titles) so gradients show there too.
+     */
+    public static String renderLegacyForClient(String raw) {
+        return hexCapable() ? renderLegacy(raw) : renderLegacyDownsampled(raw);
+    }
+
+    /** Whether the running server (a proxy for its clients) supports {@code §x} hex colors (1.16+). */
+    public static boolean hexCapable() {
+        Boolean cached = HEX_CAPABLE;
+        if (cached != null) {
+            return cached;
+        }
+        boolean capable;
+        try {
+            PlatformInfo info = PlatformInfo.get();
+            capable = info == null || info.isAtLeast(1, 16);
+        } catch (Throwable ignored) {
+            capable = true; // assume a modern server when the probe isn't ready
+        }
+        HEX_CAPABLE = capable;
+        return capable;
+    }
+
+    private static volatile Boolean HEX_CAPABLE;
 
     /**
      * Maps a 6-digit hex string to the matching legacy {@code §}-code character
@@ -572,8 +676,11 @@ public final class AdventureMessageUtil {
             Method setHeader = LEGACY_HEADER_SETTERS.computeIfAbsent(playerClass, AdventureMessageUtil::lookupLegacyHeaderSetter);
             Method setFooter = LEGACY_FOOTER_SETTERS.computeIfAbsent(playerClass, AdventureMessageUtil::lookupLegacyFooterSetter);
             if (setHeader != MISSING_METHOD && setFooter != MISSING_METHOD) {
-                setHeader.invoke(player, ChatColor.translateAlternateColorCodes('&', stripUnsupportedTags(header)));
-                setFooter.invoke(player, ChatColor.translateAlternateColorCodes('&', stripUnsupportedTags(footer)));
+                // Render gradients/hex to a legacy section-coded string (§x per glyph on 1.16+,
+                // nearest-standard on older clients) rather than STRIPPING the <gradient>/<bold>
+                // tags — so the bold purple "OBX" gradient still shows on this String-only fallback.
+                setHeader.invoke(player, renderLegacyForClient(header));
+                setFooter.invoke(player, renderLegacyForClient(footer));
             }
         } catch (Throwable ignored) {
             // No tablist API available - silently no-op.
@@ -2174,11 +2281,5 @@ public final class AdventureMessageUtil {
             span.clickValue = this.clickValue;
             return span;
         }
-    }
-
-    /** Suppress unused-warning for the LinkedHashMap import while keeping consistency with sibling utilities. */
-    @SuppressWarnings("unused")
-    private static Map<String, String> emptyMap() {
-        return new LinkedHashMap<>();
     }
 }

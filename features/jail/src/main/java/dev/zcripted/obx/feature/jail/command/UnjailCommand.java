@@ -43,6 +43,9 @@ public class UnjailCommand extends AbstractObxCommand implements TabCompleter {
         jailService.clearState(uuid);
         Player target = Bukkit.getPlayer(uuid);
         if (target != null && target.isOnline()) {
+            // Relocate the freed player out of the jail build — clearing state alone would
+            // leave them standing inside it with the move-containment no longer pulling them back.
+            jailService.teleportToRelease(target);
             languages.send(target, "jail.unjail.released-target");
         }
         languages.send(sender, "jail.unjail.released", Placeholders.with("player", args[0]));

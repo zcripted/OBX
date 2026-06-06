@@ -29,6 +29,28 @@ lore:
   # custom Arcanum enchants.
   style_vanilla_enchants: true
 
+security:
+  # Anti-forge protection. Custom enchants live in item lore (the only store that
+  # works across 1.8 -> 1.21), so anyone able to edit lore (anvils, written books,
+  # NBT/creative tools) could otherwise hand-craft a fully-working max-level enchant.
+  # Every enchanted item is stamped with an INVISIBLE HMAC signature (a per-server
+  # key in plugins/OBX/enchant-signing.key) covering its exact enchant set.
+  #
+  #   true  (default) - signatures are written but NOT enforced; lore is trusted as
+  #                     before. Safe for existing worlds; lets already-circulating
+  #                     items pick up a signature on their next legitimate edit.
+  #   false (strict)  - an enchant set without a matching signature is ignored and the
+  #                     item behaves as unenchanted. Forged lore stops working.
+  #
+  # MIGRATION WARNING for strict mode: an item that carries UNSIGNED (legacy, pre-update)
+  # custom enchants is treated as forged. Not only does it read as unenchanted in combat —
+  # ANY write that re-renders its lore (applying/removing an enchant, OR a vanilla anvil
+  # rename/repair or enchanting-table use) drops the unsigned enchants instead of re-signing
+  # them. Only flip this to false AFTER players' items have each been re-saved once by the
+  # plugin (any legitimate OBX enchant edit re-signs them); otherwise legacy items lose their
+  # enchants the first time they pass through an anvil/table.
+  trust_unsigned_lore: true
+
 apply:
   # Maximum number of enchantments allowed on a single item.
   max_enchants_per_item: 6

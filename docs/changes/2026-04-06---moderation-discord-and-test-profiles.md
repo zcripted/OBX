@@ -22,7 +22,7 @@ Files:
 - `src/main/resources/plugin.yml`
 
 ### Discord
-- Added `discord.moderation` settings in `config.yml` with the requested server ID `1431483426267205785` and moderation channel ID `1490820884976500877`.
+- Added `discord.moderation` settings in `config.yml` with the requested server ID and moderation channel ID (real IDs scrubbed from the repo on 2026-06-06 for release).
 - Added webhook-based Discord moderation posting with console fallback logging and a one-time warning when IDs are configured but `webhook-url` is still empty.
 - Logged ban, unban, tempban, kick, mute, unmute, and warn actions through the moderation service.
 - Reworked console moderation logs to use past-tense action phrasing and ANSI-colored professional formatting such as `Moderation: Unbanned HotPotato | By: zcripted | reason=...`.

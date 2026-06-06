@@ -22,7 +22,7 @@ import java.util.Map;
  * narrowed to {@code :api} interfaces in Phase 2b so {@code :core} never depends
  * on a feature module.
  */
-public interface ObxPlugin extends Plugin {
+public interface ObxPlugin extends Plugin, dev.zcripted.obx.api.OBXApi {
 
     // ── core framework ──────────────────────────────────────────────────────
     dev.zcripted.obx.core.service.ServiceRegistry getServiceRegistry();
@@ -45,29 +45,10 @@ public interface ObxPlugin extends Plugin {
 
     dev.zcripted.obx.core.platform.resourcepack.AutoResourcePackManager getResourcePackManager();
 
-    // ── cross-feature / public-API services (narrowed to :api interfaces in Phase 2b) ──
-    dev.zcripted.obx.api.economy.EconomyService getEconomyService();
-
-    dev.zcripted.obx.api.teleport.TeleportManager getTeleportManager();
-
-    dev.zcripted.obx.api.playerstate.AfkService getAfkService();
-
-
-
-    dev.zcripted.obx.api.playerinfo.JoinLeaveService getJoinLeaveService();
-
-    dev.zcripted.obx.api.chat.ChatService getChatService();
-
-    dev.zcripted.obx.api.tablist.TablistService getTablistService();
-
-    dev.zcripted.obx.api.scoreboard.ScoreboardService getScoreboardService();
-
-
-
-    dev.zcripted.obx.api.hub.HubKitApplier getHubKitApplier();
-
-    dev.zcripted.obx.api.hub.HubItemUseListener getHubItemUseListener();
-
+    // ── cross-feature / public-API services ──────────────────────────────────
+    // The nine public-API getters now live on dev.zcripted.obx.api.OBXApi (the kept public entry
+    // interface) and are inherited here, so internal callers keep using ObxPlugin unchanged while
+    // third-party plugins integrate against OBXApi only.
 
     // ── OBX-specific operations not on Bukkit's Plugin interface ──────────────
     /** {@link org.bukkit.plugin.java.JavaPlugin#getCommand(String)} — declared here since {@link Plugin} lacks it. */

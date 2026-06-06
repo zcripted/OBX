@@ -40,7 +40,30 @@ public class EconomyServiceImpl implements EconomyService {
                 "name TEXT," +
                 "balance REAL NOT NULL DEFAULT 0" +
                 ")");
+        // Audit trail for admin / payment / shop money movement (see logTransaction).
+        store.execute("CREATE TABLE IF NOT EXISTS economy_log (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "ts INTEGER NOT NULL," +
+                "actor TEXT," +
+                "target_uuid TEXT," +
+                "target_name TEXT," +
+                "action TEXT NOT NULL," +
+                "amount REAL NOT NULL," +
+                "balance_after REAL NOT NULL" +
+                ")");
         migrateLegacyYaml();
+        pruneTransactionLog();
+    }
+
+    /**
+     * Deletes audit rows older than {@code economy.log-retention-days} (default 90;
+     * {@code 0} disables pruning and keeps the log forever). Runs on every load/reload.
+     */
+    private void pruneTransactionLog() {
+        int days = plugin.getConfig().getInt("economy.log-retention-days", 90);
+        if (days <= 0) return;
+        long cutoff = System.currentTimeMillis() - days * 86_400_000L;
+        store.executeUpdateAsync("DELETE FROM economy_log WHERE ts < ?", cutoff);
     }
 
     @Override
@@ -103,8 +126,26 @@ public class EconomyServiceImpl implements EconomyService {
     @Override
     public double getBalance(UUID uuid) {
         if (uuid == null || !store.isAvailable()) return 0.0;
+        // Report the real stored balance; an account with no row (never seeded) is 0, not a
+        // fabricated starting balance — players are seeded on join, so real accounts have a
+        // row and appear consistently in /balance and /baltop.
         return store.queryFirst("SELECT balance FROM economy WHERE uuid = ?",
-                rs -> rs.getDouble("balance"), uuid).orElseGet(this::getStartingBalance);
+                rs -> rs.getDouble("balance"), uuid).orElse(0.0);
+    }
+
+    @Override
+    public void ensureAccount(UUID uuid, String name) {
+        if (uuid == null || !store.isAvailable()) return;
+        ensureRow(uuid, name);
+        if (name != null && !name.isEmpty()) {
+            // The joining player owns this name NOW. Mojang frees names for reuse, so
+            // clear it from any OLDER account that recorded it historically — offline
+            // name lookups (findAccount) must never resolve to a previous owner.
+            store.executeUpdateAsync(
+                    "UPDATE economy SET name = NULL WHERE LOWER(name) = LOWER(?) AND uuid != ?", name, uuid);
+            store.executeUpdateAsync(
+                    "UPDATE economy SET name = ? WHERE uuid = ?", name, uuid);
+        }
     }
 
     /** Ensures a row exists (seeded at the starting balance) so atomic UPDATEs apply. */
@@ -134,6 +175,21 @@ public class EconomyServiceImpl implements EconomyService {
         store.executeUpdate(
                 "UPDATE economy SET balance = MIN(balance + ?, ?), name = COALESCE(?, name) WHERE uuid = ?",
                 amt, MAX_BALANCE, name, uuid);
+    }
+
+    @Override
+    public boolean depositStrict(UUID uuid, String name, double amount) {
+        if (uuid == null || !store.isAvailable()) return false;
+        double amt = sanitize(amount);
+        if (amt <= 0.0) return true;
+        ensureRow(uuid, name);
+        // Guarded credit: 0 rows = the deposit would breach MAX_BALANCE — refuse
+        // rather than silently clamping the player's earnings away.
+        int rows = store.executeUpdateRows(
+                "UPDATE economy SET balance = balance + ?, name = COALESCE(?, name)"
+                        + " WHERE uuid = ? AND balance + ? <= ?",
+                amt, name, uuid, amt, MAX_BALANCE);
+        return rows > 0;
     }
 
     @Override
@@ -168,10 +224,17 @@ public class EconomyServiceImpl implements EconomyService {
                     throw new java.sql.SQLException("insufficient funds");
                 }
             }
+            // Guarded credit: add the FULL amount only when the recipient has headroom.
+            // If crediting would exceed MAX_BALANCE the UPDATE matches 0 rows and we abort
+            // the transaction, rolling back the debit so the sender's money is never silently
+            // clamped away (the old MIN(...) cap destroyed the excess on a successful commit).
             try (java.sql.PreparedStatement credit = conn.prepareStatement(
-                    "UPDATE economy SET balance = MIN(balance + ?, ?), name = COALESCE(?, name) WHERE uuid = ?")) {
-                store.bind(credit, amt, MAX_BALANCE, toName, to);
-                credit.executeUpdate();
+                    "UPDATE economy SET balance = balance + ?, name = COALESCE(?, name)" +
+                            " WHERE uuid = ? AND balance + ? <= ?")) {
+                store.bind(credit, amt, toName, to, amt, MAX_BALANCE);
+                if (credit.executeUpdate() == 0) {
+                    throw new java.sql.SQLException("recipient at maximum balance");
+                }
             }
         });
     }
@@ -200,5 +263,84 @@ public class EconomyServiceImpl implements EconomyService {
             }
             return new BalanceEntry(uuid, name, rs.getDouble("balance"));
         });
+    }
+
+    @Override
+    public int accountCount() {
+        if (!store.isAvailable()) return -1;
+        return store.queryFirst("SELECT COUNT(*) AS n FROM economy",
+                rs -> rs.getInt("n")).orElse(-1);
+    }
+
+    @Override
+    public double totalSupply() {
+        if (!store.isAvailable()) return -1;
+        return store.queryFirst("SELECT COALESCE(SUM(balance), 0) AS s FROM economy",
+                rs -> rs.getDouble("s")).orElse(-1.0);
+    }
+
+    @Override
+    public java.util.Optional<BalanceEntry> findAccount(String name) {
+        if (name == null || name.trim().isEmpty() || !store.isAvailable()) {
+            return java.util.Optional.empty();
+        }
+        // rowid DESC: when two players historically shared a name, the NEWER account
+        // wins (Mojang name reuse means the most recent holder owns the name) — and
+        // ensureAccount additionally NULLs stale duplicates on every join.
+        return store.queryFirst(
+                "SELECT uuid, name, balance FROM economy WHERE LOWER(name) = LOWER(?) ORDER BY rowid DESC LIMIT 1",
+                rs -> {
+                    try {
+                        return new BalanceEntry(UUID.fromString(rs.getString("uuid")),
+                                rs.getString("name"), rs.getDouble("balance"));
+                    } catch (IllegalArgumentException malformed) {
+                        return null;
+                    }
+                }, name.trim());
+    }
+
+    @Override
+    public void logTransaction(String actor, UUID targetUuid, String targetName,
+                               String action, double amount, double balanceAfter) {
+        if (!store.isAvailable() || action == null) return;
+        store.executeUpdateAsync(
+                "INSERT INTO economy_log (ts, actor, target_uuid, target_name, amount, action, balance_after)"
+                        + " VALUES (?, ?, ?, ?, ?, ?, ?)",
+                System.currentTimeMillis(), actor, targetUuid, targetName, amount, action, balanceAfter);
+    }
+
+    @Override
+    public List<TransactionEntry> recentTransactions(UUID target, int limit) {
+        return recentTransactions(target, null, limit, 0);
+    }
+
+    @Override
+    public List<TransactionEntry> recentTransactions(UUID target, String action, int limit, int offset) {
+        if (!store.isAvailable()) return java.util.Collections.emptyList();
+        int capped = Math.max(1, Math.min(limit, 100));
+        int skip = Math.max(0, offset);
+        StringBuilder sql = new StringBuilder(
+                "SELECT ts, actor, target_uuid, target_name, action, amount, balance_after FROM economy_log");
+        java.util.List<Object> params = new java.util.ArrayList<>();
+        if (target != null) {
+            sql.append(" WHERE target_uuid = ?");
+            params.add(target);
+        }
+        if (action != null && !action.trim().isEmpty()) {
+            sql.append(target != null ? " AND" : " WHERE").append(" action = ?");
+            params.add(action.trim().toUpperCase(java.util.Locale.ENGLISH));
+        }
+        sql.append(" ORDER BY id DESC LIMIT ").append(capped).append(" OFFSET ").append(skip);
+        SqliteDataStore.RowMapper<TransactionEntry> mapper = rs -> {
+            UUID uuid = null;
+            String raw = rs.getString("target_uuid");
+            if (raw != null) {
+                try { uuid = UUID.fromString(raw); } catch (IllegalArgumentException ignored) { /* keep null */ }
+            }
+            return new TransactionEntry(rs.getLong("ts"), rs.getString("actor"), uuid,
+                    rs.getString("target_name"), rs.getString("action"),
+                    rs.getDouble("amount"), rs.getDouble("balance_after"));
+        };
+        return store.queryAll(sql.toString(), mapper, params.toArray());
     }
 }

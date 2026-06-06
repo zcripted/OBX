@@ -15,6 +15,8 @@ import java.util.List;
 
 public class BroadcastCommand extends AbstractObxCommand implements TabCompleter {
 
+    /** Caps the broadcast body so one command can't flood chat. */
+    private static final int MAX_LENGTH = 512;
 
     public BroadcastCommand(ObxPlugin plugin) {
         super(plugin);
@@ -35,7 +37,12 @@ public class BroadcastCommand extends AbstractObxCommand implements TabCompleter
             if (i > 0) body.append(' ');
             body.append(args[i]);
         }
-        java.util.Map<String, String> placeholders = Placeholders.with("message", body.toString());
+        String text = body.toString();
+        if (text.length() > MAX_LENGTH) {
+            text = text.substring(0, MAX_LENGTH);
+        }
+        java.util.Map<String, String> placeholders = Placeholders.with("message",
+                dev.zcripted.obx.util.text.MessageSanitizer.sanitize(sender, text));
         for (Player online : Bukkit.getOnlinePlayers()) {
             languages.send(online, "messaging.broadcast.line", placeholders);
         }

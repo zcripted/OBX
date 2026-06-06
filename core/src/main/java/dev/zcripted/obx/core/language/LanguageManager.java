@@ -16,12 +16,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LanguageManager {
 
     private final ObxPlugin plugin;
-    private final Map<LanguageRegistry, LanguageFile> languageFiles = new HashMap<>();
-    private final Map<UUID, LanguageRegistry> playerLanguages = new HashMap<>();
+    // Read from the async chat thread (LanguageRegistry resolution during AsyncPlayerChatEvent)
+    // while written on the main thread (reload / /language). Concurrent maps + reference swaps
+    // keep async readers from ever observing a resizing or transiently-empty plain HashMap.
+    private volatile Map<LanguageRegistry, LanguageFile> languageFiles = new ConcurrentHashMap<>();
+    private volatile Map<UUID, LanguageRegistry> playerLanguages = new ConcurrentHashMap<>();
     private File playerLanguageFile;
 
     public LanguageManager(ObxPlugin plugin) {
@@ -33,9 +37,12 @@ public class LanguageManager {
         ensureLanguageFolder();
         loadPlayerLanguages();
         List<String> createdFiles = new ArrayList<>();
+        // Build into a fresh map and swap the reference at the end so async readers
+        // never see a half-populated languageFiles map mid-reload.
+        Map<LanguageRegistry, LanguageFile> rebuilt = new ConcurrentHashMap<>();
         for (LanguageRegistry registry : LanguageRegistry.values()) {
             LanguageFile file = new LanguageFile(plugin, registry);
-            languageFiles.put(registry, file);
+            rebuilt.put(registry, file);
             Map<String, Object> defaults = MessageDefaults.defaults(registry);
             Map<String, List<String>> comments = MessageDefaults.sectionComments(registry);
             if (file.ensureExists(defaults, comments)) {
@@ -46,12 +53,15 @@ public class LanguageManager {
                 createdFiles.add(file.getFileName());
             } else {
                 int added = file.syncDefaults(defaults, comments);
-                if (added > 0) {
+                // Keys are still merged in; we just don't spam the console about it on every
+                // reload (it's expected after a plugin update). Surfaced only when debugging.
+                if (added > 0 && plugin.getConfig().getBoolean("debug", false)) {
                     dev.zcripted.obx.util.message.ConsoleLog.info(plugin,
                             "Added " + added + " missing keys to " + registry.fileName());
                 }
             }
         }
+        languageFiles = rebuilt;
         // Fold every freshly-generated default into one tidy console line
         // instead of one "Created default language file" line per language.
         dev.zcripted.obx.util.message.ConsoleLog.list(plugin,
@@ -258,6 +268,17 @@ public class LanguageManager {
         boolean console = sender instanceof ConsoleCommandSender;
         List<String> lines = resolveMessages(registry, key, replacements, console);
         return lines.isEmpty() ? "" : lines.get(0);
+    }
+
+    /**
+     * Resolves a single message in the language stored for {@code uuid} (defaulting to EN),
+     * with colours applied — for contexts that have a UUID but no online {@link Player}/sender
+     * yet, such as an {@code AsyncPlayerPreLoginEvent} deny screen. Embedded {@code \n} is kept.
+     */
+    public String format(UUID uuid, String key, Map<String, String> replacements) {
+        LanguageRegistry registry = getLanguage(uuid);
+        List<String> lines = resolveMessages(registry, key, replacements, false);
+        return lines.isEmpty() ? "" : String.join("\n", lines);
     }
 
     public List<String> list(CommandSender sender, String key, Map<String, String> replacements) {
@@ -532,6 +553,22 @@ public class LanguageManager {
      * value are not expected (authoring is controlled), but single quotes in the
      * payload are tolerated by AdventureMessageUtil's quote-aware tag parser.
      */
+    /**
+     * Wraps a MiniMessage tag argument in quotes, choosing a delimiter that does NOT appear in the
+     * payload so a literal quote (e.g. the apostrophe in "player's") can't terminate the tag early
+     * and spill the rest of the line out of the {@code <hover>}/{@code <click>}.
+     *
+     * <p>This is robust for both render paths: the real MiniMessage parser <em>and</em> the
+     * Adventure-core fallback's regex tokenizer (which matches {@code '[^']*'} / {@code "[^\"]*"} and
+     * does <strong>not</strong> honour {@code \'} escapes) — so we pick a safe delimiter instead of
+     * escaping. In the rare case the content holds both quote types, single quotes are neutralised to
+     * a typographic apostrophe (U+2019) as a last resort.
+     */
+    static String quoteArg(String content) {
+        // Shared with chat hovers via the canonical util so both harden identically.
+        return dev.zcripted.obx.util.text.MessageSanitizer.quoteArg(content);
+    }
+
     private String renderMotdNode(Map<?, ?> node) {
         Object textObj = node.get("text");
         String text = textObj == null ? "" : String.valueOf(textObj);
@@ -564,13 +601,33 @@ public class LanguageManager {
             clickValue = v == null ? null : String.valueOf(v);
         }
 
-        String inner = text;
         boolean hasClick = clickAction != null && !clickAction.isEmpty() && clickValue != null && !clickValue.isEmpty();
-        if (hasClick) {
-            inner = "<click:" + clickAction.toLowerCase(java.util.Locale.ENGLISH) + ":'" + clickValue + "'>" + inner + "</click>";
+        boolean hasHover = hoverJoined != null && !hoverJoined.isEmpty();
+
+        // Optional "scope": when present, the hover/click is wrapped ONLY around that substring of
+        // the text (e.g. just the username, just "/obx help", just the link) instead of the whole
+        // line. Falls back to whole-line wrapping when scope is absent or not found in the text.
+        Object scopeObj = node.get("scope");
+        String scope = scopeObj == null ? null : String.valueOf(scopeObj);
+        if (scope != null && !scope.isEmpty() && (hasClick || hasHover) && text.contains(scope)) {
+            String wrapped = scope;
+            if (hasClick) {
+                wrapped = "<click:" + clickAction.toLowerCase(java.util.Locale.ENGLISH) + ":" + quoteArg(clickValue) + ">" + wrapped + "</click>";
+            }
+            if (hasHover) {
+                wrapped = "<hover:show_text:" + quoteArg(hoverJoined) + ">" + wrapped + "</hover>";
+            }
+            // Only the first occurrence (these scope tokens appear once per line).
+            int at = text.indexOf(scope);
+            return text.substring(0, at) + wrapped + text.substring(at + scope.length());
         }
-        if (hoverJoined != null && !hoverJoined.isEmpty()) {
-            inner = "<hover:show_text:'" + hoverJoined + "'>" + inner + "</hover>";
+
+        String inner = text;
+        if (hasClick) {
+            inner = "<click:" + clickAction.toLowerCase(java.util.Locale.ENGLISH) + ":" + quoteArg(clickValue) + ">" + inner + "</click>";
+        }
+        if (hasHover) {
+            inner = "<hover:show_text:" + quoteArg(hoverJoined) + ">" + inner + "</hover>";
         }
         return inner;
     }
@@ -705,19 +762,22 @@ public class LanguageManager {
     }
 
     private void loadPlayerLanguages() {
-        playerLanguages.clear();
+        // Populate a fresh map then swap the reference, so an async reader on the chat
+        // thread never observes a transiently-cleared map during a /obx reload.
+        Map<UUID, LanguageRegistry> rebuilt = new ConcurrentHashMap<>();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(playerLanguageFile);
         for (String key : yaml.getKeys(false)) {
             LanguageRegistry registry = LanguageRegistry.fromInput(yaml.getString(key, "en"));
             if (registry != null) {
                 try {
                     UUID uuid = UUID.fromString(key);
-                    playerLanguages.put(uuid, registry);
+                    rebuilt.put(uuid, registry);
                 } catch (IllegalArgumentException ignored) {
                     // skip invalid uuid entries
                 }
             }
         }
+        playerLanguages = rebuilt;
     }
 
     private void savePlayerLanguages() {

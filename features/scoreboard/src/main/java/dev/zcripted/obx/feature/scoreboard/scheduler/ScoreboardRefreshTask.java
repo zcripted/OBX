@@ -1,7 +1,6 @@
 package dev.zcripted.obx.feature.scoreboard.scheduler;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.feature.scoreboard.format.ScoreboardRenderer;
 import dev.zcripted.obx.api.scoreboard.ScoreboardService;
 import org.bukkit.entity.Player;
@@ -33,9 +32,16 @@ public final class ScoreboardRefreshTask {
             return;
         }
         int interval = service.getRefreshIntervalTicks();
+        // On Folia, scoreboard mutation must run on each player's entity region, not the
+        // global region the repeating task fires on — otherwise the sidebar never applies.
+        final boolean folia = plugin.getSchedulerAdapter().isFolia();
         Runnable refresh = () -> {
             for (Player player : plugin.getServer().getOnlinePlayers()) {
-                ScoreboardRenderer.apply(plugin, service, player);
+                if (folia) {
+                    plugin.getSchedulerAdapter().runAtEntity(player, () -> ScoreboardRenderer.apply(plugin, service, player));
+                } else {
+                    ScoreboardRenderer.apply(plugin, service, player);
+                }
             }
         };
         if (interval <= 0) {

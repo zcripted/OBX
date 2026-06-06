@@ -1,24 +1,249 @@
 # ════════════════════════════════════════════════════════════════════════════
-# OBX Item Worth
+# OBX Item Worth — per-material sell value used by /worth, /sell, /sellall,
+# and the /shop Sell-Items inventory.
 # ────────────────────────────────────────────────────────────────────────────
-# Per-material sell value used by /worth, /sell, and /sellall. Missing keys
-# (or values of 0) mean the item cannot be sold. Material names follow the
-# Bukkit enum (lower-case in this file is fine — the lookup is normalized).
+# Missing keys (or values of 0) mean the item cannot be sold. Material names
+# follow the Bukkit enum (lower-case in this file is fine — the lookup is
+# normalized).
+#
+# VERSION COVERAGE: this database spans 1.8.8 → the latest release. Each
+# server only "sees" the entries whose material exists on its version —
+# unknown names are simply ignored, never errors. Legacy (pre-1.13) name
+# aliases live at the bottom so 1.8.8–1.12.2 servers price the same items.
 # ════════════════════════════════════════════════════════════════════════════
 worth:
+  # ── Stone, earth & terrain (1.8.8+) ───────────────────────────────────────
   cobblestone: 0.05
   stone: 0.07
+  granite: 0.06
+  diorite: 0.06
+  andesite: 0.06
   dirt: 0.02
+  grass_block: 0.08
+  podzol: 0.20
+  mycelium: 0.40
+  sand: 0.05
+  red_sand: 0.06
+  gravel: 0.04
+  flint: 0.15
+  clay_ball: 0.05
+  clay: 0.20
+  sandstone: 0.08
+  red_sandstone: 0.10
+  obsidian: 1.50
+  netherrack: 0.02
+  soul_sand: 0.15
+  glowstone_dust: 0.20
+  glowstone: 0.80
+  end_stone: 0.20
+  ice: 0.25
+  packed_ice: 0.50
+  snowball: 0.01
+  snow_block: 0.05
+  glass: 0.10
+  bricks: 0.30
+  brick: 0.08
+  nether_brick: 0.10
+  sponge: 5.00
+  # ── Wood (1.8.8+; modern names) ───────────────────────────────────────────
   oak_log: 0.50
-  iron_ingot: 2.00
-  gold_ingot: 4.00
-  diamond: 15.00
-  emerald: 12.00
-  redstone: 0.25
-  lapis_lazuli: 0.40
+  spruce_log: 0.50
+  birch_log: 0.50
+  jungle_log: 0.50
+  acacia_log: 0.50
+  dark_oak_log: 0.50
+  oak_planks: 0.12
+  spruce_planks: 0.12
+  birch_planks: 0.12
+  jungle_planks: 0.12
+  acacia_planks: 0.12
+  dark_oak_planks: 0.12
+  stick: 0.02
+  # ── Ores, ingots & gems (1.8.8+) ──────────────────────────────────────────
   coal: 0.30
+  charcoal: 0.20
+  coal_block: 2.50
+  iron_ingot: 2.00
+  iron_block: 17.00
+  gold_ingot: 4.00
+  gold_block: 34.00
+  gold_nugget: 0.30
+  diamond: 15.00
+  diamond_block: 130.00
+  emerald: 12.00
+  emerald_block: 100.00
+  lapis_lazuli: 0.40
+  lapis_block: 3.50
+  redstone: 0.25
+  redstone_block: 2.00
+  quartz: 0.50
+  quartz_block: 2.00
+  # ── Farming & nature (1.8.8+) ─────────────────────────────────────────────
   wheat: 0.20
+  wheat_seeds: 0.03
   bread: 0.50
+  carrot: 0.18
+  potato: 0.18
+  baked_potato: 0.30
+  poisonous_potato: 0.02
+  beetroot: 0.15
+  beetroot_seeds: 0.03
+  sugar_cane: 0.15
+  sugar: 0.10
+  pumpkin: 0.35
+  pumpkin_seeds: 0.04
+  pumpkin_pie: 1.00
+  melon_slice: 0.10
+  melon_seeds: 0.04
+  cactus: 0.12
+  cocoa_beans: 0.15
+  apple: 0.40
+  golden_apple: 30.00
+  golden_carrot: 3.50
+  egg: 0.08
+  nether_wart: 0.40
+  red_mushroom: 0.20
+  brown_mushroom: 0.20
+  vine: 0.05
+  hay_block: 1.60
+  chorus_fruit: 0.60
+  popped_chorus_fruit: 0.80
+  # ── Food & cooking (1.8.8+) ───────────────────────────────────────────────
+  beef: 0.45
+  cooked_beef: 0.90
+  porkchop: 0.45
+  cooked_porkchop: 0.90
+  chicken: 0.35
+  cooked_chicken: 0.70
+  mutton: 0.35
+  cooked_mutton: 0.70
+  rabbit: 0.35
+  cooked_rabbit: 0.70
+  cookie: 0.10
+  cake: 2.00
+  mushroom_stew: 0.80
+  rabbit_stew: 1.20
+  # ── Mob drops & adventure (1.8.8+) ────────────────────────────────────────
+  rotten_flesh: 0.05
+  bone: 0.15
+  string: 0.15
+  spider_eye: 0.25
+  fermented_spider_eye: 0.60
+  gunpowder: 0.60
+  ender_pearl: 2.00
+  ender_eye: 4.00
+  blaze_rod: 2.50
+  blaze_powder: 1.40
+  ghast_tear: 6.00
+  slime_ball: 0.60
+  magma_cream: 0.80
+  feather: 0.10
+  leather: 0.60
+  rabbit_hide: 0.25
+  rabbit_foot: 4.00
+  ink_sac: 0.25
+  bone_meal: 0.06
+  experience_bottle: 3.00
+  dragon_breath: 15.00
+  prismarine_shard: 0.50
+  prismarine_crystals: 0.70
+  prismarine: 0.40
+  # ── 1.9 – 1.12 additions ──────────────────────────────────────────────────
+  shulker_shell: 20.00
+  iron_nugget: 0.20
+  # ── 1.13 additions (the flattening + oceans) ──────────────────────────────
+  cod: 0.30
+  cooked_cod: 0.70
+  salmon: 0.35
+  cooked_salmon: 0.80
+  tropical_fish: 0.60
+  pufferfish: 0.50
+  kelp: 0.05
+  dried_kelp: 0.08
+  sea_pickle: 0.30
+  seagrass: 0.03
+  nautilus_shell: 10.00
+  heart_of_the_sea: 50.00
+  scute: 2.50
+  phantom_membrane: 1.50
+  # ── 1.14 – 1.15 additions (village & bees) ────────────────────────────────
+  sweet_berries: 0.12
+  bamboo: 0.05
+  honeycomb: 0.50
+  honey_bottle: 0.80
+  # ── 1.16 additions (the Nether) ───────────────────────────────────────────
+  netherite_scrap: 60.00
+  netherite_ingot: 300.00
+  ancient_debris: 70.00
+  crimson_stem: 0.55
+  warped_stem: 0.55
+  basalt: 0.08
+  blackstone: 0.10
+  soul_soil: 0.12
+  shroomlight: 0.80
+  weeping_vines: 0.05
+  twisting_vines: 0.05
+  warped_fungus: 0.20
+  crimson_fungus: 0.20
+  # ── 1.17 – 1.18 additions (caves & cliffs) ────────────────────────────────
+  copper_ingot: 0.50
+  copper_block: 4.20
+  raw_iron: 1.80
+  raw_gold: 3.60
+  raw_copper: 0.40
+  amethyst_shard: 1.20
+  amethyst_block: 4.50
+  deepslate: 0.08
+  calcite: 0.15
+  tuff: 0.06
+  dripstone_block: 0.10
+  pointed_dripstone: 0.15
+  moss_block: 0.20
+  glow_berries: 0.35
+  glow_ink_sac: 0.70
+  glow_lichen: 0.10
+  # ── 1.19 additions (the wild) ─────────────────────────────────────────────
+  mangrove_log: 0.50
+  mangrove_propagule: 0.10
+  mud: 0.04
+  sculk: 0.30
+  echo_shard: 25.00
+  # ── 1.20 additions (trails & tales) ───────────────────────────────────────
+  cherry_log: 0.55
+  bamboo_block: 0.20
+  torchflower_seeds: 1.00
+  pitcher_pod: 1.00
+  # ── 1.21+ additions (tricky trials → current) ─────────────────────────────
+  breeze_rod: 3.00
+  turtle_scute: 2.50
+  armadillo_scute: 1.80
+  resin_clump: 0.40
+  resin_brick: 1.20
+  pale_oak_log: 0.55
+  # ── Legacy (1.8.8 – 1.12.2) name aliases — ignored on 1.13+ servers ───────
+  log: 0.50
+  log_2: 0.50
+  wood: 0.12
+  wool: 0.25
+  grass: 0.08
+  raw_fish: 0.30
+  cooked_fish: 0.70
+  pork: 0.45
+  grilled_pork: 0.90
+  raw_beef: 0.45
+  raw_chicken: 0.35
+  ink_sack: 0.15
+  sulphur: 0.60
+  seeds: 0.03
+  carrot_item: 0.18
+  potato_item: 0.18
+  melon: 0.10
+  speckled_melon: 0.80
+  nether_stalk: 0.40
+  snow_ball: 0.01
+  clay_brick: 0.08
+  eye_of_ender: 4.00
+  exp_bottle: 3.00
 #
 #
 # ╔══════════════════════════════════════════════════════════════╗

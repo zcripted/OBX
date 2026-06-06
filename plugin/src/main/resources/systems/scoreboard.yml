@@ -37,16 +37,13 @@ enabled: true
 # How often (server ticks; 20 = 1s) the sidebar is re-rendered for live fields.
 refresh-interval-ticks: 20
 
-# Sidebar title. Brand purple gradient across "OBX".
-# The sidebar uses a scoreboard objective display name, which has a HARD 32-char
-# limit (counting color codes) on many server builds. Each &#RRGGBB expands to a
-# 14-char §x§R§R§G§G§B§B sequence, so a full 3-color per-letter gradient (45+
-# chars) gets truncated — that is why an over-long title used to show only "O".
-# This is a 2-stop gradient (brand violet -> bright violet) that stays under 32
-# chars and uses viewable shades (the old deep-violet #2A0A45 was near-invisible
-# on the dark sidebar). Keep any custom title within ~32 visible-coded chars.
-# For a plain title, use the {plugin} placeholder, e.g. "&#A855F7&l{plugin}".
-title: "&#6A1B9AO&#A855F7BX"
+# Sidebar title. Bold brand-violet gradient across "OBX".
+# The title is rendered with the Adventure component API (objective displayName),
+# which has NO 32-char limit — so a full bold per-letter gradient renders cleanly
+# (servers without the component API fall back to a truncated legacy string). You
+# may use MiniMessage <tag> syntax here (gradient, bold, color names/hex). The
+# legacy &-code / &#RRGGBB forms still work too.
+title: "<gradient:#9D4EDD:#C77DFF><bold>OBX</bold></gradient>"
 
 # Server address + website shown via {ip} / {website}.
 server-ip: "play.example.net"
@@ -58,20 +55,24 @@ server-website: "example.net"
 # longest visible content line on the board (color codes don't count toward
 # width). So the divider always fits the widest line and never widens the
 # sidebar past it.
+# Each field carries a small icon to its left (in the field's accent color) so the
+# board reads at a glance, chosen to clearly represent each field:
+#   ☻ player (person) · ❤ health · ● online (green status dot) · ⛁ bank (coin stack) ·
+#   ⇆ ip (connection) · ⊕ web (globe).
 lines:
   - "{divider}"
-  - "&7Player &8» &f{player}"
-  - "&7Health &8» {hearts}"
+  - "&d☻ &7Player &8» &f{player}"
+  - "&c❤ &7Health &8» {hearts}"
   # The heart bar is ALWAYS 10 icons (filled + empty), so its first heart sits at
   # a fixed position no matter the health level — a constant indent therefore keeps
   # the percentage aligned for every value (7%, 93%, 100%). Minecraft's font is
-  # PROPORTIONAL, so this indent is tuned in pixels, not characters: the label
-  # "Health > " above is ~45px wide and a space is ~4px, so 11 spaces (~44px) puts
-  # the first digit under the first heart. Add/remove a space to nudge if needed.
-  - "           &c{health_percent}%"
-  - "&7Online &8» &a{online}&7/&a{max}"
-  - "&7Bank &8» &a{balance}"
+  # PROPORTIONAL, so this indent is tuned in pixels, not characters: the icon "❤ "
+  # (~12px) plus the label "Health > " (~45px) is ~57px and a space is ~4px, so 14
+  # spaces (~56px) puts the first digit under the first heart. Nudge by a space if needed.
+  - "              &c{health_percent}%"
+  - "&a● &7Online &8» &a{online}&7/&a{max}"
+  - "&a⛁ &7Bank &8» &a{balance}"
   - "{divider}"
-  - "&7IP &8» &e{ip}"
-  - "&7Web &8» &d{website}"
+  - "&d⇆ &7IP &8» &d{ip}"
+  - "&d⊕ &7Web &8» &d{website}"
   - "{divider}"

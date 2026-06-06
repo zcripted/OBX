@@ -40,7 +40,7 @@ public class WorthCommand extends AbstractObxCommand implements TabCompleter {
             languages.send(player, "core.no-permission");
             return true;
         }
-        ItemStack inHand = player.getInventory().getItemInMainHand();
+        ItemStack inHand = dev.zcripted.obx.util.compat.InventoryCompat.mainHand(player);
         if (inHand == null || inHand.getType() == Material.AIR) {
             languages.send(player, "economy.worth.empty-hand");
             return true;

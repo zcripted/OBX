@@ -2,11 +2,11 @@ package dev.zcripted.obx.feature.staff.service;
 
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
-import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.util.text.ComponentMessenger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -56,14 +56,28 @@ public class FreezeService implements Listener {
     }
 
     private void sendReminders() {
+        if (frozen.isEmpty()) {
+            return;
+        }
+        // Sending an action bar to a player in another region must run on that player's region thread
+        // under Folia; the reminder task fires on the global thread, so dispatch the per-player send.
+        final boolean folia = plugin.getSchedulerAdapter() != null && plugin.getSchedulerAdapter().isFolia();
         for (UUID uuid : frozen) {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null || !player.isOnline()) continue;
-            ComponentMessenger.sendActionBar(player, languages.get(player, "freeze.actionbar"));
+            final Player p = player;
+            Runnable work = () -> ComponentMessenger.sendActionBar(p, languages.get(p, "freeze.actionbar"));
+            if (folia) {
+                plugin.getSchedulerAdapter().runAtEntity(p, work);
+            } else {
+                work.run();
+            }
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    // LOWEST so a frozen player's position is reverted before anticheat / damage /
+    // teleport handlers act on the (rejected) movement.
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
         if (event.getFrom() == null || event.getTo() == null) return;
         if (!frozen.contains(event.getPlayer().getUniqueId())) return;

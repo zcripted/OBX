@@ -21,6 +21,13 @@ public final class Placeholders {
         return map;
     }
 
+    public static Map<String, String> with(String key, Object value, String key2, Object value2,
+                                           String key3, Object value3) {
+        Map<String, String> map = with(key, value, key2, value2);
+        map.put(key3, value3 == null ? "" : String.valueOf(value3));
+        return map;
+    }
+
     public static Map<String, String> merge(Map<String, String> original, String key, Object value) {
         Map<String, String> map = new HashMap<>();
         if (original != null) {

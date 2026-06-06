@@ -3,7 +3,6 @@ package dev.zcripted.obx.feature.playerinfo.command;
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 
 import dev.zcripted.obx.core.ObxPlugin;
-import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

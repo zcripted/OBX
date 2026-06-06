@@ -20,6 +20,48 @@
 # This file holds behavioural settings and module toggles only.
 #
 debug: false
+
+# ── Console banner ──────────────────────────────────────────────────────────
+# Styling of the enable/disable console banner:
+#   full    – gradient OBX block logo (█/box-drawing), live hook & storage status
+#             markers (✔ / ⚠ / ✗), and the Docs/Support link rows.
+#   compact – a one-line summary (OBX vX · platform · Java · load time) plus a
+#             single status line with the same live checks.
+# The value is read each time the banner prints, so editing it and running
+# /obx reload applies the new style to the next banner (the disable banner on
+# stop and the enable banner on the following start).
+console:
+  banner-style: full
+
+# ── Update checks & notifications ───────────────────────────────────────────
+# OBX reads the latest release tag from the public zcripted/OBX GitHub repo
+# (the download itself is hosted on BuiltByBit). All checks run off the main
+# thread. Staff holding obx.updates.notify (default: op) are notified IN-GAME
+# by default — on join, and once per new release found while the server runs.
+# Each player (or console) can opt out with /obx updates notify; the choice is
+# saved to the database and survives restarts.
+updates:
+  # Check once during startup and report the result to the console.
+  check-on-startup: true
+  # Re-check every N minutes while the server runs and announce a newly found
+  # release ONCE (console + eligible online players). 0 disables re-checks.
+  check-interval-minutes: 15
+  # Master switch for the in-game notifications (join + announce). Console
+  # startup/announce lines are unaffected. Individual players opt out with
+  # /obx updates notify.
+  notify-players: true
+
+# ── Feature module toggles ──────────────────────────────────────────────────
+# Flip a feature module on/off here (also toggleable live via the Module Toggles
+# GUI sub-menu, /obx <module> on|off, or console). Modules not listed default to
+# on. Changes here apply on the next start/reload; runtime toggles are written
+# back to this section automatically.
+modules:
+  # Death-item grouping: on death, all dropped items combine into ONE carry-all
+  # entity (a chest, or a bundle on 1.17+) with a floating "x<count>" hologram;
+  # walking over it restores the items to your inventory (overflow stays inside).
+  deathdrop: false
+
 teleport:
   warmup-seconds: 0
   send-messages: true
@@ -64,6 +106,10 @@ tpa:
   # Seconds before an outgoing /tpa or /tpahere request expires.
   expiry-seconds: 60
 afk:
+  # Master switch for the entire AFK system. When false, auto-AFK detection, the
+  # AFK timeout/kick, and all AFK messages are turned off. Toggle in-game with
+  # /obx afk <on|off> or via the Module Toggles admin GUI.
+  enabled: true
   # Seconds of inactivity before a player auto-flips to AFK.
   idle-seconds: 300
   # Extra seconds after auto-AFK before they get kicked. 0 disables auto-kick.
@@ -76,16 +122,71 @@ economy:
   currency-name-plural: "Coins"
   # Default balance for players the first time they're queried.
   starting-balance: 100.0
+  # Days of /eco log audit history to keep (0 = keep forever). Pruned on load/reload.
+  log-retention-days: 90
+  pay:
+    # Payments at or above this amount require /pay confirm (0 disables the gate).
+    confirm-threshold: 0.0
+    # Percent of every /pay burned as a transfer tax (money sink; 0 disables).
+    tax-percent: 0.0
+  sell:
+    # Max money each player can earn from selling per day (0 = unlimited).
+    # Applies to /sell, /sellall, shop right-click sells and the Sell-Items GUI.
+    daily-cap: 0.0
+  bank:
+    # /bank — interest-bearing savings. Interest accrues lazily (daily compound).
+    enabled: true
+    interest-percent-daily: 0.5
+    max-balance: 1000000000.0
+  payday:
+    # Scheduled salary for online players holding obx.payday.
+    enabled: false
+    interval-minutes: 60
+    amount: 50.0
+  auction:
+    # /ah — player auction house.
+    enabled: true
+    max-listings: 5
+    duration-hours: 48
+    # Charged when listing an item (0 = free).
+    listing-fee: 0.0
+    # Percent of the sale price kept by the house (money sink; 0 = seller gets all).
+    tax-percent: 0.0
 moderation:
   defaults:
     reason: "No reason provided."
     tempban-duration: "7d"
+  # Commands a muted player is prevented from running, so a mute can't be
+  # bypassed through command-based messaging. Use the base command label without
+  # a slash (namespaced forms like "minecraft:me" are matched automatically).
+  # Non-communication commands (e.g. /spawn, /home) are never blocked.
+  muted-blocked-commands:
+    - msg
+    - tell
+    - whisper
+    - w
+    - pm
+    - dm
+    - t
+    - r
+    - reply
+    - mail
+    - me
+    - say
+    - shout
+    - broadcast
+    - bc
 discord:
   moderation:
-    enabled: true
-    server-id: "1431483426267205785"
-    channel-id: "1490820884976500877"
-    webhook-url: "https://discord.com/api/webhooks/1490827278886768720/tTDGpeXlF8VpZUi4cq1sD9cAmiwFBm2AbO_x9a72acaorc2osVaf7cpCqTBY_0cWdAAD"
+    # Mirror moderation actions (bans, kicks, mutes, warns) to a Discord channel.
+    # 1) In Discord: Server Settings -> Integrations -> Webhooks -> New Webhook,
+    #    pick your moderation channel, then "Copy Webhook URL".
+    # 2) Paste the URL below, fill in your server/channel IDs, set enabled: true.
+    # The webhook URL is a SECRET - anyone who has it can post to your channel.
+    enabled: false
+    server-id: ""
+    channel-id: ""
+    webhook-url: ""
     webhook-username: "OBX Moderation"
     avatar-url: "https://i.ibb.co/4w4n3Chc/Logo-with-backgroundpng.png"
     footer-icon-url: "https://i.ibb.co/4w4n3Chc/Logo-with-backgroundpng.png"
@@ -107,7 +208,7 @@ testing:
 links:
   builtbybit: "https://builtbybit.com/resources/OBX"
   wiki: "https://github.com/zcripted/OBX"
-  discord: "https://discord.gg/zcripted"
+  discord: "https://discord.gg/UxktSyT9Ag"
 #
 #
 # ╔══════════════════════════════════════════════════════════════╗

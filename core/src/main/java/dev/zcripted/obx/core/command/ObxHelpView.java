@@ -80,6 +80,7 @@ class ObxHelpView {
             entry("reload file", "commands.obx.entry.reload-file.usage", "commands.obx.entry.reload-file.description", "obx.admin.reload.features", Category.RELOAD_DIAGNOSTICS, PermissionDefault.OP, "/obx reload config.yml", "reload resource"),
             entry("diagnostics", "commands.obx.entry.diagnostics.usage", "commands.obx.entry.diagnostics.description", "obx.admin.diagnostics", Category.RELOAD_DIAGNOSTICS, PermissionDefault.OP, "/obx diagnostics"),
             entry("diagnostics full", "commands.obx.entry.diagnostics-full.usage", "commands.obx.entry.diagnostics-full.description", "obx.admin.diagnostics.full", Category.RELOAD_DIAGNOSTICS, PermissionDefault.OP, "/obx diagnostics full"),
+            entry("health", "commands.obx.entry.health.usage", "commands.obx.entry.health.description", "obx.admin.health", Category.RELOAD_DIAGNOSTICS, PermissionDefault.OP, "/obx health", "healthcheck"),
 
             entry("version", "commands.obx.entry.version.usage", "commands.obx.entry.version.description", "obx.version", Category.UPDATES_VERSION, PermissionDefault.OP, "/obx version"),
             entry("updates", "commands.obx.entry.updates.usage", "commands.obx.entry.updates.description", "obx.updates.check", Category.UPDATES_VERSION, PermissionDefault.OP, "/obx updates"),

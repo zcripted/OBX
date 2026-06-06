@@ -50,11 +50,20 @@ public final class TablistServiceImpl implements dev.zcripted.obx.api.tablist.Ta
         return config == null || config.getBoolean("enabled", true);
     }
 
+    /**
+     * Hard floor on the refresh interval. A full per-player tablist render re-parses the
+     * header/footer/name MiniMessage and sends 2-3 packets; allowing a per-tick interval lets a
+     * misconfiguration melt a 100-player server's main thread. 0/negative still means "update only on
+     * join"; any positive value is clamped up to this minimum (4 refreshes/second — still live).
+     */
+    private static final int MIN_REFRESH_INTERVAL_TICKS = 5;
+
     public int getRefreshIntervalTicks() {
-        if (config == null) {
-            return 40;
+        int value = (config == null) ? 40 : config.getInt("refresh-interval-ticks", 40);
+        if (value <= 0) {
+            return value; // join-only
         }
-        return config.getInt("refresh-interval-ticks", 40);
+        return Math.max(MIN_REFRESH_INTERVAL_TICKS, value);
     }
 
     public List<String> getHeaderLines() {

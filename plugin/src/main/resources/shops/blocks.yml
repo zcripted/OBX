@@ -1,0 +1,62 @@
+# OBX Shop — Blocks category. buy = price per bundle (amount units),
+# sell = price PER UNIT. buy/sell of 0 disables that side. Materials the
+# running server version doesn't know are skipped automatically, so this one
+# file serves 1.8.8 → latest.
+# Optional stock: N caps units buyable per restock window (restock-minutes in shop.yml); omit = unlimited.
+title: "&5Shop &8› &aBlocks"
+items:
+  # ── 1.8.8 baseline ─────────────────────────────────────────────────────────
+  - {material: COBBLESTONE, amount: 16, buy: 2.00, sell: 0.05}
+  - {material: STONE, amount: 16, buy: 3.00, sell: 0.07}
+  - {material: DIRT, amount: 16, buy: 1.00, sell: 0.02}
+  - {material: GRASS_BLOCK, amount: 16, buy: 4.00, sell: 0.08}
+  - {material: SAND, amount: 16, buy: 2.50, sell: 0.05}
+  - {material: GRAVEL, amount: 16, buy: 2.00, sell: 0.04}
+  - {material: SANDSTONE, amount: 16, buy: 4.00, sell: 0.08}
+  - {material: GLASS, amount: 16, buy: 5.00, sell: 0.10}
+  - {material: OAK_LOG, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: SPRUCE_LOG, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: BIRCH_LOG, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: JUNGLE_LOG, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: ACACIA_LOG, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: DARK_OAK_LOG, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: OAK_PLANKS, amount: 16, buy: 3.50, sell: 0.12}
+  - {material: OBSIDIAN, amount: 4, buy: 12.00, sell: 1.50}
+  - {material: ICE, amount: 8, buy: 4.00, sell: 0.25}
+  - {material: CLAY, amount: 16, buy: 6.00, sell: 0.20}
+  - {material: BRICKS, amount: 16, buy: 10.00, sell: 0.30}
+  - {material: WHITE_WOOL, amount: 16, buy: 8.00, sell: 0.25}
+  - {material: NETHERRACK, amount: 16, buy: 1.50, sell: 0.02}
+  - {material: SOUL_SAND, amount: 16, buy: 4.00, sell: 0.15}
+  - {material: GLOWSTONE, amount: 8, buy: 12.00, sell: 0.80}
+  - {material: END_STONE, amount: 16, buy: 6.00, sell: 0.20}
+  - {material: MYCELIUM, amount: 8, buy: 8.00, sell: 0.40}
+  # ── 1.8.8 legacy names (skipped on 1.13+, where the entries above apply) ───
+  - {material: LOG, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: LOG_2, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: WOOD, amount: 16, buy: 3.50, sell: 0.12}
+  - {material: WOOL, amount: 16, buy: 8.00, sell: 0.25}
+  - {material: GRASS, amount: 16, buy: 4.00, sell: 0.08}
+  - {material: BRICK, amount: 16, buy: 10.00, sell: 0.30}
+  # ── 1.13+ ──────────────────────────────────────────────────────────────────
+  - {material: KELP, amount: 16, buy: 2.00, sell: 0.05}
+  - {material: SEA_PICKLE, amount: 8, buy: 6.00, sell: 0.30}
+  - {material: PRISMARINE, amount: 16, buy: 10.00, sell: 0.40}
+  # ── 1.16+ ──────────────────────────────────────────────────────────────────
+  - {material: CRIMSON_STEM, amount: 16, buy: 12.00, sell: 0.55}
+  - {material: WARPED_STEM, amount: 16, buy: 12.00, sell: 0.55}
+  - {material: BLACKSTONE, amount: 16, buy: 4.00, sell: 0.10}
+  - {material: BASALT, amount: 16, buy: 3.00, sell: 0.08}
+  # ── 1.17+ ──────────────────────────────────────────────────────────────────
+  - {material: DEEPSLATE, amount: 16, buy: 4.00, sell: 0.08}
+  - {material: MOSS_BLOCK, amount: 16, buy: 6.00, sell: 0.20}
+  - {material: CALCITE, amount: 16, buy: 5.00, sell: 0.15}
+  - {material: TUFF, amount: 16, buy: 3.00, sell: 0.06}
+  # ── 1.19+ ──────────────────────────────────────────────────────────────────
+  - {material: MANGROVE_LOG, amount: 16, buy: 10.00, sell: 0.50}
+  - {material: MUD, amount: 16, buy: 2.00, sell: 0.04}
+  # ── 1.20+ ──────────────────────────────────────────────────────────────────
+  - {material: CHERRY_LOG, amount: 16, buy: 12.00, sell: 0.55}
+  - {material: BAMBOO_BLOCK, amount: 16, buy: 6.00, sell: 0.20}
+  # ── 1.21.4+ ────────────────────────────────────────────────────────────────
+  - {material: PALE_OAK_LOG, amount: 16, buy: 12.00, sell: 0.55}

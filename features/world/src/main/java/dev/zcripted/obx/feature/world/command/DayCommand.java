@@ -43,8 +43,7 @@ public class DayCommand extends AbstractObxCommand implements TabCompleter {
             world = worlds.get(0);
         }
         world.setTime(target);
-        languages.send(sender, "world.time.changed",
-                Placeholders.with("world", world.getName(), "time", target));
+        dev.zcripted.obx.feature.world.service.ServerControlActions.timeMessage(plugin, sender, world.getName(), target);
         return true;
     }
 

@@ -33,7 +33,7 @@ public class TpToggleCommand extends AbstractObxCommand implements TabCompleter 
             return true;
         }
         boolean nowAccepting = tpaService.toggle(player.getUniqueId());
-        languages.send(player, nowAccepting ? "tpa.toggle-on" : "tpa.toggle-off");
+        languages.send(player, nowAccepting ? "teleport.request.toggle-on" : "teleport.request.toggle-off");
         return true;
     }
 

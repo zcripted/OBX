@@ -49,6 +49,9 @@ public final class SqliteDataStore {
     private final Object lock = new Object();
     private Connection connection;
     private boolean available;
+    // Set during plugin disable: the server cancels the async pool on shutdown, so once
+    // this flips, {@link #executeUpdateAsync} runs inline to guarantee final writes land.
+    private volatile boolean shuttingDown;
 
     public SqliteDataStore(ObxPlugin plugin) {
         this.plugin = plugin;
@@ -86,30 +89,59 @@ public final class SqliteDataStore {
             try (PreparedStatement pragma = connection.prepareStatement("PRAGMA journal_mode=WAL;")) {
                 pragma.execute();
             }
-            // Schema-version table: the single source of truth for future
-            // migrations. Created here so it exists before any service loads.
+            // busy_timeout makes a contended write WAIT (up to 5s) for the lock instead of failing
+            // immediately with SQLITE_BUSY when a checkpoint or another connection holds it; synchronous
+            // NORMAL is the recommended, fast, crash-safe setting under WAL.
+            try (PreparedStatement pragma = connection.prepareStatement("PRAGMA busy_timeout=5000;")) {
+                pragma.execute();
+            } catch (SQLException ignored) {
+                // older sqlite builds may not honor it — best-effort
+            }
+            try (PreparedStatement pragma = connection.prepareStatement("PRAGMA synchronous=NORMAL;")) {
+                pragma.execute();
+            } catch (SQLException ignored) {
+                // best-effort
+            }
+            // Schema-version table: the single source of truth for migrations.
+            // Created here so it exists before any service loads.
             try (PreparedStatement st = connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS obx_schema_version (id INTEGER PRIMARY KEY, version INTEGER NOT NULL)")) {
                 st.execute();
             }
-            try (PreparedStatement st = connection.prepareStatement(
-                    "INSERT OR IGNORE INTO obx_schema_version (id, version) VALUES (1, ?)")) {
-                st.setInt(1, CURRENT_SCHEMA_VERSION);
-                st.execute();
-            }
+            // Stamp a fresh DB at the current version and forward-migrate an existing one.
+            runMigrations();
             available = true;
-            plugin.getLogger().info("SQLite store opened at " + databaseFile.getName()
-                    + " (schema v" + schemaVersion() + ")");
+            // Themed console line (purple [OBX] prefix + light-gray body via ConsoleLog), with
+            // "SQLite" and the db file in light purple and "schema vN" in green.
+            dev.zcripted.obx.util.message.ConsoleLog.info(plugin, "§dSQLite§7 store opened at §d"
+                    + databaseFile.getName() + "§7 (§aschema v" + schemaVersion() + "§7)");
         } catch (SQLException exception) {
             plugin.getLogger().severe("Failed to open SQLite database: " + exception.getMessage());
             available = false;
         }
     }
 
+    /**
+     * Switches the store into shutdown mode: subsequent {@link #executeUpdateAsync} calls
+     * run synchronously (inline). Call at the very start of {@code onDisable}, before
+     * modules save, so the final per-player writes are not dropped when the server cancels
+     * the plugin's async task pool.
+     */
+    public void beginShutdown() {
+        shuttingDown = true;
+    }
+
     public void close() {
         synchronized (lock) {
             if (connection != null) {
                 try {
+                    // Flush the WAL back into the main db file so nothing is left only in
+                    // obx.db-wal after a clean stop.
+                    try (PreparedStatement checkpoint = connection.prepareStatement("PRAGMA wal_checkpoint(TRUNCATE);")) {
+                        checkpoint.execute();
+                    } catch (SQLException ignored) {
+                        // Best-effort; close anyway.
+                    }
                     connection.close();
                 } catch (SQLException exception) {
                     plugin.getLogger().warning("Error closing SQLite connection: " + exception.getMessage());
@@ -128,6 +160,93 @@ public final class SqliteDataStore {
 
     public void setSchemaVersion(int version) {
         executeUpdate("UPDATE obx_schema_version SET version = ? WHERE id = 1", version);
+    }
+
+    /**
+     * Reads the persisted schema version and forward-migrates the database to
+     * {@link #CURRENT_SCHEMA_VERSION}. Runs during {@link #open()} on the raw connection,
+     * before {@code available} is set and before any service loads, so no other thread can
+     * touch the store concurrently.
+     *
+     * <ul>
+     *   <li><b>Fresh DB</b> (no version row): stamped at the current version — each service
+     *       creates its tables at the current shape via {@code CREATE TABLE IF NOT EXISTS},
+     *       so there is nothing to transform.</li>
+     *   <li><b>Existing DB behind</b> the current version: each intermediate step from
+     *       {@link #applyMigration(Connection, int)} runs in its own transaction and the
+     *       version row is advanced only on a successful commit, so a crash mid-migration
+     *       resumes cleanly from the last good version.</li>
+     *   <li><b>Newer DB</b> (downgrade): left untouched, with a warning.</li>
+     * </ul>
+     */
+    private void runMigrations() throws SQLException {
+        Integer stored = null;
+        try (PreparedStatement query = connection.prepareStatement(
+                "SELECT version FROM obx_schema_version WHERE id = 1");
+             ResultSet rs = query.executeQuery()) {
+            if (rs.next()) {
+                stored = rs.getInt(1);
+            }
+        }
+        if (stored == null) {
+            try (PreparedStatement insert = connection.prepareStatement(
+                    "INSERT OR IGNORE INTO obx_schema_version (id, version) VALUES (1, ?)")) {
+                insert.setInt(1, CURRENT_SCHEMA_VERSION);
+                insert.execute();
+            }
+            return;
+        }
+        if (stored >= CURRENT_SCHEMA_VERSION) {
+            if (stored > CURRENT_SCHEMA_VERSION) {
+                plugin.getLogger().warning("Database schema v" + stored + " is newer than this build (v"
+                        + CURRENT_SCHEMA_VERSION + "). Running without migrating — update the plugin.");
+            }
+            return;
+        }
+        plugin.getLogger().info("Migrating OBX database schema v" + stored + " -> v" + CURRENT_SCHEMA_VERSION + "…");
+        for (int target = stored + 1; target <= CURRENT_SCHEMA_VERSION; target++) {
+            connection.setAutoCommit(false);
+            try {
+                applyMigration(connection, target);
+                try (PreparedStatement up = connection.prepareStatement(
+                        "UPDATE obx_schema_version SET version = ? WHERE id = 1")) {
+                    up.setInt(1, target);
+                    up.executeUpdate();
+                }
+                connection.commit();
+            } catch (SQLException failure) {
+                try { connection.rollback(); } catch (SQLException ignored) { /* nothing we can do */ }
+                // Halt at the last good version and keep the store available so the plugin still
+                // runs (degraded) rather than disabling all persistence on one bad step.
+                plugin.getLogger().severe("Schema migration to v" + target + " failed, halting at v"
+                        + (target - 1) + ": " + failure.getMessage());
+                return;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        }
+        plugin.getLogger().info("OBX database schema is now v" + CURRENT_SCHEMA_VERSION + ".");
+    }
+
+    /**
+     * Applies the schema/data changes that upgrade the database <em>to</em> {@code targetVersion},
+     * inside the migration transaction. Add a {@code case N:} here for every {@link #CURRENT_SCHEMA_VERSION}
+     * bump. Steps must be safe to re-run (idempotent) since a crash can repeat the last step.
+     */
+    private void applyMigration(Connection conn, int targetVersion) throws SQLException {
+        switch (targetVersion) {
+            // Example of a future step (v1 -> v2):
+            // case 2:
+            //     try (PreparedStatement st = conn.prepareStatement(
+            //             "ALTER TABLE economy ADD COLUMN last_seen INTEGER NOT NULL DEFAULT 0")) {
+            //         st.execute();
+            //     }
+            //     break;
+            default:
+                // No migration registered for this version (e.g. the v1 baseline). The version
+                // stamp alone advances; add a case above when a real schema change ships.
+                break;
+        }
     }
 
     public void execute(String sql) {
@@ -161,7 +280,9 @@ public final class SqliteDataStore {
 
     public void executeUpdateAsync(String sql, Object... params) {
         if (!isAvailable()) return;
-        if (plugin.getSchedulerAdapter() == null) {
+        if (shuttingDown || plugin.getSchedulerAdapter() == null) {
+            // During shutdown the async pool is being torn down — run inline so the write
+            // actually completes before close().
             executeUpdate(sql, params);
             return;
         }
@@ -188,7 +309,10 @@ public final class SqliteDataStore {
                 body.run(connection);
                 connection.commit();
                 return true;
-            } catch (SQLException failure) {
+            } catch (Throwable failure) {
+                // Roll back on ANY throw (not just SQLException): an unchecked exception in
+                // the body must NOT reach the finally with work still pending, because
+                // setAutoCommit(true) there would COMMIT the partial transaction.
                 try {
                     connection.rollback();
                 } catch (SQLException rollbackError) {

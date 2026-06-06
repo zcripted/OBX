@@ -26,6 +26,10 @@ public class AfkCommand extends AbstractObxCommand implements TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!afkService.isEnabled()) {
+            languages.send(sender, "afk.system-disabled");
+            return true;
+        }
         if (args.length >= 1) {
             if (!sender.hasPermission("obx.afk.others")) {
                 languages.send(sender, "core.no-permission");

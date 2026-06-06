@@ -11,12 +11,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Checks the <strong>public</strong> OBX GitHub repository for the latest
- * released version and compares it against the running plugin version.
+ * Checks the latest released OBX version, compares it against the running plugin version, and
+ * surfaces the <strong>BuiltByBit resource page</strong> as the download link.
  *
- * <p>The private source repository ({@code zcripted/OBX-private}) is never
- * contacted — releases are published on the public {@code zcripted/OBX} repo,
- * so that is the only endpoint queried here.
+ * <p><b>Version source:</b> the public {@code zcripted/OBX} GitHub repository's latest release
+ * tag, which is kept in sync with each BuiltByBit release. BuiltByBit itself is intentionally not
+ * polled: its API requires a private token (which must never be embedded in a distributed jar)
+ * and its resource page is bot-protected, so a seller-controlled source — the GitHub release tag —
+ * is queried for the version, and the user is pointed to BuiltByBit ({@link #DOWNLOAD_URL}) to
+ * download. The private source repository is never contacted.
  *
  * <p>All network I/O is performed off the main thread via the plugin's
  * {@link dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter} ({@code runAsync});
@@ -28,15 +31,19 @@ import java.util.regex.Pattern;
  */
 public final class UpdateChecker {
 
-    /** Public-facing repository that hosts OBX releases (owner/name). */
+    /** Public-facing repository that hosts OBX release tags (owner/name) — the version SOURCE. */
     public static final String REPO = "zcripted/OBX";
 
-    /** Latest-release API endpoint on the public repo. */
+    /** Latest-release API endpoint on the public repo (the version source, not the download). */
     private static final String LATEST_RELEASE_API =
             "https://api.github.com/repos/" + REPO + "/releases/latest";
 
-    /** Human-facing releases page, surfaced in the "update available" message. */
-    public static final String RELEASES_URL = "https://github.com/" + REPO + "/releases";
+    /** BuiltByBit resource page — the DOWNLOAD link surfaced in the "update available" message. */
+    public static final String DOWNLOAD_URL =
+            "https://builtbybit.com/resources/obx-obsidian-extended.111131/";
+
+    /** Latest-release page on the public repo — release NOTES for the newest version. */
+    public static final String RELEASE_NOTES_URL = "https://github.com/" + REPO + "/releases/latest";
 
     private static final Pattern TAG_NAME = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
     private static final int TIMEOUT_MS = 5000;
@@ -125,11 +132,19 @@ public final class UpdateChecker {
     }
 
     private static String read(InputStream in) throws Exception {
+        // Defensive cap: the GitHub releases JSON is a few KB, so stop after 1 MB rather than buffer
+        // an unbounded stream from a hostile proxy/MITM (the 5s read timeout is the other backstop).
+        final int maxBytes = 1024 * 1024;
         StringBuilder builder = new StringBuilder();
         byte[] buffer = new byte[4096];
         int n;
+        int total = 0;
         while ((n = in.read(buffer)) != -1) {
             builder.append(new String(buffer, 0, n, StandardCharsets.UTF_8));
+            total += n;
+            if (total >= maxBytes) {
+                break;
+            }
         }
         return builder.toString();
     }

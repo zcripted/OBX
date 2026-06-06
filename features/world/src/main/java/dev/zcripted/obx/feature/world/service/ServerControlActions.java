@@ -265,11 +265,174 @@ public final class ServerControlActions {
         console(plugin, "Weather set to " + mode + " by " + name(actor));
     }
 
+    /**
+     * Boxed redstone toggle message: the new mode (red FROZEN / green RESUMED) plus
+     * a context line on what redstone freezing affects, then a plain console mirror.
+     */
+    public static void redstoneMessage(ObxPlugin plugin, CommandSender actor, boolean frozen) {
+        LanguageManager lang = plugin.getLanguageManager();
+        frameTop(actor, "Redstone");
+        actor.sendMessage(legacy(lang.get(actor, frozen ? "admin.redstone.box.frozen" : "admin.redstone.box.resumed")));
+        actor.sendMessage(legacy(lang.get(actor, "admin.redstone.box.context")));
+        frameBottom(actor);
+        console(plugin, "Redstone updates " + (frozen ? "frozen" : "resumed") + " by " + name(actor));
+    }
+
+    /** Flip auto-save on every loaded world; returns the new state. */
+    public static boolean toggleAutoSave(ObxPlugin plugin, CommandSender actor) {
+        boolean newState = Bukkit.getWorlds().isEmpty() || !Bukkit.getWorlds().get(0).isAutoSave();
+        setAutoSave(plugin, actor, newState);
+        return newState;
+    }
+
+    /** Set auto-save explicitly on every loaded world (used by the chat bridge). */
+    public static void setAutoSave(ObxPlugin plugin, CommandSender actor, boolean enabled) {
+        for (World world : Bukkit.getWorlds()) {
+            world.setAutoSave(enabled);
+        }
+        autoSaveMessage(plugin, actor, enabled);
+    }
+
+    /**
+     * Boxed auto-save message: the new state (green ENABLED / red DISABLED) with the
+     * [Toggle] button on its own indented row, mirrored button-less to the console.
+     */
+    private static void autoSaveMessage(ObxPlugin plugin, CommandSender actor, boolean enabled) {
+        LanguageManager lang = plugin.getLanguageManager();
+        frameTop(actor, "Auto-Save");
+        actor.sendMessage(legacy(lang.get(actor, enabled ? "admin.world.autosave.box.enabled" : "admin.world.autosave.box.disabled")));
+        sendButtonRow(actor, Arrays.asList(
+                button(lang, actor, "admin.button.toggle", "admin.world.autosave.box.toggle-hover", "/obx x-action autosave toggle")));
+        frameBottom(actor);
+        console(plugin, "Auto-save " + (enabled ? "enabled" : "disabled") + " for all worlds by " + name(actor));
+    }
+
+    /**
+     * Boxed Save-Worlds report: what was flushed and where. The per-world row carries
+     * a hover tooltip with each world's folder path + saved data (click copies the
+     * path). The console mirror prints the full per-world detail.
+     */
+    public static void saveWorldsMessage(ObxPlugin plugin, CommandSender actor, List<World> worlds) {
+        LanguageManager lang = plugin.getLanguageManager();
+        frameTop(actor, "Save Worlds");
+        actor.sendMessage(legacy(lang.get(actor, "admin.world.save.box.header",
+                Placeholders.with("count", String.valueOf(worlds.size())))));
+        actor.sendMessage(legacy(lang.get(actor, "admin.world.save.box.detail")));
+        if (actor instanceof Player && !worlds.isEmpty()) {
+            List<InteractiveMessagePart> parts = new ArrayList<>();
+            parts.add(InteractiveMessagePart.plain(legacy("  &8» &7Worlds: ")));
+            for (int i = 0; i < worlds.size(); i++) {
+                World world = worlds.get(i);
+                String path = worldPath(world);
+                if (i > 0) {
+                    parts.add(InteractiveMessagePart.plain(legacy("&8, ")));
+                }
+                List<String> hover = Arrays.asList(
+                        legacy("&d" + world.getName()),
+                        legacy("&8» &7Folder: &f" + path),
+                        legacy("&8» &7Saved: &fchunks, entities, player data, level.dat"),
+                        legacy("&8(click to copy the folder path)"));
+                parts.add(InteractiveMessagePart.copy(legacy("&f" + world.getName()), hover, path));
+            }
+            ComponentMessenger.sendJoinedHoverMessages(actor, parts);
+        }
+        frameBottom(actor);
+        console(plugin, "Saved " + worlds.size() + " world(s) by " + name(actor)
+                + " — chunks, entities, player data, level.dat:");
+        for (World world : worlds) {
+            console(plugin, "  - " + world.getName() + " -> " + worldPath(world));
+        }
+    }
+
+    private static String worldPath(World world) {
+        try {
+            return world.getWorldFolder().getPath();
+        } catch (Throwable ignored) {
+            return world.getName();
+        }
+    }
+
     private static InteractiveMessagePart weatherButton(LanguageManager lang, CommandSender actor, String mode) {
         String typeName = lang.get(actor, "admin.weather.type." + mode);
         String label = legacy(lang.get(actor, "admin.button.weather", Placeholders.with("weather", typeName)));
         List<String> hover = Arrays.asList(legacy(lang.get(actor, "admin.button.weather.hover", Placeholders.with("weather", typeName))));
         return InteractiveMessagePart.interactive(label, hover, "/weather " + mode, true);
+    }
+
+    /**
+     * Boxed time message with a body line (world + named time + tick) plus an action row of
+     * morning/noon/night/midnight buttons. Used by {@code /time}, {@code /day}, {@code /night},
+     * and {@code /sun}; the buttons run {@code /time set <ticks>}.
+     */
+    public static void timeMessage(ObxPlugin plugin, CommandSender actor, String worldName, long ticks) {
+        LanguageManager lang = plugin.getLanguageManager();
+        frameTop(actor, "Time");
+        java.util.Map<String, String> ph = new java.util.LinkedHashMap<>();
+        ph.put("world", worldName);
+        ph.put("time", String.valueOf(ticks));
+        ph.put("label", timeLabel(lang, actor, ticks));
+        actor.sendMessage(legacy(lang.get(actor, "admin.time.set", ph)));
+        sendButtonRow(actor, Arrays.asList(
+                timeButton(lang, actor, "morning", 1000L),
+                timeButton(lang, actor, "noon", 6000L),
+                timeButton(lang, actor, "night", 13000L),
+                timeButton(lang, actor, "midnight", 18000L)));
+        frameBottom(actor);
+        console(plugin, "Time set to " + ticks + " in " + worldName + " by " + name(actor));
+    }
+
+    private static String timeLabel(LanguageManager lang, CommandSender actor, long ticks) {
+        if (ticks == 1000L) return lang.get(actor, "admin.time.type.morning");
+        if (ticks == 6000L) return lang.get(actor, "admin.time.type.noon");
+        if (ticks == 13000L) return lang.get(actor, "admin.time.type.night");
+        if (ticks == 18000L) return lang.get(actor, "admin.time.type.midnight");
+        return String.valueOf(ticks);
+    }
+
+    private static InteractiveMessagePart timeButton(LanguageManager lang, CommandSender actor, String mode, long ticks) {
+        String typeName = lang.get(actor, "admin.time.type." + mode);
+        String label = legacy(lang.get(actor, "admin.button.time", Placeholders.with("time", typeName)));
+        List<String> hover = Arrays.asList(legacy(lang.get(actor, "admin.button.time.hover", Placeholders.with("time", typeName))));
+        return InteractiveMessagePart.interactive(label, hover, "/time set " + ticks, true);
+    }
+
+    /**
+     * Boxed personal-time message for {@code /ptime}: a body line (the new client-side time, or a
+     * reset notice) plus an action row of morning/noon/night/midnight buttons and a Reset button.
+     * Unlike {@link #timeMessage} the buttons run {@code /ptime <mode>} so they target the player's
+     * own time, not the world. Player-only surface — console never reaches it.
+     */
+    public static void pTimeMessage(ObxPlugin plugin, CommandSender actor, long ticks, boolean reset) {
+        LanguageManager lang = plugin.getLanguageManager();
+        frameTop(actor, "Personal Time");
+        if (reset) {
+            actor.sendMessage(legacy(lang.get(actor, "admin.ptime.reset")));
+        } else {
+            java.util.Map<String, String> ph = new java.util.LinkedHashMap<>();
+            ph.put("time", String.valueOf(ticks));
+            ph.put("label", timeLabel(lang, actor, ticks));
+            actor.sendMessage(legacy(lang.get(actor, "admin.ptime.set", ph)));
+        }
+        sendButtonRow(actor, Arrays.asList(
+                pTimeButton(lang, actor, "morning", 1000L),
+                pTimeButton(lang, actor, "noon", 6000L),
+                pTimeButton(lang, actor, "night", 13000L),
+                pTimeButton(lang, actor, "midnight", 18000L),
+                pTimeResetButton(lang, actor)));
+        frameBottom(actor);
+    }
+
+    private static InteractiveMessagePart pTimeButton(LanguageManager lang, CommandSender actor, String mode, long ticks) {
+        String typeName = lang.get(actor, "admin.time.type." + mode);
+        String label = legacy(lang.get(actor, "admin.button.time", Placeholders.with("time", typeName)));
+        List<String> hover = Arrays.asList(legacy(lang.get(actor, "admin.button.ptime.hover", Placeholders.with("time", typeName))));
+        return InteractiveMessagePart.interactive(label, hover, "/ptime " + mode, true);
+    }
+
+    private static InteractiveMessagePart pTimeResetButton(LanguageManager lang, CommandSender actor) {
+        String label = legacy(lang.get(actor, "admin.button.ptime-reset"));
+        List<String> hover = Arrays.asList(legacy(lang.get(actor, "admin.button.ptime-reset.hover")));
+        return InteractiveMessagePart.interactive(label, hover, "/ptime reset", true);
     }
 
     // Labels/hover must be section-coded before reaching the BungeeCord

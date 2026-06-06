@@ -138,10 +138,18 @@ public class GamemodeCommand extends AbstractObxCommand implements TabCompleter 
         placeholders.put("mode", mode.name());
         placeholders.put("target", target.getName());
         placeholders.put("sender", sender.getName());
+        String prevLower = previous.name().toLowerCase(Locale.ENGLISH);
         if (sender instanceof Player && ((Player) sender).getUniqueId().equals(target.getUniqueId())) {
-            languages.send(target, "gamemode.changed-self", placeholders);
+            Map<String, String> hover = new HashMap<>();
+            hover.put("previous", previous.name());
+            sendModeChange(target, "gamemode.changed-self", placeholders, mode,
+                    "gamemode.revert-hover-self", hover, "/gamemode " + prevLower);
         } else {
-            languages.send(sender, "gamemode.changed-other", placeholders);
+            Map<String, String> hover = new HashMap<>();
+            hover.put("previous", previous.name());
+            hover.put("target", target.getName());
+            sendModeChange(sender, "gamemode.changed-other", placeholders, mode,
+                    "gamemode.revert-hover-other", hover, "/gamemode " + prevLower + " " + target.getName());
             languages.send(target, "gamemode.changed-target", placeholders);
             String timestamp = java.time.format.DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a (zzz) zzzz", java.util.Locale.ENGLISH)
                     .withZone(java.time.ZoneId.of("America/New_York"))
@@ -156,6 +164,42 @@ public class GamemodeCommand extends AbstractObxCommand implements TabCompleter 
                     + ChatColor.YELLOW + " at " + ChatColor.DARK_PURPLE + timestamp;
             plugin.getServer().getConsoleSender().sendMessage(consoleLine);
         }
+    }
+
+    /**
+     * Renders a "set gamemode to {mode}" confirmation where the {@code {mode}} value is an
+     * interactive component: hovering shows a revert tooltip and clicking runs
+     * {@code revertCommand} (which switches the gamemode back to the previous value). The
+     * surrounding text keeps the localized template intact by substituting a private
+     * sentinel for {@code {mode}}, then splitting around it so the value can be swapped for
+     * the clickable component. Console (non-player) recipients fall back to the plain
+     * message, since they cannot click.
+     */
+    private void sendModeChange(CommandSender recipient, String key, Map<String, String> placeholders,
+                                GameMode mode, String hoverKey, Map<String, String> hoverPlaceholders,
+                                String revertCommand) {
+        if (!(recipient instanceof Player)) {
+            languages.send(recipient, key, placeholders);
+            return;
+        }
+        final String sentinel = " OBX_MODE ";
+        Map<String, String> rendered = new HashMap<>(placeholders);
+        rendered.put("mode", sentinel);
+        String full = colorize(languages.get(recipient, key, rendered));
+        int idx = full.indexOf(sentinel);
+        if (idx < 0) {
+            languages.send(recipient, key, placeholders);
+            return;
+        }
+        String before = full.substring(0, idx);
+        String after = full.substring(idx + sentinel.length());
+        String hover = colorize(languages.get(recipient, hoverKey, hoverPlaceholders));
+        List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<>();
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain(before));
+        parts.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                ChatColor.DARK_PURPLE + mode.name(), Collections.singletonList(hover), revertCommand, true));
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain(after));
+        ComponentMessenger.sendJoinedHoverMessages(recipient, parts);
     }
 
     /** Canonical mode keys, in display order, for the click-to-run usage rows. */

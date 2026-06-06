@@ -1,0 +1,35 @@
+# 📒 OBX Commit Logs
+
+Per-commit change logs, **newest at the top**. Each entry links to a detailed, easy-to-read
+breakdown written as release/patch notes.
+
+## How these work
+- **One markdown per commit**, stored in a **date-stamped folder** named for the day it was
+  worked on (Eastern): `docs/commits/YYYY-MM-DD/<slug>.md`.
+- Every log carries a **header table** (status, created, **last updated** in EST) that is kept
+  current whenever anything is added, modified, or removed.
+- Each log has a **plain-English summary** for patch notes, a **categorized breakdown**
+  (improvements / fixes / patches), and **direct links** to every file it touched.
+- **Ordering:** newest commit at the top of this index; inside a log, newest changes at the top.
+
+## Commits — newest → oldest
+
+### 2026-06-06
+| Commit | Status | One-liner |
+|--------|--------|-----------|
+| [Economy Round 9 — Edge Cases, Exploits & Hardening](2026-06-06/economy-round-9-edge-cases-exploits-hardening.md) | 🟡 Ready to commit | Completed shop stock limits; fixed auction list/claim/buy item-loss, bank deposit atomicity, transaction rollback, %obx_balance% caching, Vault unregister; wired obx.ah.admin; closed golden-carrot/baked-potato/cookie craft arbitrage; docs + i18n parity. |
+| [Scrub Live Discord Webhook from Default Config](2026-06-06/scrub-discord-webhook-config.md) | 🟡 Ready to commit | Final release blocker closed: live webhook URL + dev server/channel IDs removed from config.yml, Discord logging ships disabled with in-line setup guide. Webhook must still be revoked in Discord. |
+| [Round 7 Fix Pass — 12 Audit Findings Closed](2026-06-06/round-7-fix-pass.md) | 🟡 Ready to commit | Thread-safe formats, backpack save/key guards, PM mute UUID, warp prompt cleanup, cancel-on-move, hologram reload safety, 4 lang keys, economy stats cache, sell-GUI death guard. Webhook (#1) deferred. |
+| [Economy Tile Theme + Panel Restructure](2026-06-06/economy-tile-theme-and-panel-restructure.md) | 🟡 Ready to commit | Live themed Economy hover preview in the Admin Menu; Economy Control tiles 10–14, shop centered at 22, Back/Close on their own row. |
+
+### 2026-06-05
+| Commit | Status | One-liner |
+|--------|--------|-----------|
+| [Economy Phases 1–3 — Control Panel, Audit Log & Player Shop](2026-06-05/economy-control-panel-shop-and-audit.md) | 🟡 Ready to commit | Live Economy Control Panel in the Admin GUI, economy_log audit trail + /eco log + offline admin actions, confirm menus, /shop with YAML categories, 1.8.8→latest worth database. |
+| [Update Box — Download & Release Notes Buttons](2026-06-05/update-box-download-and-notes-buttons.md) | 🟡 Ready to commit | In-game [Download]/[Release Notes] buttons on the update box; plain text link rows on console; one shared renderer. |
+| [Discord Invite Link Update](2026-06-05/discord-invite-link-update.md) | 🟡 Ready to commit | discord.gg/zN3UQyKdfD → discord.gg/UxktSyT9Ag project-wide (README, config, i18n, code, tablist, docs). |
+| [/pl Console Fix — Grouped Names, No Timestamps](2026-06-05/pl-console-grouping-and-timestamps.md) | 🟡 Ready to commit | Console /pl rows render under their platform header via the direct writer — no logger timestamps in the box. |
+| [ASCII Wordmark Console Banner](2026-06-05/ascii-wordmark-console-banner.md) | 🟡 Ready to commit | Gradient OBX logo banner with live hook/storage status markers and Docs/Support links. |
+| [Backpack + Health Check + Box-Style Update Messages](2026-06-05/backpack-health-check-and-update-boxes.md) | 🟡 Ready to commit | Dupe-guarded portable backpack, staff /health report with hover/click actions, box-style update messages, 15-min release checks, first-join-only starter kit. |
+| [Update Notifications — Default-ON + Startup/Periodic Checks](2026-06-05/update-notifications-default-on.md) | 🟡 Ready to commit | Startup console check, hourly once-per-release announce, default-ON staff notifications with SQLite-persisted opt-out. |
+| [Round 5 — Market-Readiness Re-Audit Patches](2026-06-05/round-5-market-readiness-patches.md) | 🟡 Ready to commit | Folia pack-thread fix, combat-state leak closure, + 12 low-severity polish fixes. |

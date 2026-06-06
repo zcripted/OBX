@@ -41,7 +41,7 @@ Four follow-up adjustments after the welcome MOTD / staff-tool drop:
 
 - `src/main/resources/config.yml`
     - `join-motd.lines[4]` (Discord line) — removed `&n` from
-      `&b&nhttps://discord.gg/zcripted` so the URL is aqua but no
+      `&b&nhttps://discord.gg/UxktSyT9Ag` so the URL is aqua but no
       longer underlined.
 
 ### Language strings

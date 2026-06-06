@@ -10,7 +10,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Resolves the Netty {@link Channel} backing a player's connection and
@@ -39,7 +38,6 @@ public final class PacketChannelInjector {
 
     /** Track injected channels so we don't double-install on respawn-loop quirks. */
     private static final WeakHashMap<Channel, Boolean> INJECTED = new WeakHashMap<>();
-    private static final ConcurrentHashMap<Object, Object> FAILED_PROBE_GUARD = new ConcurrentHashMap<>();
 
     private PacketChannelInjector() {
     }
@@ -125,7 +123,35 @@ public final class PacketChannelInjector {
             return null;
         }
         Object channel = readField(networkManager, channelFieldName, CHANNEL_CANDIDATES, (s) -> channelFieldName = s);
+        if (!(channel instanceof Channel)) {
+            // Name guesses missed — find the field whose value IS a Netty Channel, regardless
+            // of its (remapped/obfuscated) name. Type-based is far more robust across versions.
+            channel = readFieldByType(networkManager, Channel.class);
+        }
         return channel instanceof Channel ? (Channel) channel : null;
+    }
+
+    /** Returns the first field value (walking the class hierarchy) that is an instance of {@code wantedType}. */
+    private static Object readFieldByType(Object target, Class<?> wantedType) {
+        if (target == null) {
+            return null;
+        }
+        Class<?> walker = target.getClass();
+        while (walker != null && walker != Object.class) {
+            for (Field field : walker.getDeclaredFields()) {
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(target);
+                    if (wantedType.isInstance(value)) {
+                        return value;
+                    }
+                } catch (Throwable ignored) {
+                    // Inaccessible/static-init failure — skip this field.
+                }
+            }
+            walker = walker.getSuperclass();
+        }
+        return null;
     }
 
     private static final List<String> CONNECTION_CANDIDATES = Arrays.asList(

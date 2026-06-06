@@ -42,6 +42,7 @@ final class ObxAdminActions {
         switch (args[1].toLowerCase(Locale.ENGLISH)) {
             case "whitelist": whitelist(sender, sub); break;
             case "joinlock": joinlock(sender, sub); break;
+            case "autosave": autosave(sender, sub); break;
             case "clearentities": clearEntities(sender, sub); break;
             case "kicknonops": kickNonOps(sender); break;
             case "spectator": spectator(sender); break;
@@ -72,6 +73,19 @@ final class ObxAdminActions {
                 break;
             default:
                 ServerControlActions.toggleJoinLock(plugin, sender);
+        }
+    }
+
+    void autosave(CommandSender sender, String[] args) {
+        switch (mode(args, "toggle")) {
+            case "on": case "true": case "enable": case "enabled":
+                ServerControlActions.setAutoSave(plugin, sender, true);
+                break;
+            case "off": case "false": case "disable": case "disabled":
+                ServerControlActions.setAutoSave(plugin, sender, false);
+                break;
+            default:
+                ServerControlActions.toggleAutoSave(plugin, sender);
         }
     }
 

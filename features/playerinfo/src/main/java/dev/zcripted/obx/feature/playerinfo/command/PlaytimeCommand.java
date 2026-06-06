@@ -31,35 +31,52 @@ public class PlaytimeCommand extends AbstractObxCommand implements TabCompleter 
             languages.send(sender, "core.no-permission");
             return true;
         }
-        OfflinePlayer target;
+        java.util.UUID uuid;
+        String targetName;
         if (args.length >= 1) {
-            target = Bukkit.getOfflinePlayer(args[0]);
-            if (target.getName() == null && target.getFirstPlayed() == 0L && !playtime.hasSeen(target.getUniqueId())) {
-                languages.send(sender, "info.unknown-player", Placeholders.with("player", args[0]));
-                return true;
+            // Resolve without a blocking Mojang lookup: online exact first, else the playtime DB
+            // (anyone with recorded playtime — online or offline — resolves here).
+            Player online = Bukkit.getPlayerExact(args[0]);
+            if (online != null) {
+                uuid = online.getUniqueId();
+                targetName = online.getName();
+            } else {
+                uuid = playtime.findUuidByName(args[0]);
+                if (uuid == null) {
+                    languages.send(sender, "info.unknown-player", Placeholders.with("player", args[0]));
+                    return true;
+                }
+                String known = playtime.getLastKnownName(uuid);
+                targetName = known != null ? known : args[0];
             }
         } else {
             if (!(sender instanceof Player)) {
                 languages.send(sender, "core.player-only");
                 return true;
             }
-            target = (Player) sender;
+            uuid = ((Player) sender).getUniqueId();
+            targetName = ((Player) sender).getName();
         }
-        long totalSeconds = playtime.getTotalPlaytimeSeconds(target.getUniqueId());
-        long sessionSeconds = target.isOnline() ? playtime.getSessionSeconds(target.getUniqueId()) : 0L;
-        if (target.equals(sender)) {
-            languages.send(sender, "info.playtime.self",
-                    Placeholders.with("total", playtime.formatDuration(totalSeconds),
-                            "session", playtime.formatDuration(sessionSeconds)));
-        } else if (sessionSeconds > 0L) {
-            java.util.Map<String, String> placeholders = new java.util.HashMap<>();
-            placeholders.put("player", target.getName());
-            placeholders.put("total", playtime.formatDuration(totalSeconds));
-            placeholders.put("session", playtime.formatDuration(sessionSeconds));
-            languages.send(sender, "info.playtime.other-online", placeholders);
+
+        boolean online = Bukkit.getPlayer(uuid) != null;
+        long totalSeconds = playtime.getTotalPlaytimeSeconds(uuid);
+        long sessionSeconds = online ? playtime.getSessionSeconds(uuid) : 0L;
+        PlaytimeService.LongestSession longest = playtime.getLongestSession(uuid);
+
+        java.util.Map<String, String> ph = new java.util.HashMap<>();
+        ph.put("player", targetName);
+        ph.put("total", playtime.formatDuration(totalSeconds));
+        ph.put("session", playtime.formatDuration(sessionSeconds));
+        ph.put("longest", playtime.formatDuration(longest.seconds));
+        ph.put("longest_at", playtime.formatSessionTimestamp(longest.atMillis));
+
+        boolean self = (sender instanceof Player) && ((Player) sender).getUniqueId().equals(uuid);
+        if (self) {
+            languages.send(sender, "info.playtime.self", ph);
+        } else if (online) {
+            languages.send(sender, "info.playtime.other-online", ph);
         } else {
-            languages.send(sender, "info.playtime.other",
-                    Placeholders.with("player", target.getName(), "total", playtime.formatDuration(totalSeconds)));
+            languages.send(sender, "info.playtime.other", ph);
         }
         return true;
     }

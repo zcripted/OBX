@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -85,6 +86,16 @@ public class ModerationService implements dev.zcripted.obx.api.moderation.Modera
                 "duration TEXT," +
                 "details TEXT)");
         store.execute("CREATE INDEX IF NOT EXISTS idx_moderation_history_uuid ON moderation_history(uuid)");
+        // UUID-keyed ban ledger. The native NAME ban is bypassable by a name change on < 1.20.1
+        // (and PROFILE bans only exist on 1.20.1+), so we persist bans by UUID and enforce them on
+        // AsyncPlayerPreLoginEvent — making bans authoritative across the whole 1.12→1.21 range.
+        store.execute("CREATE TABLE IF NOT EXISTS moderation_bans (" +
+                "uuid TEXT PRIMARY KEY," +
+                "name TEXT," +
+                "reason TEXT," +
+                "actor TEXT," +
+                "created_at INTEGER NOT NULL," +
+                "expires_at INTEGER NOT NULL DEFAULT 0)"); // expires_at 0 = permanent
         migrateLegacyYaml();
     }
 
@@ -188,11 +199,73 @@ public class ModerationService implements dev.zcripted.obx.api.moderation.Modera
         return parsed == null ? DEFAULT_TEMPBAN_MILLIS : parsed;
     }
 
+    /** Communication commands a muted player is blocked from (base label, lowercase, no slash). */
+    private static final List<String> DEFAULT_MUTED_COMMANDS = Collections.unmodifiableList(Arrays.asList(
+            "msg", "tell", "whisper", "w", "pm", "dm", "t", "r", "reply", "rply",
+            "mail", "me", "say", "shout", "broadcast", "bc",
+            "staffchat", "sc", "adminchat", "ac"));
+
+    /**
+     * The set of command base-labels a muted player may not run, from
+     * {@code moderation.muted-blocked-commands} (falls back to {@link #DEFAULT_MUTED_COMMANDS}).
+     * Lowercased; callers compare the namespace-stripped command label against it.
+     */
+    public Set<String> getMutedBlockedCommands() {
+        List<String> configured = plugin.getConfig().getStringList("moderation.muted-blocked-commands");
+        List<String> source = (configured == null || configured.isEmpty()) ? DEFAULT_MUTED_COMMANDS : configured;
+        Set<String> result = new java.util.HashSet<>();
+        for (String cmd : source) {
+            if (cmd == null) continue;
+            String trimmed = cmd.trim().toLowerCase(Locale.ENGLISH);
+            if (!trimmed.isEmpty()) result.add(trimmed);
+        }
+        return result;
+    }
+
+    // In-memory mute cache so the per-command mute check never hits SQLite on the main thread
+    // (mirrors the jail-state cache). Loaded on join, evicted on quit; lazily filled otherwise.
+    private final java.util.Set<UUID> mutedCache = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private final java.util.Set<UUID> notMutedCache = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /** Loads a player's mute state into the cache — call on join. */
+    public void refreshMuteCache(UUID uuid) {
+        if (uuid == null || !store.isAvailable()) return;
+        if (queryMutedFromDb(uuid)) { mutedCache.add(uuid); notMutedCache.remove(uuid); }
+        else { mutedCache.remove(uuid); notMutedCache.add(uuid); }
+    }
+
+    /** Drops a player's cached mute state — call on quit. */
+    public void evictMuteCache(UUID uuid) {
+        if (uuid == null) return;
+        mutedCache.remove(uuid);
+        notMutedCache.remove(uuid);
+    }
+
+    private boolean queryMutedFromDb(UUID uuid) {
+        return store.isAvailable() && store.queryFirst("SELECT active FROM moderation_mutes WHERE uuid = ?",
+                rs -> rs.getInt("active"), uuid).orElse(0) == 1;
+    }
+
+    /** Cache-backed mute check by UUID — no DB hit once loaded on join. */
+    public boolean isMuted(UUID uuid) {
+        if (uuid == null) return false;
+        if (mutedCache.contains(uuid)) return true;
+        if (notMutedCache.contains(uuid)) return false;
+        boolean muted = queryMutedFromDb(uuid);
+        if (muted) mutedCache.add(uuid); else notMutedCache.add(uuid);
+        return muted;
+    }
+
+    public String getMuteReason(UUID uuid) {
+        if (uuid == null || !store.isAvailable()) return getDefaultReason();
+        return store.queryFirst("SELECT reason FROM moderation_mutes WHERE uuid = ? AND active = 1",
+                rs -> clean(rs.getString("reason"), getDefaultReason()), uuid).orElse(getDefaultReason());
+    }
+
     public boolean isMuted(String playerName) {
         UUID uuid = resolveUuidByName(playerName);
         if (uuid == null) return false;
-        return store.queryFirst("SELECT active FROM moderation_mutes WHERE uuid = ?",
-                rs -> rs.getInt("active"), uuid).orElse(0) == 1;
+        return isMuted(uuid);
     }
 
     public String getMuteReason(String playerName) {
@@ -209,6 +282,15 @@ public class ModerationService implements dev.zcripted.obx.api.moderation.Modera
         store.executeUpdate(
                 "INSERT OR REPLACE INTO moderation_mutes (uuid, active, reason, actor, issued_at) VALUES (?, 1, ?, ?, ?)",
                 target.getUniqueId(), cleanedReason, actor, nowStamp());
+        // Only cache for online targets (loaded on join / evicted on quit). Caching an offline mute
+        // would leak an entry no quit ever evicts; their next join reloads it from the DB.
+        if (Bukkit.getPlayer(target.getUniqueId()) != null) {
+            mutedCache.add(target.getUniqueId());
+            notMutedCache.remove(target.getUniqueId());
+        } else {
+            mutedCache.remove(target.getUniqueId());
+            notMutedCache.remove(target.getUniqueId());
+        }
         logAction("Mute", actor, target, cleanedReason, null, null);
         return true;
     }
@@ -219,6 +301,8 @@ public class ModerationService implements dev.zcripted.obx.api.moderation.Modera
                 rs -> rs.getInt("active"), target.getUniqueId()).orElse(0) == 1;
         if (!active) return false;
         store.executeUpdate("DELETE FROM moderation_mutes WHERE uuid = ?", target.getUniqueId());
+        mutedCache.remove(target.getUniqueId());
+        notMutedCache.add(target.getUniqueId());
         upsertProfile(target);
         logAction("Unmute", actor, target, clean(reason, getDefaultReason()), null, null);
         return true;
@@ -237,54 +321,380 @@ public class ModerationService implements dev.zcripted.obx.api.moderation.Modera
         return count;
     }
 
+    /**
+     * Kicks a player on their OWN region thread (Folia-safe), or inline on Bukkit. A moderation
+     * command runs on the issuer's region thread; kicking a different player directly would be a
+     * cross-region entity access and throw on Folia.
+     */
+    private void kickSafe(final Player player, final String message) {
+        if (player == null) {
+            return;
+        }
+        if (plugin.getSchedulerAdapter().isFolia()) {
+            plugin.getSchedulerAdapter().runAtEntity(player, () -> player.kickPlayer(message));
+        } else {
+            player.kickPlayer(message);
+        }
+    }
+
     public boolean ban(ResolvedProfile target, String actor, String reason) {
         if (target == null) return false;
         upsertProfile(target);
         String cleanedReason = clean(reason, getDefaultReason());
         Bukkit.getBanList(BanList.Type.NAME).addBan(target.getName(), cleanedReason, null, actor);
+        // Also ban by UUID/PROFILE on 1.20.1+ so the ban survives a name change.
+        applyProfileBan(target.getUniqueId(), target.getName(), cleanedReason, null, actor);
+        // UUID ledger enforced at pre-login — authoritative on every version, including the
+        // < 1.20.1 range where the NAME ban alone is bypassable by a name change.
+        recordUuidBan(target.getUniqueId(), target.getName(), cleanedReason, 0L, actor);
         if (target.isOnline()) {
-            target.getPlayer().kickPlayer(plugin.getLanguageManager().get(
-                    target.getPlayer(),
-                    "player.moderation.ban.kick-message",
-                    Placeholders.with("reason", cleanedReason)
-            ));
+            Player online = target.getPlayer();
+            kickSafe(online, plugin.getLanguageManager().get(online,
+                    "player.moderation.ban.kick-message", Placeholders.with("reason", cleanedReason)));
         }
         logAction("Ban", actor, target, cleanedReason, "Permanent", null);
         return true;
     }
 
-    public boolean tempBan(ResolvedProfile target, String actor, String reason) {
+    /**
+     * Temp-bans {@code target}. {@code durationMillis &lt;= 0} (and a null/blank label) fall
+     * back to the configured default duration, so {@code /tempban &lt;p&gt; 3d reason} honors
+     * the {@code 3d} while {@code /tempban &lt;p&gt; reason} uses the default.
+     */
+    public boolean tempBan(ResolvedProfile target, String actor, String reason, long durationMillis, String durationLabel) {
         if (target == null) return false;
         upsertProfile(target);
         String cleanedReason = clean(reason, getDefaultReason());
-        Date expiresAt = new Date(System.currentTimeMillis() + getDefaultTempBanDurationMillis());
+        long millis = durationMillis > 0 ? durationMillis : getDefaultTempBanDurationMillis();
+        String label = (durationLabel != null && !durationLabel.trim().isEmpty()) ? durationLabel : getDefaultTempBanDuration();
+        Date expiresAt = new Date(System.currentTimeMillis() + millis);
         Bukkit.getBanList(BanList.Type.NAME).addBan(target.getName(), cleanedReason, expiresAt, actor);
+        applyProfileBan(target.getUniqueId(), target.getName(), cleanedReason, expiresAt, actor);
+        recordUuidBan(target.getUniqueId(), target.getName(), cleanedReason, expiresAt.getTime(), actor);
         if (target.isOnline()) {
             Map<String, String> placeholders = new LinkedHashMap<>();
             placeholders.put("reason", cleanedReason);
-            placeholders.put("duration", getDefaultTempBanDuration());
-            target.getPlayer().kickPlayer(plugin.getLanguageManager().get(target.getPlayer(),
+            placeholders.put("duration", label);
+            Player online = target.getPlayer();
+            kickSafe(online, plugin.getLanguageManager().get(online,
                     "player.moderation.tempban.kick-message", placeholders));
         }
-        logAction("Tempban", actor, target, cleanedReason, getDefaultTempBanDuration(), "Expires: " + formatDate(expiresAt));
+        logAction("Tempban", actor, target, cleanedReason, label, "Expires: " + formatDate(expiresAt));
         return true;
+    }
+
+    /** Upper bound on a parsed duration (~100 years). Anything larger saturates here instead of
+     *  overflowing {@code long} (which previously wrapped negative and silently became the default). */
+    private static final long MAX_DURATION_MILLIS = 100L * 365L * 86_400_000L;
+
+    /** Parses a duration like {@code 3d} / {@code 2h} / {@code 30m} / {@code 1mo} / {@code 1y} / {@code 1d12h}; 0 if none. */
+    public static long parseDurationMillis(String input) {
+        if (input == null) return 0L;
+        // "mo" (month) is matched BEFORE the single-letter units so "1mo" isn't read as "1m" + stray "o".
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?i)(\\d+)\\s*(mo|[smhdwy])").matcher(input.trim());
+        long total = 0L;
+        boolean found = false;
+        while (m.find()) {
+            found = true;
+            long n;
+            try {
+                n = Long.parseLong(m.group(1));
+            } catch (NumberFormatException tooLarge) {
+                // The digit run itself exceeds long range — the intent is "very long", so saturate
+                // rather than skipping the token (which would leave a misleading short/zero total).
+                return MAX_DURATION_MILLIS;
+            }
+            long unit;
+            switch (m.group(2).toLowerCase(Locale.ENGLISH)) {
+                case "s": unit = 1000L; break;
+                case "m": unit = 60_000L; break;
+                case "h": unit = 3_600_000L; break;
+                case "d": unit = 86_400_000L; break;
+                case "w": unit = 604_800_000L; break;
+                case "mo": unit = 2_592_000_000L; break;   // 30 days
+                case "y": unit = 31_536_000_000L; break;   // 365 days
+                default: continue;
+            }
+            // Saturating multiply+add: an overflowing component clamps the whole duration to the cap
+            // instead of wrapping negative and being treated as "no duration" by the callers.
+            try {
+                total = Math.addExact(total, Math.multiplyExact(n, unit));
+            } catch (ArithmeticException overflow) {
+                return MAX_DURATION_MILLIS;
+            }
+            if (total >= MAX_DURATION_MILLIS) {
+                return MAX_DURATION_MILLIS;
+            }
+        }
+        return found ? total : 0L;
+    }
+
+    // ── UUID/PROFILE bans (Paper/Spigot 1.20.1+) ──────────────────────────────
+    // Additionally ban by player PROFILE (UUID) on modern servers so a ban survives a name
+    // change and is correct on offline-mode; the server checks both lists on login. The
+    // legacy NAME ban is kept for the existing read/display paths. No-op on < 1.20.1.
+
+    private void applyProfileBan(UUID uuid, String name, String reason, Date expires, String actor) {
+        if (uuid == null) return;
+        Object banList = profileBanList();
+        Object profile = createProfile(uuid, name);
+        if (banList == null || profile == null) return;
+        try {
+            for (java.lang.reflect.Method method : banList.getClass().getMethods()) {
+                if (method.getName().equals("addBan") && method.getParameterCount() == 4
+                        && method.getParameterTypes()[0].isInstance(profile)) {
+                    method.invoke(banList, profile, reason, expires, actor);
+                    return;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void pardonProfileBan(UUID uuid, String name) {
+        if (uuid == null) return;
+        Object banList = profileBanList();
+        Object profile = createProfile(uuid, name);
+        if (banList == null || profile == null) return;
+        try {
+            for (java.lang.reflect.Method method : banList.getClass().getMethods()) {
+                if (method.getName().equals("pardon") && method.getParameterCount() == 1
+                        && method.getParameterTypes()[0].isInstance(profile)) {
+                    method.invoke(banList, profile);
+                    return;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** Reflective check: is there a UUID/PROFILE ban for this profile? false on &lt; 1.20.1. */
+    private boolean isProfileBanned(UUID uuid, String name) {
+        if (uuid == null) return false;
+        Object banList = profileBanList();
+        Object profile = createProfile(uuid, name);
+        if (banList == null || profile == null) return false;
+        try {
+            for (java.lang.reflect.Method method : banList.getClass().getMethods()) {
+                if (method.getName().equals("isBanned") && method.getParameterCount() == 1
+                        && method.getParameterTypes()[0].isInstance(profile)) {
+                    Object result = method.invoke(banList, profile);
+                    return result instanceof Boolean && (Boolean) result;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
+    }
+
+    private Object profileBanList() {
+        try {
+            Class<?> typeClass = Class.forName("org.bukkit.BanList$Type");
+            Object profileType;
+            try {
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                Object resolved = Enum.valueOf((Class) typeClass, "PROFILE");
+                profileType = resolved;
+            } catch (IllegalArgumentException noProfile) {
+                return null; // < 1.20.1
+            }
+            return Bukkit.class.getMethod("getBanList", typeClass).invoke(null, profileType);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private Object createProfile(UUID uuid, String name) {
+        try {
+            return Bukkit.class.getMethod("createPlayerProfile", UUID.class, String.class).invoke(null, uuid, name);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static final java.util.regex.Pattern IPV4 =
+            java.util.regex.Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
+
+    /** True if the input is a literal IPv4 address (or contains ':' for IPv6). */
+    private boolean isIpLiteral(String input) {
+        if (input == null) return false;
+        String trimmed = input.trim();
+        if (trimmed.indexOf(':') >= 0) return true; // IPv6 — accept as-is
+        java.util.regex.Matcher matcher = IPV4.matcher(trimmed);
+        if (!matcher.matches()) return false;
+        for (int group = 1; group <= 4; group++) {
+            try {
+                if (Integer.parseInt(matcher.group(group)) > 255) return false;
+            } catch (NumberFormatException ignored) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Resolve a ban target to an IP string: an IP literal is returned as-is,
+     * otherwise the current address of a matching online player. {@code null} if
+     * neither applies (e.g. an offline name we have no stored address for).
+     */
+    public String resolveIpForBan(String input) {
+        String trimmed = clean(input, "");
+        if (trimmed.isEmpty()) return null;
+        if (isIpLiteral(trimmed)) return trimmed;
+        Player online = findOnlinePlayer(trimmed);
+        return addressOf(online);
+    }
+
+    public boolean isIpBanned(String ip) {
+        return ip != null && Bukkit.getBanList(BanList.Type.IP).isBanned(ip);
+    }
+
+    /** Currently banned IP strings, sorted — for /ipunban tab completion. */
+    public List<String> getBannedIps() {
+        Set<BanEntry> entries = Bukkit.getBanList(BanList.Type.IP).getBanEntries();
+        if (entries == null || entries.isEmpty()) return Collections.emptyList();
+        List<String> ips = new ArrayList<>();
+        for (BanEntry entry : entries) {
+            if (entry != null && entry.getTarget() != null && !entry.getTarget().trim().isEmpty()) {
+                ips.add(entry.getTarget());
+            }
+        }
+        Collections.sort(ips, String.CASE_INSENSITIVE_ORDER);
+        return ips;
+    }
+
+    /**
+     * Ban an IP and kick every online player currently connected from it. Native
+     * {@link BanList.Type#IP} persists across restarts (banned-ips.json). Returns
+     * the names of players kicked as a result.
+     *
+     * @param displayTarget the original command argument (player name or IP) used
+     *                      for the history/log entry.
+     */
+    public List<String> ipBan(String ip, String displayTarget, String actor, String reason) {
+        String cleanedReason = clean(reason, getDefaultReason());
+        Bukkit.getBanList(BanList.Type.IP).addBan(ip, cleanedReason, null, actor);
+        List<String> kicked = new ArrayList<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (ip.equals(addressOf(player))) {
+                kickSafe(player, plugin.getLanguageManager().get(player,
+                        "player.moderation.ban.kick-message", Placeholders.with("reason", cleanedReason)));
+                kicked.add(player.getName());
+            }
+        }
+        ResolvedProfile profile = resolvePunishmentProfile(displayTarget);
+        if (profile == null) {
+            profile = syntheticProfile(displayTarget);
+        }
+        String details = "IP: " + ip + (kicked.isEmpty() ? "" : ", kicked: " + String.join(", ", kicked));
+        logAction("IPBan", actor, profile, cleanedReason, "Permanent", details);
+        return kicked;
+    }
+
+    public boolean ipUnban(String ip, String actor, String reason) {
+        if (!isIpBanned(ip)) return false;
+        Bukkit.getBanList(BanList.Type.IP).pardon(ip);
+        logAction("IPUnban", actor, syntheticProfile(ip), clean(reason, getDefaultReason()), null, "IP: " + ip);
+        return true;
+    }
+
+    private String addressOf(Player player) {
+        if (player == null || player.getAddress() == null || player.getAddress().getAddress() == null) {
+            return null;
+        }
+        return player.getAddress().getAddress().getHostAddress();
+    }
+
+    private ResolvedProfile syntheticProfile(String name) {
+        String label = clean(name, "unknown");
+        return new ResolvedProfile(label,
+                UUID.nameUUIDFromBytes(("obx:" + label.toLowerCase(Locale.ENGLISH)).getBytes(StandardCharsets.UTF_8)),
+                false, null);
     }
 
     public boolean unban(String playerName, String actor, String reason) {
         BanEntry activeEntry = findActiveBan(playerName);
         String effectiveTarget = activeEntry != null && activeEntry.getTarget() != null ? activeEntry.getTarget() : clean(playerName, playerName);
-        boolean banned = activeEntry != null || Bukkit.getBanList(BanList.Type.NAME).isBanned(effectiveTarget);
-        if (!banned) return false;
-        Bukkit.getBanList(BanList.Type.NAME).pardon(effectiveTarget);
         ResolvedProfile resolved = resolveKnownProfile(effectiveTarget);
         if (resolved == null) {
             resolved = new ResolvedProfile(effectiveTarget,
                     UUID.nameUUIDFromBytes(("obx:" + effectiveTarget.toLowerCase(Locale.ENGLISH)).getBytes(StandardCharsets.UTF_8)),
                     false, null);
         }
+        boolean nameBanned = activeEntry != null || Bukkit.getBanList(BanList.Type.NAME).isBanned(effectiveTarget);
+        // Also consider a UUID/PROFILE ban (1.20.1+), so a profile-only ban (NAME lifted
+        // out-of-band) is still pardoned rather than treated as "not banned".
+        boolean profileBanned = isProfileBanned(resolved.getUniqueId(), resolved.getName());
+        if (!nameBanned && !profileBanned) return false;
+        if (nameBanned) {
+            Bukkit.getBanList(BanList.Type.NAME).pardon(effectiveTarget);
+        }
+        // Lift the UUID/PROFILE ban on 1.20.1+ (no-op otherwise).
+        pardonProfileBan(resolved.getUniqueId(), resolved.getName());
+        clearUuidBan(resolved.getUniqueId());
         upsertProfile(resolved);
         logAction("Unban", actor, resolved, clean(reason, getDefaultReason()), null, null);
         return true;
+    }
+
+    // ── UUID ban ledger (enforced at pre-login on every version) ──────────────
+
+    /** A persisted UUID-keyed ban; {@code expiresAt &lt;= 0} means permanent. */
+    public static final class BanRecord {
+        public final String reason;
+        public final long expiresAt;
+        public BanRecord(String reason, long expiresAt) {
+            this.reason = reason;
+            this.expiresAt = expiresAt;
+        }
+        public boolean isPermanent() { return expiresAt <= 0L; }
+    }
+
+    private void recordUuidBan(UUID uuid, String name, String reason, long expiresAtMillis, String actor) {
+        if (uuid == null || !store.isAvailable()) return;
+        store.executeUpdate(
+                "INSERT OR REPLACE INTO moderation_bans (uuid, name, reason, actor, created_at, expires_at)" +
+                        " VALUES (?, ?, ?, ?, ?, ?)",
+                uuid, name, reason, actor, System.currentTimeMillis(), expiresAtMillis);
+    }
+
+    private void clearUuidBan(UUID uuid) {
+        if (uuid == null || !store.isAvailable()) return;
+        store.executeUpdate("DELETE FROM moderation_bans WHERE uuid = ?", uuid);
+    }
+
+    /**
+     * The active UUID ban for a player, or {@code null} if not banned. An expired temp-ban row is
+     * purged on read and reported as not-banned. Safe to call off the main thread (the store
+     * serializes its own access), which is what the {@code AsyncPlayerPreLoginEvent} path needs.
+     */
+    public BanRecord findActiveUuidBan(UUID uuid) {
+        if (uuid == null || !store.isAvailable()) return null;
+        BanRecord record = store.queryFirst(
+                "SELECT reason, expires_at FROM moderation_bans WHERE uuid = ?",
+                rs -> new BanRecord(rs.getString("reason"), rs.getLong("expires_at")), uuid).orElse(null);
+        if (record == null) return null;
+        if (record.expiresAt > 0L && System.currentTimeMillis() >= record.expiresAt) {
+            clearUuidBan(uuid);
+            return null;
+        }
+        return record;
+    }
+
+    /** Compact "1d 2h 3m" style remaining-time label for the pre-login deny screen. */
+    public String formatRemaining(long millis) {
+        if (millis <= 0L) return "0s";
+        long seconds = millis / 1000L;
+        long days = seconds / 86400L; seconds %= 86400L;
+        long hours = seconds / 3600L; seconds %= 3600L;
+        long minutes = seconds / 60L; seconds %= 60L;
+        StringBuilder sb = new StringBuilder();
+        if (days > 0L) sb.append(days).append("d ");
+        if (hours > 0L) sb.append(hours).append("h ");
+        if (minutes > 0L) sb.append(minutes).append("m ");
+        if (seconds > 0L && days == 0L) sb.append(seconds).append("s");
+        String result = sb.toString().trim();
+        return result.isEmpty() ? "0s" : result;
     }
 
     public boolean kick(ResolvedProfile target, String actor, String reason) {
@@ -292,11 +702,9 @@ public class ModerationService implements dev.zcripted.obx.api.moderation.Modera
         upsertProfile(target);
         String cleanedReason = clean(reason, getDefaultReason());
         if (target.isOnline()) {
-            target.getPlayer().kickPlayer(plugin.getLanguageManager().get(
-                    target.getPlayer(),
-                    "player.moderation.kick.kick-message",
-                    Placeholders.with("reason", cleanedReason)
-            ));
+            Player online = target.getPlayer();
+            kickSafe(online, plugin.getLanguageManager().get(online,
+                    "player.moderation.kick.kick-message", Placeholders.with("reason", cleanedReason)));
         }
         logAction("Kick", actor, target, cleanedReason, null, null);
         return true;
@@ -674,6 +1082,8 @@ public class ModerationService implements dev.zcripted.obx.api.moderation.Modera
             case "unmute":  return "Unmuted";
             case "tempban": return "Temp-Banned";
             case "warn":    return "Warned";
+            case "ipban":   return "IP-Banned";
+            case "ipunban": return "IP-Unbanned";
             default:        return action;
         }
     }

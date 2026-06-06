@@ -45,8 +45,8 @@ public final class CombatEnchantListener implements Listener {
     private final EnchantStorage storage;
     private final CombatHudService hud;
 
-    /** Per-attacker Vampiric Edge stacking state. */
-    private final Map<UUID, VampiricState> vampiric = new HashMap<UUID, VampiricState>();
+    /** Per-attacker Vampiric Edge stacking state. Concurrent for Folia-safety + purged on quit/death. */
+    private final Map<UUID, VampiricState> vampiric = new java.util.concurrent.ConcurrentHashMap<UUID, VampiricState>();
 
     public CombatEnchantListener(ObxPlugin plugin, EnchantService service, CombatHudService hud) {
         this.plugin = plugin;
@@ -78,6 +78,12 @@ public final class CombatEnchantListener implements Listener {
             return;
         }
         ItemStack weapon = mainHand(attacker);
+        // Read the weapon's enchant lore ONCE per hit (combat is the hottest path);
+        // every effect below looks its level up from this map instead of re-parsing the
+        // item lore ~12 times per swing. Cursed-armor buffs read from a single merged
+        // armor map. Mirrors OnHitDamageListener/OnHitProcListener.
+        Map<String, Integer> w = storage.read(weapon);
+        Map<String, Integer> armor = readArmorMax(attacker);
         double baseDamage = event.getDamage();
         double finalDamage = event.getFinalDamage();
 
@@ -85,7 +91,7 @@ public final class CombatEnchantListener implements Listener {
         double multiplier = 1.0;
         double flatBonus = 0.0;
 
-        int executioner = storage.level(weapon, "executioner");
+        int executioner = w.getOrDefault("executioner", 0);
         if (executioner > 0) {
             CustomEnchant e = service.getRegistry().get("executioner");
             double pct = healthFraction(victim);
@@ -102,19 +108,19 @@ public final class CombatEnchantListener implements Listener {
             }
         }
 
-        int brittleness = storage.level(weapon, "curse_of_brittleness");
+        int brittleness = w.getOrDefault("curse_of_brittleness", 0);
         if (brittleness > 0) {
             CustomEnchant e = service.getRegistry().get("curse_of_brittleness");
             flatBonus += e.levelInt(brittleness, "effective_bonus", 0);
         }
 
-        int hunger = armorLevel(attacker, "curse_of_hunger");
+        int hunger = armor.getOrDefault("curse_of_hunger", 0);
         if (hunger > 0) {
             CustomEnchant e = service.getRegistry().get("curse_of_hunger");
             multiplier += e.levelDouble(hunger, "damage_bonus", 0.0);
         }
 
-        int echoes = armorLevel(attacker, "curse_of_echoes");
+        int echoes = armor.getOrDefault("curse_of_echoes", 0);
         if (echoes > 0) {
             CustomEnchant e = service.getRegistry().get("curse_of_echoes");
             // All hits crit: a flat damage bump approximating a crit when applicable.
@@ -136,7 +142,7 @@ public final class CombatEnchantListener implements Listener {
         }
 
         // ── On-hit proc effects ──────────────────────────────────────────────
-        int frostbite = storage.level(weapon, "frostbite");
+        int frostbite = w.getOrDefault("frostbite", 0);
         if (frostbite > 0) {
             CustomEnchant e = service.getRegistry().get("frostbite");
             if (Math.random() < e.levelDouble(frostbite, "chance", 0.0)) {
@@ -151,7 +157,7 @@ public final class CombatEnchantListener implements Listener {
             }
         }
 
-        int soulfire = storage.level(weapon, "soulfire");
+        int soulfire = w.getOrDefault("soulfire", 0);
         if (soulfire > 0) {
             CustomEnchant e = service.getRegistry().get("soulfire");
             int seconds = e.levelInt(soulfire, "duration_seconds", 3);
@@ -160,7 +166,7 @@ public final class CombatEnchantListener implements Listener {
             debug(attacker, "Soulfire ignite " + seconds + "s");
         }
 
-        int bloodthirst = storage.level(weapon, "bloodthirst");
+        int bloodthirst = w.getOrDefault("bloodthirst", 0);
         if (bloodthirst > 0) {
             CustomEnchant e = service.getRegistry().get("bloodthirst");
             double percent = e.levelDouble(bloodthirst, "heal_percent", 0.0);
@@ -174,18 +180,18 @@ public final class CombatEnchantListener implements Listener {
             }
         }
 
-        int vampLevel = storage.level(weapon, "vampiric_edge");
+        int vampLevel = w.getOrDefault("vampiric_edge", 0);
         if (vampLevel > 0) {
             applyVampiric(attacker, victim, finalDamage, vampLevel);
         }
 
-        int chain = storage.level(weapon, "chain_lightning");
+        int chain = w.getOrDefault("chain_lightning", 0);
         if (chain > 0) {
             CustomEnchant e = service.getRegistry().get("chain_lightning");
             chainLightning(attacker, victim, finalDamage, e, chain);
         }
 
-        int pulverize = storage.level(weapon, "pulverize");
+        int pulverize = w.getOrDefault("pulverize", 0);
         if (pulverize > 0) {
             CustomEnchant e = service.getRegistry().get("pulverize");
             aoe(attacker, victim, finalDamage, e.levelDouble(pulverize, "radius", 2.0),
@@ -194,7 +200,7 @@ public final class CombatEnchantListener implements Listener {
         }
 
         // Petrify — stun a non-player mob by freezing its AI for a short window.
-        int petrify = storage.level(weapon, "petrify");
+        int petrify = w.getOrDefault("petrify", 0);
         if (petrify > 0 && !(victim instanceof Player)) {
             CustomEnchant e = service.getRegistry().get("petrify");
             if (Math.random() < e.levelDouble(petrify, "chance", 0.0)) {
@@ -208,6 +214,13 @@ public final class CombatEnchantListener implements Listener {
                 debug(attacker, "Petrify stun " + seconds + "s");
             }
         }
+    }
+
+    @EventHandler
+    public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+        // Vampiric stacking state is keyed by the attacking player; drop it on quit so it
+        // doesn't accumulate one stale entry per unique player over the server's lifetime.
+        vampiric.remove(event.getPlayer().getUniqueId());
     }
 
     private void stun(final LivingEntity victim, double seconds) {
@@ -242,22 +255,24 @@ public final class CombatEnchantListener implements Listener {
             return;
         }
         ItemStack weapon = mainHand(killer);
+        // Read the kill weapon's lore once, then resolve every on-kill effect from the map.
+        Map<String, Integer> w = storage.read(weapon);
 
-        int soulHarvest = storage.level(weapon, "soul_harvest");
+        int soulHarvest = w.getOrDefault("soul_harvest", 0);
         if (soulHarvest > 0) {
             CustomEnchant e = service.getRegistry().get("soul_harvest");
             double bonus = e.levelDouble(soulHarvest, "xp_percent", 0.0);
             event.setDroppedExp((int) Math.round(event.getDroppedExp() * (1.0 + bonus)));
         }
 
-        int greed = storage.level(weapon, "curse_of_greed");
+        int greed = w.getOrDefault("curse_of_greed", 0);
         if (greed > 0) {
             CustomEnchant e = service.getRegistry().get("curse_of_greed");
             double dropBonus = e.levelDouble(greed, "drop_bonus", 0.0);
             duplicateDrops(event, dropBonus);
         }
 
-        int ravenous = storage.level(weapon, "curse_of_ravenous");
+        int ravenous = w.getOrDefault("curse_of_ravenous", 0);
         if (ravenous > 0) {
             CustomEnchant e = service.getRegistry().get("curse_of_ravenous");
             double radius = e.levelDouble(ravenous, "radius", 2.0);
@@ -268,7 +283,7 @@ public final class CombatEnchantListener implements Listener {
             }
         }
 
-        int bloodthirst = storage.level(weapon, "bloodthirst");
+        int bloodthirst = w.getOrDefault("bloodthirst", 0);
         if (bloodthirst > 0) {
             CustomEnchant e = service.getRegistry().get("bloodthirst");
             int bonusHearts = e.levelInt(bloodthirst, "kill_bonus_hearts", 0);
@@ -279,7 +294,7 @@ public final class CombatEnchantListener implements Listener {
             }
         }
 
-        int headhunter = storage.level(weapon, "headhunter");
+        int headhunter = w.getOrDefault("headhunter", 0);
         if (headhunter > 0) {
             CustomEnchant e = service.getRegistry().get("headhunter");
             boolean player = dead instanceof Player;
@@ -292,7 +307,7 @@ public final class CombatEnchantListener implements Listener {
             }
         }
 
-        int pact = storage.level(weapon, "summoners_pact");
+        int pact = w.getOrDefault("summoners_pact", 0);
         if (pact > 0) {
             CustomEnchant e = service.getRegistry().get("summoners_pact");
             if (Math.random() < e.levelDouble(pact, "chance", 0.0)) {
@@ -526,21 +541,33 @@ public final class CombatEnchantListener implements Listener {
             return;
         }
         try {
-            double newHealth = player.getHealth() - amount;
-            player.setHealth(Math.max(0.0, newHealth));
+            // Route through damage() rather than setHealth(): it respects resistance/absorption and
+            // fires EntityDamageEvent, so reactive saves (totems, Phoenix Feather) can still trigger
+            // and a lethal reflect produces a proper death with correct attribution.
+            player.damage(amount);
         } catch (Throwable ignored) {
         }
     }
 
-    private int armorLevel(Player player, String enchantId) {
-        int best = 0;
+    /**
+     * Reads all four armor pieces ONCE and merges them into a single id→max-level map,
+     * so the cursed-armor buffs (curse_of_hunger / curse_of_echoes) resolve from one
+     * parse pass per piece instead of re-parsing every piece per enchant.
+     */
+    private Map<String, Integer> readArmorMax(Player player) {
+        Map<String, Integer> merged = new HashMap<String, Integer>();
         for (ItemStack piece : player.getInventory().getArmorContents()) {
-            int level = storage.level(piece, enchantId);
-            if (level > best) {
-                best = level;
+            if (piece == null) {
+                continue;
+            }
+            for (Map.Entry<String, Integer> entry : storage.read(piece).entrySet()) {
+                Integer existing = merged.get(entry.getKey());
+                if (existing == null || entry.getValue() > existing) {
+                    merged.put(entry.getKey(), entry.getValue());
+                }
             }
         }
-        return best;
+        return merged;
     }
 
     @SuppressWarnings("deprecation")

@@ -13,12 +13,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -592,11 +590,5 @@ public final class DisplayEntityBackend implements HologramBackend {
             vector3fCtor = vector3fCtorLocal;
             quaternionfCtor = quaternionfCtorLocal;
         }
-    }
-
-    /** Suppresses unused-warnings on local helper. */
-    @SuppressWarnings("unused")
-    private static Field unusedFieldRef() {
-        return null;
     }
 }

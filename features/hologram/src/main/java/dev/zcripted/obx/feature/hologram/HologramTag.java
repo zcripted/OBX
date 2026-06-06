@@ -1,6 +1,7 @@
 package dev.zcripted.obx.feature.hologram;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 
@@ -92,6 +93,31 @@ public final class HologramTag {
                     } catch (Throwable ignored) {
                         // skip
                     }
+                }
+            }
+        }
+        return removed;
+    }
+
+    /**
+     * Removes every OBX-tagged entity from a single chunk. Cheap enough to run on
+     * {@code ChunkLoadEvent} (unlike {@link #scrub()}, which walks all worlds), so a
+     * hologram entity that was saved into chunk data by a previous session can't
+     * reappear as an untracked duplicate when the chunk loads. Returns the count
+     * removed. No-op on pre-1.13.
+     */
+    public static int scrubChunk(Chunk chunk) {
+        if (GET == null || chunk == null) {
+            return 0;
+        }
+        int removed = 0;
+        for (Entity entity : chunk.getEntities()) {
+            if (isTagged(entity)) {
+                try {
+                    entity.remove();
+                    removed++;
+                } catch (Throwable ignored) {
+                    // skip
                 }
             }
         }

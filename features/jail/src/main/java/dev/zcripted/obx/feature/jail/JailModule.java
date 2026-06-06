@@ -38,5 +38,10 @@ public final class JailModule extends AbstractModule {
         // Confinement listener — resolves JailService via plugin.getServiceRegistry().get(dev.zcripted.obx.feature.jail.service.JailService.class),
         // so it must be constructed after the service is registered above.
         listener(new JailListener(plugin));
+        // Expiry sweep (every 5s): frees online players whose term has lapsed by teleporting
+        // them out and notifying, instead of relying on their next move to silently un-confine.
+        dev.zcripted.obx.core.platform.scheduler.CancellableTask expirySweep =
+                plugin.getSchedulerAdapter().runRepeating(service::sweepExpired, 100L, 100L);
+        onDisable(expirySweep::cancel);
     }
 }

@@ -25,29 +25,39 @@
 #   {ping}         - Player's latency in ms (best-effort, "?" on legacy servers)
 #   {time}         - Current server wall-clock time (HH:mm:ss)
 #   {tps}          - Server TPS rounded to one decimal (best-effort)
+#   {uptime}       - Server uptime since start (e.g. "3d 04:21:07"), live-ticking
 #   {motd-1}       - First MOTD line (resolved through the existing MOTD service)
 # ════════════════════════════════════════════════════════════════════════════
 
 enabled: true
 
 # How often (in server ticks, 20 ticks = 1 second) the tablist is refreshed
-# for every online player so that placeholders like {online}, {ping}, {time}
-# stay current. Set to 0 (or a negative number) to update only on join.
-refresh-interval-ticks: 40
+# for every online player so that live placeholders ({online}, {ping}, {tps},
+# {uptime}, {time}) tick in real time. This is set low (2 ticks ≈ 100 ms) so the
+# uptime seconds and TPS/ping readouts update sub-second and never look stale.
+# Raise it if you run a very large server and want fewer tablist packets; set to
+# 0 (or negative) to update only on join.
+refresh-interval-ticks: 10
 
 # Header lines shown above the player list. Lines are joined with newlines.
+# Brand theme: bold violet gradient title, gray labels, light-purple values.
+# NOTE: the value/label lines use legacy &-codes (not <named>/<#hex> tags) on purpose —
+# they render on EVERY tablist transport (Adventure, Spigot BaseComponent, and the
+# legacy setPlayerListHeader(String) fallback). Only the brand lines keep a
+# <gradient> tag (which needs a component transport; it degrades to plain text on the
+# oldest legacy fallback, while the &-coded lines stay colored everywhere).
 header:
   - " "
-  - "          <gradient:#2A0A45:#6A1B9A><bold>OBX Network</bold></gradient>          "
-  - "<gray>Online: <yellow>{online}</yellow><gray>/<yellow>{max}</yellow>   <gray>TPS: <yellow>{tps}</yellow>"
+  - "          <gradient:#9D4EDD:#C77DFF><bold>OBX Network</bold></gradient>          "
+  - "&7Online &8» &d{online}&7/&d{max}   &7TPS &8» &d{tps}   &7Uptime &8» &d{uptime}"
   - " "
 
 # Footer lines shown below the player list.
 footer:
   - " "
-  - "<gray>World: <yellow>{world}</yellow>   <gray>Ping: <yellow>{ping}</yellow><gray>ms"
-  - "<gray>Time: <yellow>{time}</yellow>"
-  - "<gradient:#2A0A45:#6A1B9A>discord.gg/zcripted</gradient>"
+  - "&7World &8» &d{world}   &7Ping &8» &d{ping}&7ms"
+  - "&7Time &8» &d{time}"
+  - "<gradient:#9D4EDD:#C77DFF>discord.gg/UxktSyT9Ag</gradient>"
   - " "
 
 # Per-player entry shown in the list itself. Set to an empty string to keep

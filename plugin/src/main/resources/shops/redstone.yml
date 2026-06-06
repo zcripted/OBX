@@ -1,0 +1,42 @@
+# OBX Shop — Redstone. buy = per bundle, sell = PER UNIT; 0 disables.
+# Unknown materials are skipped per server version (1.8.8 → latest).
+# Optional stock: N caps units buyable per restock window (restock-minutes in shop.yml); omit = unlimited.
+title: "&5Shop &8› &4Redstone"
+items:
+  # ── 1.8.8 baseline ─────────────────────────────────────────────────────────
+  - {material: REDSTONE, amount: 16, buy: 6.00, sell: 0.25}
+  - {material: REDSTONE_BLOCK, amount: 2, buy: 8.00, sell: 2.00}
+  - {material: REDSTONE_TORCH, amount: 8, buy: 4.00, sell: 0.30}
+  - {material: REPEATER, amount: 4, buy: 8.00, sell: 1.00}
+  - {material: COMPARATOR, amount: 4, buy: 12.00, sell: 1.50}
+  - {material: PISTON, amount: 4, buy: 12.00, sell: 1.50}
+  - {material: STICKY_PISTON, amount: 4, buy: 18.00, sell: 2.50}
+  - {material: HOPPER, amount: 2, buy: 16.00, sell: 4.00}
+  - {material: DROPPER, amount: 4, buy: 8.00, sell: 1.00}
+  - {material: DISPENSER, amount: 2, buy: 10.00, sell: 2.20}
+  - {material: LEVER, amount: 8, buy: 2.00, sell: 0.10}
+  - {material: TRIPWIRE_HOOK, amount: 8, buy: 4.00, sell: 0.30}
+  - {material: DAYLIGHT_DETECTOR, amount: 2, buy: 12.00, sell: 2.50}
+  - {material: TNT, amount: 4, buy: 24.00, sell: 3.00}
+  - {material: NOTE_BLOCK, amount: 2, buy: 8.00, sell: 1.50}
+  - {material: SLIME_BLOCK, amount: 2, buy: 30.00, sell: 5.00}
+  - {material: RAIL, amount: 16, buy: 12.00, sell: 0.50}
+  - {material: POWERED_RAIL, amount: 8, buy: 24.00, sell: 2.00}
+  - {material: DETECTOR_RAIL, amount: 8, buy: 16.00, sell: 1.20}
+  # ── 1.8.8 legacy names (skipped on 1.13+) ──────────────────────────────────
+  - {material: DIODE, amount: 4, buy: 8.00, sell: 1.00}
+  - {material: REDSTONE_COMPARATOR, amount: 4, buy: 12.00, sell: 1.50}
+  - {material: PISTON_BASE, amount: 4, buy: 12.00, sell: 1.50}
+  - {material: PISTON_STICKY_BASE, amount: 4, buy: 18.00, sell: 2.50}
+  # ── 1.11 – 1.12 ────────────────────────────────────────────────────────────
+  - {material: OBSERVER, amount: 4, buy: 16.00, sell: 2.00}
+  # ── 1.13+ ──────────────────────────────────────────────────────────────────
+  - {material: STONE_PRESSURE_PLATE, amount: 8, buy: 4.00, sell: 0.25}
+  # ── 1.16+ ──────────────────────────────────────────────────────────────────
+  - {material: TARGET, amount: 4, buy: 12.00, sell: 1.50}
+  # ── 1.17+ ──────────────────────────────────────────────────────────────────
+  - {material: LIGHTNING_ROD, amount: 2, buy: 10.00, sell: 1.80}
+  # ── 1.19+ ──────────────────────────────────────────────────────────────────
+  - {material: SCULK_SENSOR, amount: 1, buy: 20.00, sell: 5.00}
+  # ── 1.21+ ──────────────────────────────────────────────────────────────────
+  - {material: CRAFTER, amount: 1, buy: 30.00, sell: 8.00}

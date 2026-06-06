@@ -7,8 +7,10 @@ import dev.zcripted.obx.feature.playerinfo.command.InfoCommand;
 import dev.zcripted.obx.feature.playerinfo.command.ListCommand;
 import dev.zcripted.obx.feature.playerinfo.command.NearCommand;
 import dev.zcripted.obx.feature.playerinfo.command.PlaytimeCommand;
+import dev.zcripted.obx.feature.playerinfo.command.TopPlaytimeCommand;
 import dev.zcripted.obx.feature.playerinfo.command.RealnameCommand;
 import dev.zcripted.obx.feature.playerinfo.command.SeenCommand;
+import dev.zcripted.obx.feature.playerinfo.command.StaffListCommand;
 import dev.zcripted.obx.feature.playerinfo.command.WhoisCommand;
 import dev.zcripted.obx.feature.playerinfo.listener.JoinLeaveListener;
 import dev.zcripted.obx.feature.playerinfo.listener.JoinListener;
@@ -34,13 +36,19 @@ public final class PlayerInfoModule extends AbstractModule {
         playtime.load();
         onDisable(playtime::save);
 
+        // PlaytimeService is itself a Listener — its onJoin/onQuit record the playtime sessions.
+        // Without this registration no playtime ever accumulates (the service was previously only
+        // registered in the service registry, so its @EventHandlers never fired).
+        listener(playtime);
         listener(new JoinListener(plugin));
         listener(new JoinLeaveListener(plugin, joinLeave));
 
         command("seen", new SeenCommand(plugin));
         command("firstseen", new FirstSeenCommand(plugin));
         command("playtime", new PlaytimeCommand(plugin));
+        command("topplaytime", new TopPlaytimeCommand(plugin));
         command("list", new ListCommand(plugin));
+        command("stafflist", new StaffListCommand(plugin));
         command("near", new NearCommand(plugin));
         command("whois", new WhoisCommand(plugin));
         command("realname", new RealnameCommand(plugin));

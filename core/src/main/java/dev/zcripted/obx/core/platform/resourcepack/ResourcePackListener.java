@@ -21,7 +21,16 @@ public class ResourcePackListener implements Listener {
         if (manager == null || !manager.isEnabled()) {
             return;
         }
-        plugin.getSchedulerAdapter().runLater(() -> manager.applyPackOnJoin(event.getPlayer()), 20L);
+        // Re-check at execution time: the 20-tick delay can outlive a module/plugin
+        // disable or a player quitting, so guard against applying a pack to a stale
+        // manager or an offline player. Dispatched on the player's OWN region thread
+        // (runAtEntityLater) — setResourcePack is a per-player op that must not run from
+        // the global region thread on Folia (would trip thread-ownership checks).
+        plugin.getSchedulerAdapter().runAtEntityLater(event.getPlayer(), () -> {
+            if (manager.isEnabled() && event.getPlayer().isOnline()) {
+                manager.applyPackOnJoin(event.getPlayer());
+            }
+        }, null, 20L);
     }
 
     @EventHandler

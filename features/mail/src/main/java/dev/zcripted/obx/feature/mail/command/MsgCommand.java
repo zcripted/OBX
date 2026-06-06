@@ -50,16 +50,28 @@ public final class MsgCommand extends AbstractObxCommand implements TabCompleter
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length != 1) {
-            return Collections.emptyList();
-        }
-        String prefix = args[0].toLowerCase(Locale.ENGLISH);
-        List<String> names = new ArrayList<String>();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!player.equals(sender) && player.getName().toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
-                names.add(player.getName());
+        if (args.length == 1) {
+            String prefix = args[0].toLowerCase(Locale.ENGLISH);
+            List<String> names = new ArrayList<String>();
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (!player.equals(sender) && player.getName().toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
+                    names.add(player.getName());
+                }
             }
+            return names;
         }
-        return names;
+        if (args.length == 2) {
+            // First word of the message body — offer a few family-friendly ice-breakers /
+            // Minecraft-humor openers (localized). Multi-word suggestions fill the line.
+            String prefix = args[1].toLowerCase(Locale.ENGLISH);
+            List<String> out = new ArrayList<String>();
+            for (String line : plugin.getLanguageManager().list(sender, "message.icebreakers", Collections.<String, String>emptyMap())) {
+                if (line.toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
+                    out.add(line);
+                }
+            }
+            return out;
+        }
+        return Collections.emptyList();
     }
 }

@@ -5,6 +5,8 @@ import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.moderation.command.BanListCommand;
 import dev.zcripted.obx.feature.moderation.command.ModerationCommand;
 import dev.zcripted.obx.feature.moderation.command.ModerationStatusCommand;
+import dev.zcripted.obx.feature.moderation.listener.BanLoginListener;
+import dev.zcripted.obx.feature.moderation.listener.MuteCommandListener;
 import dev.zcripted.obx.feature.moderation.service.ModerationService;
 
 /**
@@ -30,8 +32,13 @@ public final class ModerationModule extends AbstractModule {
         command("unmute", new ModerationCommand(plugin, ModerationCommand.Action.UNMUTE));
         command("tempban", new ModerationCommand(plugin, ModerationCommand.Action.TEMPBAN));
         command("warn", new ModerationCommand(plugin, ModerationCommand.Action.WARN));
+        command("ipban", new ModerationCommand(plugin, ModerationCommand.Action.IPBAN));
+        command("ipunban", new ModerationCommand(plugin, ModerationCommand.Action.IPUNBAN));
         command("banlist", new BanListCommand(plugin));
         command("status", new ModerationStatusCommand(plugin));
+        listener(new MuteCommandListener(plugin, service));
+        // Enforce UUID bans at login so a name change can't bypass a ban on < 1.20.1.
+        listener(new BanLoginListener(plugin, service));
         onDisable(service::save);
     }
 

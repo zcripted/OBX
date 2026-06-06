@@ -41,11 +41,29 @@ public final class VaultEconomyProvider {
             java.lang.reflect.Method registerMethod = services.getClass().getMethod(
                     "register", Class.class, Object.class, Plugin.class, org.bukkit.plugin.ServicePriority.class);
             registerMethod.invoke(services, economyInterface, proxy, plugin, org.bukkit.plugin.ServicePriority.Normal);
-            dev.zcripted.obx.util.message.ConsoleLog.info(plugin, "Registered as Vault economy provider.");
+            dev.zcripted.obx.util.message.ConsoleLog.info(plugin, "Registered §d§lOBX§r§7 as the economy system provider.");
             return true;
         } catch (Throwable throwable) {
             plugin.getLogger().warning("Failed to register Vault economy provider: " + throwable.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Removes every Vault service registration owned by this plugin. Called on module
+     * disable so a runtime disable/re-enable cycle can't leave a stale proxy (pointing
+     * at an old EconomyService) registered or stack a duplicate on re-enable.
+     */
+    public static void unregister(ObxPlugin plugin) {
+        if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
+            return;
+        }
+        try {
+            Object services = Bukkit.getServicesManager();
+            java.lang.reflect.Method unregisterAll = services.getClass().getMethod("unregisterAll", Plugin.class);
+            unregisterAll.invoke(services, plugin);
+        } catch (Throwable ignored) {
+            // Vault gone or API shape changed — Bukkit clears our registrations on full disable anyway.
         }
     }
 
@@ -82,16 +100,42 @@ public final class VaultEconomyProvider {
                 case "withdrawPlayer": {
                     OfflinePlayer p = resolveOfflinePlayer(args[0]);
                     double amount = ((Number) args[args.length - 1]).doubleValue();
-                    boolean ok = p != null && economy.withdraw(p.getUniqueId(), p.getName(), amount);
-                    return buildEconomyResponse(method.getReturnType(), economy.getBalance(p == null ? null : p.getUniqueId()), amount, ok ? "SUCCESS" : "FAILURE", ok ? null : "Insufficient funds");
+                    if (p == null) {
+                        return buildEconomyResponse(method.getReturnType(), 0.0, amount, "FAILURE", "Unknown player");
+                    }
+                    // Reject non-positive / non-finite up front: withdraw() sanitizes a negative to 0
+                    // and returns a no-op true, which would otherwise report SUCCESS to a Vault caller.
+                    if (amount <= 0.0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
+                        return buildEconomyResponse(method.getReturnType(), economy.getBalance(p.getUniqueId()), amount, "FAILURE", "Cannot withdraw a non-positive amount");
+                    }
+                    boolean ok = economy.withdraw(p.getUniqueId(), p.getName(), amount);
+                    return buildEconomyResponse(method.getReturnType(), economy.getBalance(p.getUniqueId()), amount, ok ? "SUCCESS" : "FAILURE", ok ? null : "Insufficient funds");
                 }
                 case "depositPlayer": {
                     OfflinePlayer p = resolveOfflinePlayer(args[0]);
                     double amount = ((Number) args[args.length - 1]).doubleValue();
-                    if (p != null) economy.deposit(p.getUniqueId(), p.getName(), amount);
-                    return buildEconomyResponse(method.getReturnType(), economy.getBalance(p == null ? null : p.getUniqueId()), amount, "SUCCESS", null);
+                    if (p == null) {
+                        return buildEconomyResponse(method.getReturnType(), 0.0, amount, "FAILURE", "Unknown player");
+                    }
+                    if (amount <= 0.0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
+                        return buildEconomyResponse(method.getReturnType(), economy.getBalance(p.getUniqueId()), amount, "FAILURE", "Cannot deposit a non-positive amount");
+                    }
+                    // deposit() is void and silently clamps at the max balance, so measure the actual
+                    // delta and report FAILURE if nothing moved — Vault callers trust the response type.
+                    double before = economy.getBalance(p.getUniqueId());
+                    economy.deposit(p.getUniqueId(), p.getName(), amount);
+                    double after = economy.getBalance(p.getUniqueId());
+                    boolean moved = after > before;
+                    return buildEconomyResponse(method.getReturnType(), after, after - before, moved ? "SUCCESS" : "FAILURE", moved ? null : "Deposit had no effect");
                 }
-                case "createPlayerAccount": return true;
+                case "createPlayerAccount": {
+                    OfflinePlayer p = resolveOfflinePlayer(args[0]);
+                    if (p == null) {
+                        return false;
+                    }
+                    economy.ensureAccount(p.getUniqueId(), p.getName());
+                    return true;
+                }
                 case "getBanks": return Collections.emptyList();
                 case "toString": return "OBX EconomyProvider";
                 case "equals": return proxy == args[0];

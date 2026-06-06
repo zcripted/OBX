@@ -28,7 +28,9 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
         MUTE("obx.moderation.mute", "player.moderation.usage.mute"),
         UNMUTE("obx.moderation.unmute", "player.moderation.usage.unmute"),
         TEMPBAN("obx.moderation.tempban", "player.moderation.usage.tempban"),
-        WARN("obx.moderation.warn", "player.moderation.usage.warn");
+        WARN("obx.moderation.warn", "player.moderation.usage.warn"),
+        IPBAN("obx.moderation.ipban", "player.moderation.usage.ipban"),
+        IPUNBAN("obx.moderation.ipunban", "player.moderation.usage.ipunban");
 
         private final String permission;
         private final String usageKey;
@@ -92,6 +94,12 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
             case WARN:
                 handleWarn(sender, targetInput, reason);
                 return true;
+            case IPBAN:
+                handleIpBan(sender, targetInput, reason);
+                return true;
+            case IPUNBAN:
+                handleIpUnban(sender, targetInput, reason);
+                return true;
             default:
                 return true;
         }
@@ -105,6 +113,9 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
         }
         if (isSelfTarget(sender, target)) {
             languages.send(sender, "player.moderation.self-target");
+            return;
+        }
+        if (rejectProtected(sender, target)) {
             return;
         }
         if (moderationService.hasActiveBan(target.getName())) {
@@ -125,15 +136,32 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
             languages.send(sender, "player.moderation.self-target");
             return;
         }
+        if (rejectProtected(sender, target)) {
+            return;
+        }
         if (moderationService.hasActiveBan(target.getName())) {
             languages.send(sender, "player.moderation.tempban.already", Placeholders.with("target", target.getName()));
             return;
         }
-        moderationService.tempBan(target, sender.getName(), reason);
+        // Optional leading duration token: /tempban <player> [3d|2h30m|...] [reason]
+        long durationMillis = 0L;
+        String durationLabel = null;
+        String effectiveReason = reason;
+        if (reason != null && !reason.trim().isEmpty()) {
+            String[] parts = reason.trim().split("\\s+", 2);
+            long parsed = dev.zcripted.obx.feature.moderation.service.ModerationService.parseDurationMillis(parts[0]);
+            if (parsed > 0L) {
+                durationMillis = parsed;
+                durationLabel = parts[0];
+                effectiveReason = parts.length > 1 ? parts[1] : null;
+            }
+        }
+        moderationService.tempBan(target, sender.getName(), effectiveReason, durationMillis, durationLabel);
         languages.send(
                 sender,
                 "player.moderation.tempban.success",
-                Placeholders.with("target", target.getName(), "duration", moderationService.getDefaultTempBanDuration())
+                Placeholders.with("target", target.getName(),
+                        "duration", durationLabel != null ? durationLabel : moderationService.getDefaultTempBanDuration())
         );
     }
 
@@ -161,6 +189,9 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
             languages.send(sender, "player.moderation.self-target");
             return;
         }
+        if (rejectProtected(sender, target)) {
+            return;
+        }
         moderationService.kick(target, sender.getName(), reason);
         languages.send(sender, "player.moderation.kick.success", Placeholders.with("target", target.getName(), "reason", reason));
     }
@@ -173,6 +204,9 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
         }
         if (isSelfTarget(sender, target)) {
             languages.send(sender, "player.moderation.self-target");
+            return;
+        }
+        if (rejectProtected(sender, target)) {
             return;
         }
         if (moderationService.isMuted(target.getName())) {
@@ -212,6 +246,9 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
             languages.send(sender, "player.moderation.self-target");
             return;
         }
+        if (rejectProtected(sender, target)) {
+            return;
+        }
         int warningCount = moderationService.warn(target, sender.getName(), reason);
         languages.send(
                 sender,
@@ -227,6 +264,46 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
         }
     }
 
+    private void handleIpBan(CommandSender sender, String targetInput, String reason) {
+        String ip = moderationService.resolveIpForBan(targetInput);
+        if (ip == null) {
+            languages.send(sender, "player.moderation.ipban.unresolved", Placeholders.with("player", targetInput));
+            return;
+        }
+        // Don't let a player ban the IP they're currently connected from.
+        if (sender instanceof Player && ip.equals(addressOf((Player) sender))) {
+            languages.send(sender, "player.moderation.self-target");
+            return;
+        }
+        if (moderationService.isIpBanned(ip)) {
+            languages.send(sender, "player.moderation.ipban.already", Placeholders.with("ip", ip));
+            return;
+        }
+        moderationService.ipBan(ip, targetInput, sender.getName(), reason);
+        languages.send(sender, "player.moderation.ipban.success", Placeholders.with("ip", ip, "reason", reason));
+    }
+
+    private void handleIpUnban(CommandSender sender, String targetInput, String reason) {
+        // For unban the argument is normally the IP itself; fall back to treating
+        // the raw input as the address if it isn't a currently-online player.
+        String ip = moderationService.resolveIpForBan(targetInput);
+        if (ip == null) {
+            ip = targetInput;
+        }
+        if (!moderationService.ipUnban(ip, sender.getName(), reason)) {
+            languages.send(sender, "player.moderation.ipunban.not-banned", Placeholders.with("ip", ip));
+            return;
+        }
+        languages.send(sender, "player.moderation.ipunban.success", Placeholders.with("ip", ip));
+    }
+
+    private String addressOf(Player player) {
+        if (player == null || player.getAddress() == null || player.getAddress().getAddress() == null) {
+            return null;
+        }
+        return player.getAddress().getAddress().getHostAddress();
+    }
+
     private boolean isSelfTarget(CommandSender sender, ResolvedProfile target) {
         if (!(sender instanceof Player) || target == null) {
             return false;
@@ -238,17 +315,30 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
         return player.getName().equalsIgnoreCase(target.getName());
     }
 
-    private Player findOnlinePlayer(String input) {
-        Player exact = Bukkit.getPlayerExact(input);
-        if (exact != null) {
-            return exact;
+    /**
+     * Whether {@code target} is shielded from punishment by an online {@code obx.moderation.exempt}
+     * permission — used so a moderator can't ban/mute/kick/warn higher-ranked staff or the owner.
+     * Console and holders of {@code obx.moderation.exempt.bypass} override the shield. Offline targets
+     * can't be evaluated (Bukkit has no offline permission lookup), so the shield applies while online.
+     */
+    private boolean isProtectedTarget(CommandSender sender, ResolvedProfile target) {
+        if (target == null || !(sender instanceof Player)) {
+            return false; // console can act on anyone
         }
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.getName().equalsIgnoreCase(input)) {
-                return player;
-            }
+        if (sender.hasPermission("obx.moderation.exempt.bypass")) {
+            return false;
         }
-        return null;
+        Player online = target.isOnline() ? target.getPlayer() : null;
+        return online != null && online.hasPermission("obx.moderation.exempt");
+    }
+
+    /** Sends the "target is exempt" feedback and returns true when {@code target} is protected. */
+    private boolean rejectProtected(CommandSender sender, ResolvedProfile target) {
+        if (isProtectedTarget(sender, target)) {
+            languages.send(sender, "player.moderation.exempt-target", Placeholders.with("target", target.getName()));
+            return true;
+        }
+        return false;
     }
 
     private String joinReason(String[] args) {
@@ -286,6 +376,14 @@ public class ModerationCommand extends AbstractObxCommand implements TabComplete
             case UNMUTE:
                 suggestions.addAll(moderationService.getMutedProfileNames());
                 suggestions.addAll(moderationService.getFakeProfileNames());
+                break;
+            case IPUNBAN:
+                suggestions.addAll(moderationService.getBannedIps());
+                break;
+            case IPBAN:
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    suggestions.add(player.getName());
+                }
                 break;
             case BAN:
             case TEMPBAN:

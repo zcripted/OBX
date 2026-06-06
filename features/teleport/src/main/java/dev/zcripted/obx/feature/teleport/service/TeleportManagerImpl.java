@@ -2,7 +2,6 @@ package dev.zcripted.obx.feature.teleport.service;
 
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.language.LanguageManager;
-import dev.zcripted.obx.core.platform.scheduler.SchedulerAdapter;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -106,5 +105,35 @@ public class TeleportManagerImpl implements Listener, dev.zcripted.obx.api.telep
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         cancelExisting(event.getPlayer().getUniqueId());
+    }
+
+    /**
+     * Implements the {@code teleport.cancel-on-move} config option: while a warmup is
+     * pending, moving to a different BLOCK (head rotation is ignored) cancels the
+     * teleport. Cheap hot path: bails immediately unless the mover actually has a
+     * pending warmup AND the option is enabled.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onMove(org.bukkit.event.player.PlayerMoveEvent event) {
+        if (pendingTeleports.isEmpty()) {
+            return;
+        }
+        UUID uuid = event.getPlayer().getUniqueId();
+        if (!pendingTeleports.containsKey(uuid)
+                || !plugin.getConfig().getBoolean("teleport.cancel-on-move", false)) {
+            return;
+        }
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        if (to == null
+                || (from.getBlockX() == to.getBlockX()
+                && from.getBlockY() == to.getBlockY()
+                && from.getBlockZ() == to.getBlockZ())) {
+            return; // look-around only — not a move
+        }
+        cancelExisting(uuid);
+        if (plugin.getConfig().getBoolean("teleport.send-messages", true)) {
+            languages.send(event.getPlayer(), "teleport.warmup.cancelled");
+        }
     }
 }
