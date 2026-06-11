@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlaytimeService implements Listener {
 
     private static final DateTimeFormatter DISPLAY_TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a z")
-            .withZone(ZoneId.of("America/Detroit"));
+            .withZone(ZoneId.systemDefault());
 
     private final ObxPlugin plugin;
     private final SqliteDataStore store;
@@ -224,9 +224,9 @@ public class PlaytimeService implements Listener {
     }
 
     private static final DateTimeFormatter LONGEST_TIME = DateTimeFormatter.ofPattern("h:mm a")
-            .withZone(ZoneId.of("America/Detroit"));
+            .withZone(ZoneId.systemDefault());
     private static final DateTimeFormatter LONGEST_DATE = DateTimeFormatter.ofPattern("MMM d, yyyy '·' h:mm a")
-            .withZone(ZoneId.of("America/Detroit"));
+            .withZone(ZoneId.systemDefault());
 
     /** The longest single session a player has on record, plus when it was recorded (epoch millis). */
     public static final class LongestSession {
@@ -273,8 +273,8 @@ public class PlaytimeService implements Listener {
     /** Clean, professional timestamp: same-day → "Today · 3:00 PM"; otherwise "Jun 4, 2026 · 3:00 PM". */
     public String formatSessionTimestamp(long epochMillis) {
         if (epochMillis <= 0L) return "—";
-        java.time.ZonedDateTime when = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.of("America/Detroit"));
-        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(ZoneId.of("America/Detroit"));
+        java.time.ZonedDateTime when = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault());
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(ZoneId.systemDefault());
         if (when.toLocalDate().isEqual(now.toLocalDate())) {
             return "Today · " + LONGEST_TIME.format(when);
         }

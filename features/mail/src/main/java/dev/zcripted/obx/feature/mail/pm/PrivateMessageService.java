@@ -186,12 +186,15 @@ public final class PrivateMessageService implements Listener {
             pmReplyAt.put(to.getUniqueId(), System.currentTimeMillis());
             // Line 1: the message itself.
             to.sendMessage(line);
-            // Line 2: the reply button on its own line.
-            String lead = languages.get(to, "message.reply-lead");
+            // Line 2: the reply button on its own line, horizontally centered in chat
+            // (a plain leading-space pad so the button itself stays clickable).
             String button = languages.get(to, "message.reply-button");
             String hover = languages.get(to, "message.reply-hover", one("player", fromName));
+            String padding = dev.zcripted.obx.util.message.MotdMessageUtil.chatCenterPadding(button);
             List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<ComponentMessenger.InteractiveMessagePart>();
-            parts.add(ComponentMessenger.InteractiveMessagePart.plain(lead));
+            if (!padding.isEmpty()) {
+                parts.add(ComponentMessenger.InteractiveMessagePart.plain(padding));
+            }
             parts.add(ComponentMessenger.InteractiveMessagePart.interactive(button, Collections.singletonList(hover), "/rply", true));
             ComponentMessenger.sendJoinedHoverMessages(to, parts);
         } else {

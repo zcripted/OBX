@@ -1,6 +1,8 @@
 package dev.zcripted.obx.feature.enchant.command;
 
 import dev.zcripted.obx.core.command.AbstractObxCommand;
+import dev.zcripted.obx.core.language.LanguageManager;
+import dev.zcripted.obx.util.text.ComponentMessenger;
 
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.feature.enchant.item.EnchantGuideBook;
@@ -40,6 +42,53 @@ import java.util.Map;
  */
 public final class ObxEnchantCommand extends AbstractObxCommand implements TabCompleter {
 
+    private static final int PAGE_SIZE = 10;
+
+    private static final List<SubcommandEntry> SUBCOMMANDS = Arrays.asList(
+            sub("admin", "enchant.commands.entry.admin"),
+            sub("apply", "enchant.commands.entry.apply"),
+            sub("remove", "enchant.commands.entry.remove"),
+            sub("give", "enchant.commands.entry.give"),
+            sub("givebook", "enchant.commands.entry.givebook"),
+            sub("bookinfo", "enchant.commands.entry.bookinfo"),
+            sub("bookapply", "enchant.commands.entry.bookapply"),
+            sub("protect", "enchant.commands.entry.protect"),
+            sub("success", "enchant.commands.entry.success"),
+            sub("list", "enchant.commands.entry.list"),
+            sub("info", "enchant.commands.entry.info"),
+            sub("reload", "enchant.commands.entry.reload"),
+            sub("loot", "enchant.commands.entry.loot"),
+            sub("debug", "enchant.commands.entry.debug")
+    );
+
+    private static SubcommandEntry sub(String name, String baseKey) {
+        return new SubcommandEntry(name, baseKey + ".usage", baseKey + ".description");
+    }
+
+    static final class SubcommandEntry {
+        private final String name;
+        private final String usageKey;
+        private final String descriptionKey;
+
+        SubcommandEntry(String name, String usageKey, String descriptionKey) {
+            this.name = name;
+            this.usageKey = usageKey;
+            this.descriptionKey = descriptionKey;
+        }
+
+        String name() {
+            return name;
+        }
+
+        String usage(LanguageManager languages, CommandSender sender) {
+            return languages.get(sender, usageKey);
+        }
+
+        String description(LanguageManager languages, CommandSender sender) {
+            return languages.get(sender, descriptionKey);
+        }
+    }
+
     private final EnchantService service;
     private final EnchantItems items;
     private final EnchantFeedback feedback;
@@ -58,7 +107,12 @@ public final class ObxEnchantCommand extends AbstractObxCommand implements TabCo
             return true;
         }
         if (args.length == 0) {
-            languages.send(sender, "enchant.usage");
+            handleCommandList(sender, 1);
+            return true;
+        }
+        Integer page = parsePage(args[0]);
+        if (page != null) {
+            handleCommandList(sender, page);
             return true;
         }
         String sub = args[0].toLowerCase(Locale.ENGLISH);
@@ -646,6 +700,91 @@ public final class ObxEnchantCommand extends AbstractObxCommand implements TabCo
         Map<String, String> map = new LinkedHashMap<String, String>();
         map.put(key, value);
         return map;
+    }
+
+    /** Extracts the bare command for click-to-suggest from a colorized usage string. */
+    private static String suggestCommand(String colorizedUsage) {
+        String stripped = ChatColor.stripColor(colorizedUsage);
+        if (stripped == null || stripped.isEmpty()) {
+            return "";
+        }
+        int cut = stripped.length();
+        for (int i = 0; i < stripped.length(); i++) {
+            char c = stripped.charAt(i);
+            if (c == '<' || c == '[') {
+                cut = i;
+                break;
+            }
+        }
+        String literal = stripped.substring(0, cut).trim();
+        return literal.isEmpty() ? "" : literal + " ";
+    }
+
+    // ── paginated command list ──────────────────────────────────────────────
+
+    private void handleCommandList(CommandSender sender, int page) {
+        int maxPage = Math.max(1, (int) Math.ceil(SUBCOMMANDS.size() / (double) PAGE_SIZE));
+        int index = Math.max(0, Math.min(page - 1, maxPage - 1)) * PAGE_SIZE;
+        int end = Math.min(index + PAGE_SIZE, SUBCOMMANDS.size());
+        int currentPage = index / PAGE_SIZE + 1;
+
+        Map<String, String> placeholders = new LinkedHashMap<String, String>();
+        placeholders.put("page", String.valueOf(currentPage));
+        placeholders.put("pages", String.valueOf(maxPage));
+        for (String line : languages.list(sender, "enchant.commands.header", placeholders)) {
+            sender.sendMessage(line);
+        }
+        for (int i = index; i < end; i++) {
+            SubcommandEntry entry = SUBCOMMANDS.get(i);
+            String usage = entry.usage(languages, sender);
+            String description = entry.description(languages, sender);
+            String suggest = suggestCommand(usage);
+            Map<String, String> hoverPh = Collections.singletonMap("command", suggest.trim());
+            List<String> hover = languages.list(sender, "core.usage-hint.hover", hoverPh);
+            ComponentMessenger.sendHoverMessage(sender, "  " + usage, hover, suggest, false);
+            sender.sendMessage("    " + ChatColor.GRAY + "\u203a " + description);
+        }
+        if (maxPage > 1) {
+            sender.sendMessage(" ");
+            sendCommandListNav(sender, currentPage, maxPage);
+        }
+        sender.sendMessage(languages.get(sender, "core.divider-line"));
+    }
+
+    private void sendCommandListNav(CommandSender sender, int page, int maxPage) {
+        if (maxPage <= 1) {
+            return;
+        }
+        List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<ComponentMessenger.InteractiveMessagePart>();
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain("  "));
+        boolean hasPrevious = page > 1;
+        boolean hasNext = page < maxPage;
+        if (hasPrevious) {
+            parts.add(buildCommandListNavButton(sender, "enchant.commands.nav.previous", "enchant.commands.nav.previous-hover", page - 1));
+        }
+        if (hasPrevious && hasNext) {
+            parts.add(ComponentMessenger.InteractiveMessagePart.plain("  &7  "));
+        }
+        if (hasNext) {
+            parts.add(buildCommandListNavButton(sender, "enchant.commands.nav.next", "enchant.commands.nav.next-hover", page + 1));
+        }
+        ComponentMessenger.sendJoinedHoverMessages(sender, parts);
+    }
+
+    private ComponentMessenger.InteractiveMessagePart buildCommandListNavButton(CommandSender sender, String labelKey, String hoverKey, int targetPage) {
+        Map<String, String> placeholders = new LinkedHashMap<String, String>();
+        placeholders.put("page", String.valueOf(targetPage));
+        String label = languages.get(sender, labelKey, placeholders);
+        List<String> hover = languages.list(sender, hoverKey, placeholders);
+        return ComponentMessenger.InteractiveMessagePart.interactive(label, hover, "/obxench " + targetPage, true);
+    }
+
+    private Integer parsePage(String input) {
+        try {
+            return Integer.parseInt(input);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     // ── tab completion ──────────────────────────────────────────────────────

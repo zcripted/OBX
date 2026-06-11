@@ -3,13 +3,7 @@
 # ────────────────────────────────────────────────────────────────────────────
 # Each kit is defined under "kits.<name>". Permissions:
 #   obx.kit.<name>     — required to claim the kit (kits.* bypasses all)
-#
-# Item formats:
-#   "MATERIAL"            — single item, amount 1
-#   "MATERIAL:AMOUNT"     — short form with amount
-#   { material: STONE, amount: 16, name: "&aPretty Stone", lore: ["&7Soft"], enchants: { UNBREAKING: 1 } }
 # ════════════════════════════════════════════════════════════════════════════
-
 # First-join kits — when enabled, a brand-new player automatically receives every
 # kit flagged "first-join: true" below on their first login (one time only; the
 # claim is recorded so it never repeats). Set enabled: false to turn the whole

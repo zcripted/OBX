@@ -92,7 +92,8 @@ public final class EnchantModule extends AbstractModule {
         listener(new EnchantBookUseListener(plugin));
         listener(new OnHitDamageListener(plugin, combatState, combatParticles, holoFX, combatHud));
         listener(new OnKillListener(plugin, combatState, combatParticles, holoFX));
-        listener(new OnHitProcListener(plugin, combatState, combatParticles, combatHud));
+        OnHitProcListener onHitProc = new OnHitProcListener(plugin, combatState, combatParticles, combatHud);
+        listener(onHitProc);
         listener(new OnDeathListener(plugin));
         listener(new RangedListener(plugin, combatState, combatParticles, reactiveSpecials, combatHud));
         listener(new ReactiveSpecialsListener(plugin, combatState, reactiveSpecials));
@@ -103,6 +104,11 @@ public final class EnchantModule extends AbstractModule {
         dev.zcripted.obx.core.platform.scheduler.CancellableTask combatStateSweep =
                 plugin.getSchedulerAdapter().runRepeating(combatState::sweepExpired, 2400L, 2400L);
         onDisable(combatStateSweep::cancel);
+        // Same janitor sweeps stale bleed entries for entities that despawned before the bleed
+        // expired (Folia entity scheduler skips removed entities, so the normal cleanup never fires).
+        dev.zcripted.obx.core.platform.scheduler.CancellableTask bleedSweep =
+                plugin.getSchedulerAdapter().runRepeating(onHitProc::sweepExpired, 2400L, 2400L);
+        onDisable(bleedSweep::cancel);
 
         // Commands.
         command("obxench", new ObxEnchantCommand(plugin));

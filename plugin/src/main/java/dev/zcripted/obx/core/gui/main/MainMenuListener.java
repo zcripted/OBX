@@ -317,4 +317,3 @@ public final class MainMenuListener implements Listener {
         return sb.toString();
     }
 }
-

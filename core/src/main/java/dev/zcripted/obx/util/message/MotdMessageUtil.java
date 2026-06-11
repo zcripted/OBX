@@ -87,15 +87,33 @@ public final class MotdMessageUtil {
         return input.indexOf('<') >= 0 || input.contains("&#");
     }
 
-    private static String centerLegacyText(String text, int centerPx) {
-        if (text == null || text.isEmpty()) {
+    /**
+     * The leading-space pad that horizontally centers {@code legacyText} (§-coded, bold-aware)
+     * in the default-width chat window. Returned separately from the text so callers can keep
+     * the text itself interactive (e.g. a hover/click component preceded by a plain pad part).
+     */
+    public static String chatCenterPadding(String legacyText) {
+        if (legacyText == null || legacyText.isEmpty()) {
             return "";
         }
+        String content = trimLeadingSpaces(legacyText);
+        String visibleContent = content.substring(extractLeadingFormatCodes(content).length());
+        int toCompensate = DEFAULT_MOTD_CENTER_PX - (measureLegacyPx(visibleContent) / 2);
+        if (toCompensate <= 0) {
+            return "";
+        }
+        int spaceLength = getCharacterWidth(' ') + 1;
+        StringBuilder builder = new StringBuilder();
+        int compensated = 0;
+        while (compensated < toCompensate) {
+            builder.append(' ');
+            compensated += spaceLength;
+        }
+        return builder.toString();
+    }
 
-        String content = trimLeadingSpaces(text);
-        String formatPrefix = extractLeadingFormatCodes(content);
-        String visibleContent = content.substring(formatPrefix.length());
-
+    /** Pixel width of §-coded text (tracks &l bold; skips the format codes themselves). */
+    private static int measureLegacyPx(String visibleContent) {
         int messagePxSize = 0;
         boolean previousCode = false;
         boolean bold = false;
@@ -121,8 +139,19 @@ public final class MotdMessageUtil {
             messagePxSize += bold && current != ' ' ? width + 1 : width;
             messagePxSize++;
         }
+        return messagePxSize;
+    }
 
-        int toCompensate = centerPx - (messagePxSize / 2);
+    private static String centerLegacyText(String text, int centerPx) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+
+        String content = trimLeadingSpaces(text);
+        String formatPrefix = extractLeadingFormatCodes(content);
+        String visibleContent = content.substring(formatPrefix.length());
+
+        int toCompensate = centerPx - (measureLegacyPx(visibleContent) / 2);
         if (toCompensate <= 0) {
             return content;
         }

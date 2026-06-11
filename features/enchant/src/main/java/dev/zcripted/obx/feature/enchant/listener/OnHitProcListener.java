@@ -86,6 +86,12 @@ public final class OnHitProcListener implements Listener {
         if (!service.isEnabled() || !(event.getEntity() instanceof LivingEntity)) {
             return;
         }
+        // Suppress ALL secondary procs when this hit originates from a cleave / tempest /
+        // devastator AoE swing. Those effects already apply their own secondary debuffs and
+        // must not re-trigger bleed, stun, concussion, etc. on every extra target.
+        if (inSecondary.get()) {
+            return;
+        }
         Player attacker = CombatSupport.resolveAttacker(event.getDamager());
         if (attacker == null) {
             return;
@@ -372,7 +378,16 @@ public final class OnHitProcListener implements Listener {
         volatile int periodTicks;
         volatile double damage;
         volatile UUID source;
+        final long expiresAt;      // System.currentTimeMillis() deadline; used by sweepExpired()
         volatile dev.zcripted.obx.core.platform.scheduler.CancellableTask task;
+
+        Bleed(int remainingTicks, int periodTicks, double damage, UUID source) {
+            this.remainingTicks = remainingTicks;
+            this.periodTicks = periodTicks;
+            this.damage = damage;
+            this.source = source;
+            this.expiresAt = System.currentTimeMillis() + remainingTicks * 50L + 10_000L; // 10s grace
+        }
     }
 
     private void applyBleed(Player attacker, final LivingEntity victim, CustomEnchant e, int level) {
@@ -403,11 +418,7 @@ public final class OnHitProcListener implements Listener {
         if (scheduler == null) {
             return;
         }
-        final Bleed bleed = new Bleed();
-        bleed.remainingTicks = duration;
-        bleed.periodTicks = period;
-        bleed.damage = dmg;
-        bleed.source = attacker.getUniqueId();
+        final Bleed bleed = new Bleed(duration, period, dmg, attacker.getUniqueId());
         bleeds.put(id, bleed);
         final Player source = attacker;
         bleed.task = scheduler.runRepeating(new Runnable() {
@@ -555,6 +566,21 @@ public final class OnHitProcListener implements Listener {
             cap = c == ' ';
         }
         return out.toString();
+    }
+
+    /** Sweeps expired bleed entries where the entity despawned and the task no longer fires. */
+    public void sweepExpired() {
+        long now = System.currentTimeMillis();
+        for (java.util.Map.Entry<UUID, Bleed> entry : bleeds.entrySet()) {
+            Bleed bleed = entry.getValue();
+            if (bleed.expiresAt < now) {
+                UUID id = entry.getKey();
+                Bleed removed = bleeds.remove(id);
+                if (removed != null && removed.task != null) {
+                    removed.task.cancel();
+                }
+            }
+        }
     }
 
     private void finish(UUID id, Bleed bleed) {

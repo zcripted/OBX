@@ -24,4 +24,3 @@ public class BackListener implements Listener {
         plugin.getDataService().setBack(event.getPlayer().getUniqueId(), event.getFrom());
     }
 }
-

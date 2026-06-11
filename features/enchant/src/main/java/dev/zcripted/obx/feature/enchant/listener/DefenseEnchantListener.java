@@ -1,6 +1,7 @@
 package dev.zcripted.obx.feature.enchant.listener;
 
 import dev.zcripted.obx.core.ObxPlugin;
+import dev.zcripted.obx.core.storage.SqliteDataStore;
 import dev.zcripted.obx.feature.enchant.effect.EffectUtil;
 import dev.zcripted.obx.feature.enchant.effect.EnchantState;
 import dev.zcripted.obx.feature.enchant.model.CustomEnchant;
@@ -9,6 +10,7 @@ import dev.zcripted.obx.feature.enchant.storage.EnchantStorage;
 import dev.zcripted.obx.feature.enchant.util.Particles;
 import dev.zcripted.obx.feature.enchant.util.Potions;
 import dev.zcripted.obx.feature.enchant.util.Sounds;
+import dev.zcripted.obx.util.compat.ItemCodec;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -34,19 +36,36 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class DefenseEnchantListener implements Listener {
 
+    private static final String SOULBOUND_TABLE = "soulbound_data";
+
     private final ObxPlugin plugin;
     private final EnchantService service;
     private final EnchantStorage storage;
     private final EnchantState state;
+    private final SqliteDataStore db;
 
-    /** Items kept by Soulbound, returned on respawn. */
-    private final Map<UUID, List<ItemStack>> soulbound = new ConcurrentHashMap<UUID, List<ItemStack>>();
+    /** In-memory cache of soulbound items (fast path for immediate respawn). */
+    private final Map<UUID, List<ItemStack>> soulboundCache = new ConcurrentHashMap<UUID, List<ItemStack>>();
 
     public DefenseEnchantListener(ObxPlugin plugin, EnchantState state) {
         this.plugin = plugin;
         this.service = plugin.getServiceRegistry().get(dev.zcripted.obx.feature.enchant.service.EnchantService.class);
         this.storage = service.getStorage();
         this.state = state;
+        this.db = plugin.getDataStore();
+        initSoulboundTable();
+    }
+
+    /** Ensures the soulbound persistence table exists. */
+    private void initSoulboundTable() {
+        if (db == null || !db.isAvailable()) {
+            return;
+        }
+        db.executeUpdate("CREATE TABLE IF NOT EXISTS " + SOULBOUND_TABLE + " ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + " player_uuid TEXT NOT NULL,"
+                + " item_data TEXT NOT NULL,"
+                + " created INTEGER NOT NULL)");
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -91,20 +110,17 @@ public final class DefenseEnchantListener implements Listener {
             final CustomEnchant e = service.getRegistry().get("second_wind");
             final double threshold = e.levelDouble(secondWind, "hp_threshold", 0.3);
             final UUID id = player.getUniqueId();
-            plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
-                @Override
-                public void run() {
-                    Player p = plugin.getServer().getPlayer(id);
-                    if (p == null || !p.isOnline() || !p.isValid()) {
-                        return;
-                    }
-                    if (EffectUtil.healthFraction(p) <= threshold) {
-                        Potions.applyLevel(p, Potions.SPEED, 60, e.levelInt(secondWind, "speed_amp", 1));
-                        Potions.apply(p, Potions.REGENERATION, 60, 1);
-                        EffectUtil.heal(p, e.levelInt(secondWind, "heal_hearts", 1) * 2.0);
-                        state.setCooldown(p, "second_wind", e.levelInt(secondWind, "cooldown_seconds", 60));
-                        Sounds.confirm(p);
-                    }
+            plugin.getSchedulerAdapter().runNow(() -> {
+                Player p = plugin.getServer().getPlayer(id);
+                if (p == null || !p.isOnline() || !p.isValid()) {
+                    return;
+                }
+                if (EffectUtil.healthFraction(p) <= threshold) {
+                    Potions.applyLevel(p, Potions.SPEED, 60, e.levelInt(secondWind, "speed_amp", 1));
+                    Potions.apply(p, Potions.REGENERATION, 60, 1);
+                    EffectUtil.heal(p, e.levelInt(secondWind, "heal_hearts", 1) * 2.0);
+                    state.setCooldown(p, "second_wind", e.levelInt(secondWind, "cooldown_seconds", 60));
+                    Sounds.confirm(p);
                 }
             });
         }
@@ -136,13 +152,10 @@ public final class DefenseEnchantListener implements Listener {
             if (Math.random() < ignore) {
                 final Material shield = Material.matchMaterial("SHIELD");
                 if (shield != null) {
-                    plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                victim.setCooldown(shield, 0);
-                            } catch (Throwable ignored) {
-                            }
+                    plugin.getSchedulerAdapter().runNow(() -> {
+                        try {
+                            victim.setCooldown(shield, 0);
+                        } catch (Throwable ignored) {
                         }
                     });
                 }
@@ -155,13 +168,10 @@ public final class DefenseEnchantListener implements Listener {
         int bound = storage.level(victim.getInventory().getBoots(), "curse_of_the_bound");
         if (bound > 0) {
             final double factor = Math.max(0.0, 1.0 - service.getRegistry().get("curse_of_the_bound").levelDouble(bound, "knockback_reduction", 0.0));
-            plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
-                @Override
-                public void run() {
-                    if (victim.isOnline()) {
-                        org.bukkit.util.Vector v = victim.getVelocity();
-                        victim.setVelocity(new org.bukkit.util.Vector(v.getX() * factor, v.getY(), v.getZ() * factor));
-                    }
+            plugin.getSchedulerAdapter().runNow(() -> {
+                if (victim.isOnline()) {
+                    org.bukkit.util.Vector v = victim.getVelocity();
+                    victim.setVelocity(new org.bukkit.util.Vector(v.getX() * factor, v.getY(), v.getZ() * factor));
                 }
             });
         }
@@ -211,7 +221,11 @@ public final class DefenseEnchantListener implements Listener {
             }
         }
         if (!kept.isEmpty()) {
-            soulbound.put(player.getUniqueId(), kept);
+            // Persist to DB so a server restart between death and respawn does not
+            // permanently lose the item. The in-memory cache is retained for the
+            // common immediate-respawn fast path.
+            persistSoulbound(player.getUniqueId(), kept);
+            soulboundCache.put(player.getUniqueId(), kept);
         }
     }
 
@@ -219,12 +233,75 @@ public final class DefenseEnchantListener implements Listener {
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
         state.clearLifeFlags(player);
-        List<ItemStack> kept = soulbound.remove(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+
+        // Fast path: in-memory cache (immediate respawn, no restart).
+        List<ItemStack> kept = soulboundCache.remove(uuid);
         if (kept != null) {
             for (ItemStack item : kept) {
                 player.getInventory().addItem(item);
             }
+            // Clean up any stale DB rows (should not exist, but be safe).
+            deleteSoulbound(uuid);
+            return;
         }
+
+        // Slow path: server restart between death and respawn — load from DB.
+        List<ItemStack> dbItems = loadSoulbound(uuid);
+        if (dbItems != null) {
+            for (ItemStack item : dbItems) {
+                player.getInventory().addItem(item);
+            }
+        }
+    }
+
+    // ── Soulbound persistence ────────────────────────────────────────────────
+
+    /** Stores soulbound items in the DB so they survive a server restart. */
+    private void persistSoulbound(UUID playerUuid, List<ItemStack> items) {
+        if (db == null || !db.isAvailable()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        for (ItemStack item : items) {
+            String encoded = ItemCodec.toBase64(item);
+            if (encoded == null) {
+                continue;
+            }
+            db.executeUpdate("INSERT INTO " + SOULBOUND_TABLE
+                            + " (player_uuid, item_data, created) VALUES (?, ?, ?)",
+                    playerUuid, encoded, now);
+        }
+    }
+
+    /** Loads and deletes soulbound items for a player from the DB. Returns null if none found. */
+    private List<ItemStack> loadSoulbound(UUID playerUuid) {
+        if (db == null || !db.isAvailable()) {
+            return null;
+        }
+        List<ItemStack> items = db.queryAll(
+                "SELECT id, item_data FROM " + SOULBOUND_TABLE
+                        + " WHERE player_uuid = ? ORDER BY id ASC",
+                rs -> {
+                    String raw = rs.getString("item_data");
+                    if (raw == null || raw.isEmpty()) {
+                        return null;
+                    }
+                    return ItemCodec.fromBase64(raw);
+                }, playerUuid);
+        // Remove null entries (decode failures) so a corrupt row never blocks delivery
+        // of valid ones, then delete all rows for this player in one statement.
+        items.removeIf(it -> it == null);
+        deleteSoulbound(playerUuid);
+        return items.isEmpty() ? null : items;
+    }
+
+    /** Deletes all soulbound rows for a player. */
+    private void deleteSoulbound(UUID playerUuid) {
+        if (db == null || !db.isAvailable()) {
+            return;
+        }
+        db.executeUpdate("DELETE FROM " + SOULBOUND_TABLE + " WHERE player_uuid = ?", playerUuid);
     }
 
     private boolean tryLastStand(Player player) {

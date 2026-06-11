@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,6 +42,10 @@ public class UnbreakableCommand extends AbstractObxCommand implements TabComplet
             languages.send(player, "item.no-meta");
             return true;
         }
+        if (!isBreakable(hand.getType())) {
+            languages.send(player, "item.unbreakable.not-breakable");
+            return true;
+        }
         boolean current = isUnbreakable(meta);
         boolean next = !current;
         if (!applyUnbreakable(meta, next)) {
@@ -56,16 +59,13 @@ public class UnbreakableCommand extends AbstractObxCommand implements TabComplet
 
     private boolean isUnbreakable(ItemMeta meta) {
         try {
-            // 1.11+ exposes ItemMeta#isUnbreakable() directly.
-            Method modern = meta.getClass().getMethod("isUnbreakable");
-            Object result = modern.invoke(meta);
-            return result instanceof Boolean && (Boolean) result;
-        } catch (Exception ignored) {
+            // 1.11+ exposes ItemMeta#isUnbreakable() directly (present in the 1.12.2 compile API).
+            return meta.isUnbreakable();
+        } catch (NoSuchMethodError legacy) {
+            // 1.8.8-1.10: the flag lives on ItemMeta.Spigot instead.
             try {
-                Object spigot = meta.getClass().getMethod("spigot").invoke(meta);
-                Object result = spigot.getClass().getMethod("isUnbreakable").invoke(spigot);
-                return result instanceof Boolean && (Boolean) result;
-            } catch (Exception alsoIgnored) {
+                return meta.spigot().isUnbreakable();
+            } catch (Throwable unsupported) {
                 return false;
             }
         }
@@ -73,18 +73,38 @@ public class UnbreakableCommand extends AbstractObxCommand implements TabComplet
 
     private boolean applyUnbreakable(ItemMeta meta, boolean value) {
         try {
-            Method modern = meta.getClass().getMethod("setUnbreakable", boolean.class);
-            modern.invoke(meta, value);
+            meta.setUnbreakable(value);
             return true;
-        } catch (Exception ignored) {
+        } catch (NoSuchMethodError legacy) {
             try {
-                Object spigot = meta.getClass().getMethod("spigot").invoke(meta);
-                spigot.getClass().getMethod("setUnbreakable", boolean.class).invoke(spigot, value);
+                meta.spigot().setUnbreakable(value);
                 return true;
-            } catch (Exception alsoIgnored) {
+            } catch (Throwable unsupported) {
                 return false;
             }
         }
+    }
+
+    private static boolean isBreakable(Material material) {
+        String name = material.name();
+        return name.endsWith("_SWORD")
+                || name.endsWith("_AXE")
+                || name.endsWith("_PICKAXE")
+                || name.endsWith("_SHOVEL")
+                || name.endsWith("_HOE")
+                || name.endsWith("_BOW")
+                || name.endsWith("_CROSSBOW")
+                || name.endsWith("_HELMET")
+                || name.endsWith("_CHESTPLATE")
+                || name.endsWith("_LEGGINGS")
+                || name.endsWith("_BOOTS")
+                || name.endsWith("_TRIDENT")
+                || name.endsWith("_MACE")
+                || name.equals("SHIELD")
+                || name.equals("ELYTRA")
+                || name.equals("FISHING_ROD")
+                || name.equals("SHEARS")
+                || name.equals("FLINT_AND_STEEL");
     }
 
     @Override

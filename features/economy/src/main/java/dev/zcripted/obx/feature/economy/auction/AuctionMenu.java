@@ -1,5 +1,6 @@
 package dev.zcripted.obx.feature.economy.auction;
 
+import dev.zcripted.obx.api.economy.EconomyService;
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.gui.MenuHolder;
 import dev.zcripted.obx.feature.economy.auction.AuctionService.Listing;
@@ -16,21 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Auction house GUIs:
- *
- * <ul>
- *   <li><b>BROWSE</b> — everyone's listings, newest first, paginated 45/page;
- *       left-click buys.</li>
- *   <li><b>MINE</b> — the viewer's own listings; left-click cancels (item →
- *       returns ledger, collect with the Claim tile or {@code /ah claim}).</li>
- * </ul>
- *
- * <p>Each rendered tile is a CLONE of the listed item with an appended footer
- * (price · seller · time left · click hint) — the original NBT is never mutated.
- * The holder snapshots the listing ids per page so clicks resolve to the exact
- * listing that was shown, even if the table shifted since rendering.
- */
 public final class AuctionMenu {
 
     public enum ViewType { BROWSE, MINE }
@@ -38,10 +24,17 @@ public final class AuctionMenu {
     public static final int PAGE_SIZE = 45;
     public static final int NAV_TOGGLE = 45;
     public static final int NAV_CLAIM = 46;
-    public static final int NAV_PREV = 48;
-    public static final int NAV_BALANCE = 49;
-    public static final int NAV_NEXT = 50;
+    public static final int NAV_PREV = 47;
+    public static final int NAV_SORT = 48;
+    public static final int NAV_CATEGORY = 49;
+    public static final int NAV_BALANCE = 50;
+    public static final int NAV_SEARCH = 51;
+    public static final int NAV_NEXT = 52;
     public static final int NAV_CLOSE = 53;
+
+    /** Sort modes. */
+    public static final String[] SORT_OPTIONS = {"newest", "oldest", "price_asc", "price_desc"};
+    public static final String[] SORT_LABELS = {"Newest", "Oldest", "Price \u2191", "Price \u2193"};
 
     private AuctionMenu() {
     }
@@ -49,23 +42,36 @@ public final class AuctionMenu {
     public static final class Holder extends MenuHolder {
         private final ViewType view;
         private final int page;
+        private final String category;
+        private final String sort;
+        private final String search;
         private final List<Integer> listingIds;
 
-        Holder(ViewType view, int page, List<Integer> listingIds) {
+        Holder(ViewType view, int page, String category, String sort, String search, List<Integer> listingIds) {
             this.view = view;
             this.page = page;
+            this.category = category;
+            this.sort = sort;
+            this.search = search;
             this.listingIds = listingIds;
         }
 
         public ViewType view() { return view; }
         public int page() { return page; }
-        /** The listing id shown at {@code slot}, or {@code -1}. */
+        public String category() { return category; }
+        public String sort() { return sort; }
+        public String search() { return search; }
         public int listingIdAt(int slot) {
             return slot >= 0 && slot < listingIds.size() ? listingIds.get(slot) : -1;
         }
     }
 
     public static void open(ObxPlugin plugin, Player player, ViewType view, int page) {
+        open(plugin, player, view, page, "", "newest", "");
+    }
+
+    public static void open(ObxPlugin plugin, Player player, ViewType view, int page,
+                            String category, String sort, String search) {
         AuctionService auction = plugin.getServiceRegistry().get(AuctionService.class);
         if (auction == null || !auction.isEnabled()) {
             plugin.getLanguageManager().send(player, "economy.ah.disabled");
@@ -74,14 +80,14 @@ public final class AuctionMenu {
         int current = Math.max(0, page);
         List<Listing> listings = view == ViewType.MINE
                 ? auction.bySeller(player.getUniqueId(), current * PAGE_SIZE, PAGE_SIZE)
-                : auction.browse(current * PAGE_SIZE, PAGE_SIZE);
+                : auction.browse(current * PAGE_SIZE, PAGE_SIZE, search, category, sort);
         if (listings.isEmpty() && current > 0) {
-            open(plugin, player, view, 0); // page drained while browsing — snap home
+            open(plugin, player, view, 0, category, sort, search);
             return;
         }
         List<Integer> ids = new ArrayList<>(listings.size());
         String titleKey = view == ViewType.MINE ? "economy.ah.gui.title-mine" : "economy.ah.gui.title";
-        Holder holder = new Holder(view, current, ids);
+        Holder holder = new Holder(view, current, category, sort, search, ids);
         Inventory inventory = Bukkit.createInventory(holder, 54,
                 plugin.getLanguageManager().get(player, titleKey,
                         Collections.singletonMap("page", String.valueOf(current + 1))));
@@ -97,39 +103,80 @@ public final class AuctionMenu {
             inventory.setItem(slot, ShopMenu.icon(new String[]{"GRAY_STAINED_GLASS_PANE",
                     "STAINED_GLASS_PANE", "THIN_GLASS", "STONE"}, " ", Collections.<String>emptyList()));
         }
+
         String toggleKey = view == ViewType.MINE ? "economy.ah.gui.browse" : "economy.ah.gui.mine";
         inventory.setItem(NAV_TOGGLE, ShopMenu.icon(new String[]{"BOOK"},
                 plugin.getLanguageManager().get(player, toggleKey + ".name"),
                 plugin.getLanguageManager().list(player, toggleKey + ".lore",
                         Collections.singletonMap("count",
                                 String.valueOf(auction.countBySeller(player.getUniqueId()))))));
+
         int pending = auction.pendingReturns(player.getUniqueId());
         inventory.setItem(NAV_CLAIM, ShopMenu.icon(new String[]{"CHEST"},
                 plugin.getLanguageManager().get(player, "economy.ah.gui.claim.name"),
                 plugin.getLanguageManager().list(player, "economy.ah.gui.claim.lore",
                         Collections.singletonMap("count", String.valueOf(pending)))));
+
         if (current > 0) {
             inventory.setItem(NAV_PREV, ShopMenu.icon(new String[]{"PAPER"},
                     plugin.getLanguageManager().get(player, "shop.gui.prev.name",
-                            pageInfo(current, listings.size())),
+                            Collections.singletonMap("page", String.valueOf(current))),
                     Collections.<String>emptyList()));
         }
-        dev.zcripted.obx.api.economy.EconomyService economy = plugin.getEconomyService();
+
+        // Sort button (browse only)
+        if (view == ViewType.BROWSE) {
+            int sortIndex = 0;
+            for (int i = 0; i < SORT_OPTIONS.length; i++) {
+                if (SORT_OPTIONS[i].equals(sort)) { sortIndex = i; break; }
+            }
+            String nextSort = SORT_OPTIONS[(sortIndex + 1) % SORT_OPTIONS.length];
+            String nextLabel = SORT_LABELS[(sortIndex + 1) % SORT_OPTIONS.length];
+            inventory.setItem(NAV_SORT, ShopMenu.icon(new String[]{"HOPPER"},
+                    plugin.getLanguageManager().get(player, "economy.ah.gui.sort.name",
+                            Collections.singletonMap("current", SORT_LABELS[sortIndex])),
+                    plugin.getLanguageManager().list(player, "economy.ah.gui.sort.lore",
+                            Collections.singletonMap("next", nextLabel))));
+        }
+
+        // Category filter (browse only)
+        if (view == ViewType.BROWSE) {
+            List<String> cats = auction.knownCategories();
+            String catLabel = category.isEmpty() ? "All" : category;
+            inventory.setItem(NAV_CATEGORY, ShopMenu.icon(new String[]{"COMPARATOR"},
+                    plugin.getLanguageManager().get(player, "economy.ah.gui.category.name",
+                            Collections.singletonMap("current", catLabel)),
+                    plugin.getLanguageManager().list(player, "economy.ah.gui.category.lore",
+                            Collections.singletonMap("count", String.valueOf(cats.size())))));
+
+            // Search info
+            if (!search.isEmpty()) {
+                inventory.setItem(NAV_SEARCH, ShopMenu.icon(new String[]{"SIGN"},
+                        plugin.getLanguageManager().get(player, "economy.ah.gui.search.name"),
+                        plugin.getLanguageManager().list(player, "economy.ah.gui.search.lore",
+                                Collections.singletonMap("query", search))));
+            }
+        }
+
+        EconomyService economy = plugin.getEconomyService();
         inventory.setItem(NAV_BALANCE, ShopMenu.icon(new String[]{"GOLD_INGOT"},
                 plugin.getLanguageManager().get(player, "shop.gui.balance.name"),
                 plugin.getLanguageManager().list(player, "shop.gui.balance.lore",
                         Collections.singletonMap("balance", economy == null ? "?"
                                 : economy.format(economy.getBalance(player.getUniqueId()))))));
+
         if (listings.size() == PAGE_SIZE) {
             inventory.setItem(NAV_NEXT, ShopMenu.icon(new String[]{"PAPER"},
                     plugin.getLanguageManager().get(player, "shop.gui.next.name",
                             pageInfo(current, listings.size())),
                     Collections.<String>emptyList()));
         }
+
         inventory.setItem(NAV_CLOSE, ShopMenu.icon(new String[]{"BARRIER"},
                 plugin.getLanguageManager().get(player, "shop.gui.close.name"),
                 plugin.getLanguageManager().list(player, "shop.gui.close.lore",
                         Collections.<String, String>emptyMap())));
+
         player.openInventory(inventory);
     }
 
@@ -150,12 +197,28 @@ public final class AuctionMenu {
         ItemStack display = decoded.clone();
         ItemMeta meta = display.getItemMeta();
         if (meta != null) {
-            dev.zcripted.obx.api.economy.EconomyService economy = plugin.getEconomyService();
+            EconomyService economy = plugin.getEconomyService();
             List<String> lore = meta.getLore() == null ? new ArrayList<>() : new ArrayList<>(meta.getLore());
             Map<String, String> info = new HashMap<>();
-            info.put("price", economy == null ? String.valueOf(listing.price()) : economy.format(listing.price()));
+            String displayPrice;
+            if (listing.isAuction()) {
+                displayPrice = "Starting bid: " + (economy == null ? String.valueOf(listing.startingBid())
+                        : economy.format(listing.startingBid()));
+                if (listing.hasBuyout()) {
+                    displayPrice += " / Buyout: " + (economy == null ? String.valueOf(listing.buyout())
+                            : economy.format(listing.buyout()));
+                }
+            } else {
+                displayPrice = economy == null ? String.valueOf(listing.price()) : economy.format(listing.price());
+            }
+            info.put("price", displayPrice);
             info.put("seller", listing.sellerName() == null ? "?" : listing.sellerName());
             info.put("left", timeLeft(listing.expires()));
+            if (listing.category() != null && !listing.category().isEmpty()) {
+                info.put("category", listing.category());
+            } else {
+                info.put("category", "");
+            }
             String footerKey = view == ViewType.MINE ? "economy.ah.gui.entry-mine" : "economy.ah.gui.entry";
             lore.addAll(plugin.getLanguageManager().list(player, footerKey, info));
             meta.setLore(lore);
@@ -164,7 +227,6 @@ public final class AuctionMenu {
         return display;
     }
 
-    /** Compact remaining-lifetime label: {@code 2d 4h}, {@code 5h 12m}, {@code 43m}. */
     private static String timeLeft(long expires) {
         long remaining = Math.max(0L, expires - System.currentTimeMillis());
         long minutes = remaining / 60_000L;

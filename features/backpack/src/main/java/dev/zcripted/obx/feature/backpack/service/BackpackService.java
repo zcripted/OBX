@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectInputStream;
@@ -231,6 +232,12 @@ public final class BackpackService {
         lore.add(ChatColor.DARK_GRAY + OWNER_TAG + owner.getUniqueId());
         lore.add(ChatColor.DARK_GRAY + TOKEN_TAG + token);
         meta.setLore(lore);
+        // Hide bundle-specific tooltip on modern versions (BUNDLE material).
+        try {
+            meta.addItemFlags(ItemFlag.valueOf("HIDE_ADDITIONAL_TOOLTIP"));
+        } catch (IllegalArgumentException ignored) {
+            // Pre-1.17: flag doesn't exist, not needed.
+        }
         item.setItemMeta(meta);
         return item;
     }

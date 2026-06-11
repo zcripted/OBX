@@ -6,19 +6,11 @@
 # applies the hub kit on join / respawn / world-change and processes the
 # hotbar items (server selector, jump rod, vanish-all toggle, launchpad).
 #
-# Toggle surfaces — all three converge on the same runtime flag and write
-# back to this file when changed in-game:
-#   • Command : /hub on|off|toggle|reload  (admins only, obx.hub.admin)
-#   • GUI     : /obx → Admin Menu → "Hub / Lobby Controls" slot
-#   • Config  : edit `enabled` below and run /obx reload (or save in panel)
-#
 # Hub-mode is per-world by design — multi-world setups can use OBX both
 # as a hub plugin (on `hub`, `lobby`, etc.) and as essentials on game worlds.
 # ════════════════════════════════════════════════════════════════════════════
 
-# Master toggle. When false the entire system is dormant — no listeners run,
-# no kit is applied, no items are tracked. This matches the existing
-# ServerControlState idiom for clean off-state.
+# Master toggle. When false the entire system is dormant.
 enabled: false
 
 # Set true ONLY if this entire server is a dedicated hub/lobby with no survival
@@ -65,7 +57,7 @@ items:
     # NOTE: avoid COMPASS here if WorldEdit is installed — WorldEdit's navigation
     # wand is a compass (right-click = /thru, left-click = /jumpto), so a compass
     # would teleport players (with worldedit.navigation.* perms) to their
-    # crosshairs in addition to opening this menu. NETHER_STAR has no such clash.
+    # crosshairs in addition to opening this menu.
     material: "NETHER_STAR"
     material-fallback: ["NETHER_STAR", "COMPASS"]
     name: "&5&lServer Selector &7(Right-Click)"
@@ -134,12 +126,9 @@ items:
       - ""
       - "&e› &fNo fall damage on landing"
       - "&8&m─────────────────────"
-    # Cooldown applied to each player after a launch. Action-bar countdown
-    # shows above the hotbar while cooldown is active. Reasonable & fair
+    # Cooldown applied to each player after a launch. Reasonable & fair
     # default is 3 seconds.
     cooldown-seconds: 3
-    # Forward power (look-direction × value) and upward power (Y velocity
-    # added). Tune to your map scale — defaults match a mid-size lobby.
     forward-power: 1.4
     up-power: 1.0
 
@@ -153,18 +142,13 @@ items:
 selector:
   title: "&5&lServer Selector"
   rows: 3
-  # Live online-player count subchannel ("PlayerCount" on BungeeCord) is
-  # queried for each server when the menu opens, then cached for this many
-  # seconds to avoid flooding the proxy.
   ping-cache-seconds: 5
   # Decorative outline of glass panes around the icons.
   outline:
     enabled: true
     material: "GRAY_STAINED_GLASS_PANE"
     material-fallback: ["GRAY_STAINED_GLASS_PANE", "STAINED_GLASS_PANE", "GLASS_PANE"]
-  # Close button that shuts the selector. The name/lore text is taken from the
-  # language files (hub.selector.close.name / hub.selector.close.lore); only the
-  # appearance toggles live here. slot: -1 auto-places it at the bottom-center.
+  # Close button that shuts the selector. slot: -1 auto-places it at the bottom-center.
   close-button:
     enabled: true
     slot: -1

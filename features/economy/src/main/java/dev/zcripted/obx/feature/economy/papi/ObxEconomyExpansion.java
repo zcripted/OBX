@@ -57,7 +57,7 @@ public final class ObxEconomyExpansion extends PlaceholderExpansion {
 
     @Override
     public String getVersion() {
-        return plugin.getDescription() == null ? "1.0.0" : plugin.getDescription().getVersion();
+        return plugin.getDescription() == null ? "1.1.0" : plugin.getDescription().getVersion();
     }
 
     @Override

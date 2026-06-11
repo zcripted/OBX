@@ -15,11 +15,10 @@ import dev.zcripted.obx.feature.deathdrop.listener.DeathDropListener;
  * stored items to the player's inventory; anything that doesn't fit stays inside
  * the entity (the hologram updates) until there's room.
  *
- * <p>The module is opt-in ({@link #enabledByDefault()} is {@code false}) and is
- * toggled via the Module Toggles GUI, {@code /obx deathdrop on|off}, console, or
- * the {@code modules.deathdrop} flag in {@code config.yml}. Disabling it
- * unregisters the listener (via {@link AbstractModule}) so death behaviour
- * reverts to vanilla immediately.
+ * <p>The module is enabled by default and is toggled via the Module Toggles GUI,
+ * {@code /obx deathdrop on|off}, console, or the {@code modules.deathdrop} flag
+ * in {@code config.yml}. Disabling it unregisters the listener (via
+ * {@link AbstractModule}) so death behaviour reverts to vanilla immediately.
  */
 public final class DeathDropModule extends AbstractModule {
 
@@ -31,11 +30,6 @@ public final class DeathDropModule extends AbstractModule {
     @Override
     public String displayName() {
         return "Death Grouping";
-    }
-
-    @Override
-    public boolean enabledByDefault() {
-        return false;
     }
 
     @Override

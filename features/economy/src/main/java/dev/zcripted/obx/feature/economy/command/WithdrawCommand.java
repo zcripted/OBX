@@ -15,9 +15,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * {@code /withdraw <amount>} (aliases: banknote, cheque) — converts wallet money
- * into a single-use banknote item via {@link BanknoteService}. Right-clicking the
- * note redeems it (see {@code BanknoteListener}).
+ * {@code /withdraw <amount>} — converts wallet money into a signed banknote.
+ *
+ * <p>Also supports:
+ * <ul>
+ *   <li>{@code /withdraw all} — withdraw the player's full wallet balance as a single note.</li>
+ *   <li>Configurable denominations at {@code economy.banknote.denominations} — when set,
+ *       tab-completion suggests common note values.</li>
+ * </ul>
  */
 public class WithdrawCommand extends AbstractObxCommand implements TabCompleter {
 
@@ -39,55 +44,107 @@ public class WithdrawCommand extends AbstractObxCommand implements TabCompleter 
             languages.send(player, "core.no-permission");
             return true;
         }
+        BanknoteService notes = plugin.getServiceRegistry().get(BanknoteService.class);
+        if (notes == null || economy == null) {
+            languages.send(player, "economy.note.disabled");
+            return true;
+        }
         if (args.length < 1) {
             languages.send(player, "economy.note.usage");
             return true;
         }
+
         double amount;
-        try {
-            amount = Double.parseDouble(args[0]);
-        } catch (NumberFormatException ignored) {
-            languages.send(player, "economy.invalid-amount", Placeholders.with("input", args[0]));
-            return true;
+        if (args[0].equalsIgnoreCase("all")) {
+            amount = economy.getBalance(player.getUniqueId());
+            if (amount <= 0.0) {
+                languages.send(player, "economy.note.no-funds");
+                return true;
+            }
+        } else {
+            try {
+                amount = Double.parseDouble(args[0]);
+            } catch (NumberFormatException ignored) {
+                languages.send(player, "economy.invalid-amount", Placeholders.with("input", args[0]));
+                return true;
+            }
         }
+
         if (!Double.isFinite(amount) || amount <= 0.0) {
             languages.send(player, "economy.amount-positive");
             return true;
         }
-        BanknoteService notes = plugin.getServiceRegistry().get(BanknoteService.class);
-        if (notes == null || economy == null) {
-            languages.send(player, "economy.note.unavailable");
+
+        // For /withdraw all, we may need to issue multiple notes at different denominations
+        if (args[0].equalsIgnoreCase("all") && economy != null) {
+            double remaining = amount;
+            int notesCreated = 0;
+            List<Double> denoms = notes.denominations();
+            if (denoms.isEmpty()) {
+                // Single note for the full amount
+                String token = notes.issue(player, remaining);
+                if (token == null) {
+                    languages.send(player, "economy.note.failed");
+                    return true;
+                }
+                notesCreated = 1;
+            } else {
+                // Break into denomination notes from largest to smallest
+                denoms.sort(Collections.<Double>reverseOrder());
+                for (double denom : denoms) {
+                    while (remaining >= denom && notesCreated < 36) {
+                        String token = notes.issue(player, denom);
+                        if (token == null) break;
+                        remaining = EconomyService.sanitize(remaining - denom);
+                        notesCreated++;
+                    }
+                }
+                // Remaining as a single note
+                if (remaining > 0.01) {
+                    String token = notes.issue(player, remaining);
+                    if (token != null) notesCreated++;
+                }
+            }
+            if (notesCreated > 0) {
+                languages.send(player, "economy.note.withdrawn-all",
+                        Placeholders.with("count", notesCreated,
+                                "amount", economy.format(amount)));
+            } else {
+                languages.send(player, "economy.note.failed");
+            }
             return true;
         }
-        double value = EconomyService.sanitize(amount);
-        if (economy.getBalance(player.getUniqueId()) < value) {
-            languages.send(player, "economy.note.insufficient", Placeholders.with(
-                    "amount", economy.format(value),
-                    "balance", economy.format(economy.getBalance(player.getUniqueId()))));
-            return true;
-        }
-        String token = notes.issue(player, value);
+
+        String token = notes.issue(player, amount);
         if (token == null) {
             languages.send(player, "economy.note.failed");
             return true;
         }
-        languages.send(player, "economy.note.issued", Placeholders.with(
-                "amount", economy.format(value),
-                "balance", economy.format(economy.getBalance(player.getUniqueId()))));
+        languages.send(player, "economy.note.withdrawn",
+                Placeholders.with("amount", economy.format(EconomyService.sanitize(amount)),
+                        "balance", economy.format(economy.getBalance(player.getUniqueId()))));
         return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) {
-            List<String> amounts = new ArrayList<>();
-            for (String amount : new String[]{"100", "500", "1000", "10000"}) {
-                if (amount.startsWith(args[0])) {
-                    amounts.add(amount);
+        if (args.length != 1) {
+            return Collections.emptyList();
+        }
+        String prefix = args[0].toLowerCase();
+        List<String> suggestions = new ArrayList<>();
+        if ("all".startsWith(prefix)) {
+            suggestions.add("all");
+        }
+        BanknoteService notes = plugin.getServiceRegistry().get(BanknoteService.class);
+        if (notes != null) {
+            for (double denom : notes.denominations()) {
+                String formatted = String.valueOf((int) denom);
+                if (formatted.startsWith(prefix)) {
+                    suggestions.add(formatted);
                 }
             }
-            return amounts;
         }
-        return Collections.emptyList();
+        return suggestions;
     }
 }

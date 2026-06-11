@@ -1,3 +1,4 @@
+import obx.build.StringEncryptTask
 import proguard.gradle.ProGuardTask
 
 buildscript {
@@ -36,14 +37,17 @@ tasks.shadowJar {
     archiveVersion.set(project.version.toString())
 }
 
-// ProGuard reads the shaded jar and writes the OBFUSCATED jar: OBX-<version>.jar
+// ProGuard reads the shaded jar and writes the OBFUSCATED intermediate jar; the
+// encryptStrings step below turns that into the final shippable OBX-<version>.jar.
+val proguardOutput = layout.buildDirectory.file("proguard/OBX-${project.version}-obf.jar")
+
 tasks.register<ProGuardTask>("proguard") {
     group = "build"
-    description = "Obfuscates the Shadow-merged jar into the shippable OBX jar."
+    description = "Obfuscates the Shadow-merged jar (names + shrink); string encryption follows."
 
     dependsOn(tasks.shadowJar)
     injars(tasks.shadowJar.get().archiveFile.get().asFile)
-    outjars(layout.buildDirectory.file("libs/OBX-${project.version}.jar").get().asFile)
+    outjars(proguardOutput.get().asFile)
 
     // Library classpath: the JDK base module + the provided server APIs (not shaded).
     libraryjars(
@@ -56,9 +60,20 @@ tasks.register<ProGuardTask>("proguard") {
     printmapping(layout.buildDirectory.file("proguard/mapping.txt").get().asFile)
 }
 
-// `build` produces both jars (ProGuard depends on Shadow).
-tasks.named("build") {
+// Final obfuscation layer: encrypt every string literal in the obfuscated jar so
+// the constant pool no longer reveals messages, SQL, permission nodes, or keys.
+// Produces the shippable OBX-<version>.jar.
+val encryptStrings = tasks.register<StringEncryptTask>("encryptStrings") {
+    group = "build"
+    description = "Encrypts string literals in the obfuscated jar (post-ProGuard)."
     dependsOn("proguard")
+    inputJar.set(proguardOutput)
+    outputJar.set(layout.buildDirectory.file("libs/OBX-${project.version}.jar"))
+}
+
+// `build` produces both jars: the unobf shadow jar + the obfuscated, string-encrypted jar.
+tasks.named("build") {
+    dependsOn(encryptStrings)
 }
 
 // ── Live test harness ───────────────────────────────────────────────────────
@@ -71,6 +86,24 @@ tasks.named("build") {
 // `plugin/run/eula.txt` with `eula=false` and stops; set it to `eula=true` to proceed.
 tasks.runServer {
     minecraftVersion("1.21.4")
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    )
+}
+
+// `./gradlew runServerObf` boots Paper with the FINAL obfuscated + string-encrypted jar
+// (not the unobf shadow jar) — the real runtime proof that obfuscation + the injected
+// string decoder didn't break class loading, listener/command registration, or the
+// reflective version-compat paths. Reuses the same run/ dir so the accepted EULA carries.
+tasks.register<xyz.jpenilla.runpaper.task.RunServer>("runServerObf") {
+    group = "verification"
+    description = "Boots Paper with the obfuscated, string-encrypted OBX jar."
+    dependsOn(encryptStrings)
+    minecraftVersion("1.21.4")
+    pluginJars.from(encryptStrings.flatMap { it.outputJar })
+    runDirectory.set(layout.projectDirectory.dir("run"))
     javaLauncher.set(
         javaToolchains.launcherFor {
             languageVersion.set(JavaLanguageVersion.of(21))

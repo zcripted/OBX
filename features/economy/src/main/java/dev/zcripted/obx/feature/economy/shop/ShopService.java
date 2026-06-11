@@ -71,9 +71,10 @@ public final class ShopService {
         private final List<String> lore;
         private final String title;
         private final List<ShopItem> items;
+        private final String file;
 
         ShopCategory(String id, int slot, String[] iconMaterials, String name,
-                     List<String> lore, String title, List<ShopItem> items) {
+                     List<String> lore, String title, List<ShopItem> items, String file) {
             this.id = id;
             this.slot = slot;
             this.iconMaterials = iconMaterials;
@@ -81,6 +82,7 @@ public final class ShopService {
             this.lore = lore;
             this.title = title;
             this.items = items;
+            this.file = file;
         }
 
         public String id() { return id; }
@@ -90,6 +92,8 @@ public final class ShopService {
         public List<String> lore() { return lore; }
         public String title() { return title; }
         public List<ShopItem> items() { return items; }
+        /** The {@code shops/<file>.yml} basename this category's items live in. */
+        public String file() { return file; }
     }
 
     private static final String[] BUNDLED_CATEGORY_FILES = {
@@ -146,7 +150,7 @@ public final class ShopService {
                 LoadedCategory loaded = loadCategoryFile(file);
                 categories.put(id.toLowerCase(Locale.ENGLISH), new ShopCategory(
                         id.toLowerCase(Locale.ENGLISH), slot,
-                        new String[]{icon, "CHEST"}, name, lore, loaded.title, loaded.items));
+                        new String[]{icon, "CHEST"}, name, lore, loaded.title, loaded.items, file));
                 loadedItems += loaded.items.size();
                 skippedItems += loaded.skipped;
             }
@@ -236,12 +240,20 @@ public final class ShopService {
         return mainRows;
     }
 
-    public List<ShopCategory> getCategories() {
+    public List<ShopCategory> categories() {
         return new ArrayList<>(categories.values());
     }
 
-    public ShopCategory getCategory(String id) {
+    public List<ShopCategory> getCategories() {
+        return categories();
+    }
+
+    public ShopCategory categoryById(String id) {
         return id == null ? null : categories.get(id.toLowerCase(Locale.ENGLISH));
+    }
+
+    public ShopCategory getCategory(String id) {
+        return categoryById(id);
     }
 
     private static final class LoadedCategory {
@@ -297,6 +309,183 @@ public final class ShopService {
             return Double.isFinite(value) && value > 0 ? value : 0.0;
         }
         return 0.0;
+    }
+
+    // ── Editor persistence (/shop admin GUI) ────────────────────────────────
+    // Every mutator below writes the YAML on disk immediately and then reloads
+    // the in-memory catalogue, so the editor GUI, /shop and /shop reload always
+    // agree — there is no separate unsaved "draft" state to lose.
+
+    /**
+     * Sets the buy and/or sell price of an existing item ({@code null} = keep
+     * that price unchanged). Returns false for unknown category/item or a
+     * failed disk write.
+     */
+    public boolean writePrice(String categoryId, Material material, Double buy, Double sell) {
+        ShopCategory category = categoryById(categoryId);
+        if (category == null || material == null) {
+            return false;
+        }
+        File yamlFile = categoryFile(category);
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(yamlFile);
+        List<Map<String, Object>> items = mutableItems(yaml);
+        boolean found = false;
+        for (Map<String, Object> entry : items) {
+            if (entryMaterial(entry) == material) {
+                if (buy != null) {
+                    entry.put("buy", buy);
+                }
+                if (sell != null) {
+                    entry.put("sell", sell);
+                }
+                found = true;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+        yaml.set("items", items);
+        return saveAndReload(yaml, yamlFile);
+    }
+
+    /** Appends a new item entry. Returns false when it already exists or the write fails. */
+    public boolean addItem(String categoryId, Material material, double buy, double sell) {
+        ShopCategory category = categoryById(categoryId);
+        if (category == null || material == null || (buy <= 0 && sell <= 0)) {
+            return false;
+        }
+        File yamlFile = categoryFile(category);
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(yamlFile);
+        List<Map<String, Object>> items = mutableItems(yaml);
+        for (Map<String, Object> entry : items) {
+            if (entryMaterial(entry) == material) {
+                return false; // already listed — edit its price instead
+            }
+        }
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("material", material.name());
+        entry.put("buy", buy);
+        entry.put("sell", sell);
+        items.add(entry);
+        yaml.set("items", items);
+        return saveAndReload(yaml, yamlFile);
+    }
+
+    /** Removes an item entry. Returns false for unknown category/item or a failed write. */
+    public boolean removeItem(String categoryId, Material material) {
+        ShopCategory category = categoryById(categoryId);
+        if (category == null || material == null) {
+            return false;
+        }
+        File yamlFile = categoryFile(category);
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(yamlFile);
+        List<Map<String, Object>> items = mutableItems(yaml);
+        boolean removed = false;
+        for (java.util.Iterator<Map<String, Object>> it = items.iterator(); it.hasNext(); ) {
+            if (entryMaterial(it.next()) == material) {
+                it.remove();
+                removed = true;
+            }
+        }
+        if (!removed) {
+            return false;
+        }
+        yaml.set("items", items);
+        return saveAndReload(yaml, yamlFile);
+    }
+
+    /**
+     * Creates a new category: a {@code shop.yml} main-menu entry (first free tile
+     * slot, CHEST icon, the id as its name) plus an empty {@code shops/<id>.yml}.
+     * Returns false when the id exists, no tile slot is free, or a write fails.
+     */
+    public boolean addCategory(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            return false;
+        }
+        String cleanId = id.trim().toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9_-]", "");
+        if (cleanId.isEmpty() || categories.containsKey(cleanId)) {
+            return false;
+        }
+        int slot = firstFreeTileSlot();
+        if (slot < 0) {
+            return false; // main menu is full
+        }
+        File mainFile = new File(plugin.getDataFolder(), "shop.yml");
+        YamlConfiguration main = YamlConfiguration.loadConfiguration(mainFile);
+        main.set("categories." + cleanId + ".file", cleanId);
+        main.set("categories." + cleanId + ".slot", slot);
+        main.set("categories." + cleanId + ".icon", "CHEST");
+        main.set("categories." + cleanId + ".name", "&f" + cleanId);
+        File categoryFile = new File(plugin.getDataFolder(), "shops/" + cleanId + ".yml");
+        YamlConfiguration category = new YamlConfiguration();
+        category.set("title", "&5Shop &8· &f" + cleanId);
+        category.set("items", new ArrayList<Map<String, Object>>());
+        try {
+            File parent = categoryFile.getParentFile();
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                return false;
+            }
+            main.save(mainFile);
+            category.save(categoryFile);
+        } catch (java.io.IOException ex) {
+            plugin.getLogger().warning("Shop editor: could not write category '" + cleanId + "': " + ex.getMessage());
+            return false;
+        }
+        reload();
+        return true;
+    }
+
+    /** First main-menu tile slot not taken by a category (nav row excluded), or -1. */
+    private int firstFreeTileSlot() {
+        int tiles = mainRows * 9 - 9;
+        for (int slot = 0; slot < tiles; slot++) {
+            boolean taken = false;
+            for (ShopCategory category : categories.values()) {
+                if (category.slot() == slot) {
+                    taken = true;
+                    break;
+                }
+            }
+            if (!taken) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
+    private File categoryFile(ShopCategory category) {
+        return new File(plugin.getDataFolder(), "shops/" + category.file() + ".yml");
+    }
+
+    /** Deep-copies the YAML item list into mutable string-keyed maps. */
+    private static List<Map<String, Object>> mutableItems(YamlConfiguration yaml) {
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (Map<?, ?> raw : yaml.getMapList("items")) {
+            Map<String, Object> copy = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> e : raw.entrySet()) {
+                copy.put(String.valueOf(e.getKey()), e.getValue());
+            }
+            items.add(copy);
+        }
+        return items;
+    }
+
+    private static Material entryMaterial(Map<String, Object> entry) {
+        Object name = entry.get("material");
+        return name == null ? null
+                : Material.matchMaterial(String.valueOf(name).toUpperCase(Locale.ENGLISH));
+    }
+
+    private boolean saveAndReload(YamlConfiguration yaml, File file) {
+        try {
+            yaml.save(file);
+        } catch (java.io.IOException ex) {
+            plugin.getLogger().warning("Shop editor: could not write " + file.getName() + ": " + ex.getMessage());
+            return false;
+        }
+        reload();
+        return true;
     }
 
     /** Installs the bundled shop.yml + shops/*.yml defaults once (never overwrites). */

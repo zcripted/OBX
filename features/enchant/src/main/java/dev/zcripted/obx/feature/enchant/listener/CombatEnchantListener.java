@@ -231,14 +231,11 @@ public final class CombatEnchantListener implements Listener {
         }
         Potions.applyLevel(victim, Potions.SLOWNESS, (int) (seconds * 20), 6);
         Potions.applyLevel(victim, Potions.WEAKNESS, (int) (seconds * 20), 4);
-        plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-            @Override
-            public void run() {
-                if (victim != null && !victim.isDead()) {
-                    try {
-                        victim.setAI(true);
-                    } catch (Throwable ignored) {
-                    }
+        plugin.getSchedulerAdapter().runLater(() -> {
+            if (victim != null && !victim.isDead()) {
+                try {
+                    victim.setAI(true);
+                } catch (Throwable ignored) {
                 }
             }
         }, Math.max(1L, (long) (seconds * 20)));
@@ -433,12 +430,9 @@ public final class CombatEnchantListener implements Listener {
     private void summonGolem(Player owner, int seconds) {
         try {
             final Entity golem = owner.getWorld().spawnEntity(owner.getLocation(), EntityType.IRON_GOLEM);
-            plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-                @Override
-                public void run() {
-                    if (golem != null && !golem.isDead()) {
-                        golem.remove();
-                    }
+            plugin.getSchedulerAdapter().runLater(() -> {
+                if (golem != null && !golem.isDead()) {
+                    golem.remove();
                 }
             }, Math.max(1, seconds) * 20L);
             debug(owner, "Summoner's Pact golem");

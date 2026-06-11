@@ -8,8 +8,7 @@
 # Minecraft 1.13+. On older servers this section is simply ignored.
 #
 # The module-level master switch below ships OFF so server owners opt in
-# deliberately (per the design's Phase-4 guidance). Flip it on, then enable the
-# chest types you want.
+# deliberately. Flip it on, then enable the chest types you want.
 # ════════════════════════════════════════════════════════════════════════════
 
 # Master switch for ALL world-loot injection.

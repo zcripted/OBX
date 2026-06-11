@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -70,6 +71,9 @@ public final class VaultEconomyProvider {
     private static final class EconomyHandler implements InvocationHandler {
         private final ObxPlugin plugin;
         private final EconomyService economy;
+        // Cached reflective constructor for EconomyResponse to avoid Class.forName on every call.
+        private Constructor<?> responseConstructor;
+        private Class<?> responseTypeEnum;
 
         EconomyHandler(ObxPlugin plugin, EconomyService economy) {
             this.plugin = plugin;
@@ -101,24 +105,24 @@ public final class VaultEconomyProvider {
                     OfflinePlayer p = resolveOfflinePlayer(args[0]);
                     double amount = ((Number) args[args.length - 1]).doubleValue();
                     if (p == null) {
-                        return buildEconomyResponse(method.getReturnType(), 0.0, amount, "FAILURE", "Unknown player");
+                        return buildEconomyResponse(0.0, amount, "FAILURE", "Unknown player");
                     }
                     // Reject non-positive / non-finite up front: withdraw() sanitizes a negative to 0
                     // and returns a no-op true, which would otherwise report SUCCESS to a Vault caller.
                     if (amount <= 0.0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
-                        return buildEconomyResponse(method.getReturnType(), economy.getBalance(p.getUniqueId()), amount, "FAILURE", "Cannot withdraw a non-positive amount");
+                        return buildEconomyResponse(economy.getBalance(p.getUniqueId()), amount, "FAILURE", "Cannot withdraw a non-positive amount");
                     }
                     boolean ok = economy.withdraw(p.getUniqueId(), p.getName(), amount);
-                    return buildEconomyResponse(method.getReturnType(), economy.getBalance(p.getUniqueId()), amount, ok ? "SUCCESS" : "FAILURE", ok ? null : "Insufficient funds");
+                    return buildEconomyResponse(economy.getBalance(p.getUniqueId()), amount, ok ? "SUCCESS" : "FAILURE", ok ? null : "Insufficient funds");
                 }
                 case "depositPlayer": {
                     OfflinePlayer p = resolveOfflinePlayer(args[0]);
                     double amount = ((Number) args[args.length - 1]).doubleValue();
                     if (p == null) {
-                        return buildEconomyResponse(method.getReturnType(), 0.0, amount, "FAILURE", "Unknown player");
+                        return buildEconomyResponse(0.0, amount, "FAILURE", "Unknown player");
                     }
                     if (amount <= 0.0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
-                        return buildEconomyResponse(method.getReturnType(), economy.getBalance(p.getUniqueId()), amount, "FAILURE", "Cannot deposit a non-positive amount");
+                        return buildEconomyResponse(economy.getBalance(p.getUniqueId()), amount, "FAILURE", "Cannot deposit a non-positive amount");
                     }
                     // deposit() is void and silently clamps at the max balance, so measure the actual
                     // delta and report FAILURE if nothing moved — Vault callers trust the response type.
@@ -126,7 +130,7 @@ public final class VaultEconomyProvider {
                     economy.deposit(p.getUniqueId(), p.getName(), amount);
                     double after = economy.getBalance(p.getUniqueId());
                     boolean moved = after > before;
-                    return buildEconomyResponse(method.getReturnType(), after, after - before, moved ? "SUCCESS" : "FAILURE", moved ? null : "Deposit had no effect");
+                    return buildEconomyResponse(after, after - before, moved ? "SUCCESS" : "FAILURE", moved ? null : "Deposit had no effect");
                 }
                 case "createPlayerAccount": {
                     OfflinePlayer p = resolveOfflinePlayer(args[0]);
@@ -143,7 +147,7 @@ public final class VaultEconomyProvider {
                 default:
                     // Bank methods + any unknown — return a generic failure response.
                     if (method.getReturnType().getName().equals("net.milkbowl.vault.economy.EconomyResponse")) {
-                        return buildEconomyResponse(method.getReturnType(), 0.0, 0.0, "NOT_IMPLEMENTED", "Bank features not supported");
+                        return buildEconomyResponse(0.0, 0.0, "NOT_IMPLEMENTED", "Bank features not supported");
                     }
                     if (method.getReturnType() == boolean.class) return false;
                     if (method.getReturnType() == double.class) return 0.0;
@@ -164,15 +168,16 @@ public final class VaultEconomyProvider {
             return p == null ? null : p.getUniqueId();
         }
 
-        private Object buildEconomyResponse(Class<?> returnType, double newBalance, double amount, String typeName, String errorMessage) {
+        private Object buildEconomyResponse(double newBalance, double amount, String typeName, String errorMessage) {
             try {
-                Class<?> responseClass = Class.forName("net.milkbowl.vault.economy.EconomyResponse");
-                Class<?> typeEnum = Class.forName("net.milkbowl.vault.economy.EconomyResponse$ResponseType");
+                if (responseConstructor == null) {
+                    Class<?> responseClass = Class.forName("net.milkbowl.vault.economy.EconomyResponse");
+                    responseTypeEnum = Class.forName("net.milkbowl.vault.economy.EconomyResponse$ResponseType");
+                    responseConstructor = responseClass.getConstructor(double.class, double.class, responseTypeEnum, String.class);
+                }
                 @SuppressWarnings({"unchecked", "rawtypes"})
-                Object type = Enum.valueOf((Class<Enum>) typeEnum, typeName);
-                return responseClass
-                        .getConstructor(double.class, double.class, typeEnum, String.class)
-                        .newInstance(amount, newBalance, type, errorMessage);
+                Object type = Enum.valueOf((Class<Enum>) responseTypeEnum, typeName);
+                return responseConstructor.newInstance(amount, newBalance, type, errorMessage);
             } catch (Throwable throwable) {
                 plugin.getLogger().warning("Vault response construction failed: " + throwable.getMessage());
                 return null;

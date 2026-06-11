@@ -9,6 +9,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -160,5 +162,45 @@ public final class BanknoteService {
     private static Material noteMaterial() {
         Material paper = Material.matchMaterial("PAPER");
         return paper == null ? Material.STONE : paper;
+    }
+
+    /**
+     * Returns configured banknote denominations from
+     * {@code economy.banknote.denominations} (a list of numbers).
+     * When empty or not configured, any amount can be withdrawn as a single note.
+     */
+    public List<Double> denominations() {
+        List<?> raw = plugin.getConfig().getList("economy.banknote.denominations");
+        if (raw == null || raw.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Double> result = new ArrayList<>();
+        for (Object val : raw) {
+            if (val instanceof Number) {
+                double d = ((Number) val).doubleValue();
+                if (d > 0) result.add(d);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Whether banknotes placed alone in a crafting grid can be cashed in
+     * ({@code economy.banknote.craft-redeem}). The redemption itself lives in
+     * {@code BanknoteListener}'s craft handlers; each note still goes through
+     * the guarded {@link #redeem} so craft redemption can't dupe either.
+     */
+    public boolean craftRedeemEnabled() {
+        return plugin.getConfig().getBoolean("economy.banknote.craft-redeem", true);
+    }
+
+    /** The stored value behind {@code token}, or {@code 0} for void/forged notes. */
+    public double tokenValue(String token) {
+        if (token == null || !store.isAvailable()) {
+            return 0.0;
+        }
+        Double value = store.queryFirst("SELECT value FROM " + TABLE + " WHERE token = ?",
+                rs -> rs.getDouble("value"), token).orElse(null);
+        return value == null || value <= 0.0 ? 0.0 : value;
     }
 }

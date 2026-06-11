@@ -9,7 +9,7 @@
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.8.8%2B-62B47A?style=for-the-badge&logo=minecraft&logoColor=white)](#-supported-platforms)
 [![Platforms](https://img.shields.io/badge/Paper%20%7C%20Spigot%20%7C%20Purpur%20%7C%20Folia-6A1B9A?style=for-the-badge)](#-supported-platforms)
 [![Java](https://img.shields.io/badge/Java-8%2B-E76F00?style=for-the-badge&logo=openjdk&logoColor=white)](#-developer-api)
-[![Release](https://img.shields.io/badge/release-1.0.0-8A2BE2?style=for-the-badge)](https://github.com/zcripted/OBX/releases)
+[![Release](https://img.shields.io/badge/release-1.1.0-8A2BE2?style=for-the-badge)](https://github.com/zcripted/OBX/releases)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/UxktSyT9Ag)
 
 [Discord](https://discord.gg/UxktSyT9Ag) • [BuiltByBit](https://builtbybit.com/resources/obx-obsidian-extended.111131/) • [Wiki](https://obx.zcripted.dev)
@@ -124,7 +124,7 @@ OBX exposes a stable public API under `dev.zcripted.obx.api.*`. These interfaces
 
 ```gradle
 dependencies {
-    compileOnly(files("libs/OBX-1.0.0.jar")) // the OBX jar you run on your server
+    compileOnly(files("libs/OBX-1.1.0.jar")) // the OBX jar you run on your server
     // plus your usual Paper/Spigot API compileOnly dependency
 }
 ```
@@ -162,6 +162,10 @@ if (Bukkit.getPluginManager().getPlugin("OBX") instanceof OBXApi obx) {
 | `getAfkService()` | `playerstate.AfkService` |
 | `getHubKitApplier()` | `hub.HubKitApplier` |
 | `getHubItemUseListener()` | `hub.HubItemUseListener` |
+| `getModerationApi()` | `moderation.ModerationApi` |
+| `getVanishApi()` | `staff.VanishApi` |
+| `getJailApi()` | `jail.JailApi` |
+| `getHubApi()` | `hub.HubApi` |
 
 Program against the interfaces — they're designed to stay stable across releases. The implementations stay internal and obfuscated; only the `api` contracts and these getters are part of the public surface.
 

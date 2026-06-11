@@ -1,8 +1,7 @@
 # ════════════════════════════════════════════════════════════════════════════
 # OBX Chat Management
 # ────────────────────────────────────────────────────────────────────────────
-# Customise the layout and styling of in-game chat. Every template below
-# accepts the full Adventure / MiniMessage tag set:
+# Customise the layout and styling of in-game chat.
 #   • Legacy color codes  &a, &l, etc.
 #   • Hex colors          &#RRGGBB or <#RRGGBB>
 #   • Named colors        <gray>, <yellow>, <dark_purple>, ...
@@ -10,34 +9,30 @@
 #   • Decorations         <bold>, <italic>, <underlined>, <strikethrough>
 #   • Hover tooltip       <hover:show_text:'line one\nline two'>...</hover>
 #   • Click events        <click:run_command:'/obx'>...</click>
-#   • Shadow color        <shadow:#RRGGBB>...</shadow>   (1.21.4+ Adventure)
+#   • Shadow color        <shadow:#RRGGBB>...</shadow>
 #
 # Adventure MiniMessage reference:
 #   https://docs.advntr.dev/minimessage/format.html
 #
-# Available placeholders inside any template:
+# Available placeholders:
 #   {player}       - Player's account name
 #   {displayname}  - Player's display name (may include nickname / prefix)
 #   {message}      - The chat message contents
 #   {world}        - Name of the world the player is currently in
-#   {username}     - The rendered username component (master template only)
-#   {separator}    - The rendered separator component (master template only)
+#   {username}     - The rendered username component
+#   {separator}    - The rendered separator component
 # ════════════════════════════════════════════════════════════════════════════
 
 enabled: true
 
-# When true, every chat message is also written to the server console using
-# truecolor ANSI escapes that mirror the in-game styling. Requires a terminal
-# (or log viewer) that understands ANSI escape sequences.
+# When true, every chat message is also written to the server console
+# Requires a terminal (or log viewer).
 console-mirror: true
 
 # Prepend a timestamp to console-mirrored chat lines.
 console-timestamp: true
 
-# DateTimeFormatter pattern used when console-timestamp is true. Wrap any
-# literal characters in single quotes (for example 'INFO]') so they aren't
-# interpreted as pattern letters. The default mirrors Paper's standard
-# console log format ("[12:34:56 INFO]: ").
+# DateTimeFormatter pattern used when console-timestamp is true.
 console-timestamp-format: "'['HH:mm:ss' INFO]: '"
 
 # When false, the literal characters "<" and ">" inside a player's message
@@ -49,30 +44,22 @@ allow-formatting-in-messages: false
 format:
   # Master template combining the components below. Each "{<name>}" reference
   # substitutes the rendered component output. Plain text and additional
-  # MiniMessage tags around the components are honoured.
+  # MiniMessage tags around the components are honored.
   template: "{username} {separator} {message}"
 
   components:
     # Staff tag shown immediately before the name of OP players. Default renders
     # as a red, bold small-caps "STAFF" followed by a heavy vertical bar
-    # (ѕᴛᴀꜰꜰ┃). Non-OP players never receive a tag. Set enabled to false to turn
-    # it off, or change "op" to any MiniMessage string (include a trailing space
-    # or separator if you want a gap before the name).
+    # Set enabled to false to turn it off.
     prefix:
       enabled: true
       op: "<red><bold>ѕᴛᴀꜰꜰ ┃ </bold></red>"
-    # Player name. Default: light gray (&7 / #AAAAAA) for regular players,
-    # red for OP/staff via the staff-template.
     username:
       template: "<#AAAAAA>{player}</#AAAAAA>"
       staff-template: "<red>{player}</red>"
-    # Separator character placed between username and message.
-    # Default: a typographic right-pointing double-angle quote, brand violet
-    # (&d / #6A1B9A).
     separator:
       character: "»"
       template: "<#6A1B9A>{character}</#6A1B9A>"
-    # The chat message itself. Default: regular white (&f / #FFFFFF).
     message:
       template: "<#FFFFFF>{message}</#FFFFFF>"
 #

@@ -37,7 +37,10 @@ public final class ChatFormatter {
      * is MiniMessage hover text (must not contain a single quote).
      */
     public static String compose(ChatService service, Map<String, String> basePlaceholders, String clickName, String clickHover) {
-        Map<String, String> base = basePlaceholders == null ? java.util.Collections.<String, String>emptyMap() : basePlaceholders;
+        // Defensively copy so mutation below never throws on an immutable caller map.
+        Map<String, String> base = basePlaceholders == null
+                ? new LinkedHashMap<String, String>(0)
+                : new LinkedHashMap<String, String>(basePlaceholders);
 
         // Staff (OP) get the staff name template (red by default) plus the staff
         // tag prefix; everyone else gets the normal username template. The prefix
@@ -59,18 +62,6 @@ public final class ChatFormatter {
         // LinkedHashMap copy of the whole base.
         String previousCharacter = base.containsKey("character") ? base.get("character") : null;
         boolean hadCharacter = base.containsKey("character");
-        if (basePlaceholders == null) {
-            // base is the empty map sentinel; stand up a tiny scratch map for the separator render.
-            Map<String, String> separatorOnly = new LinkedHashMap<>(2);
-            separatorOnly.put("character", service.getSeparatorCharacter());
-            String separator = applyPlaceholders(service.getSeparatorTemplate(), separatorOnly);
-            String message = applyPlaceholders(service.getMessageTemplate(), base);
-            Map<String, String> masterPlaceholders = new LinkedHashMap<>(4);
-            masterPlaceholders.put("username", username);
-            masterPlaceholders.put("separator", separator);
-            masterPlaceholders.put("message", message);
-            return applyPlaceholders(service.getMasterTemplate(), masterPlaceholders);
-        }
         base.put("character", service.getSeparatorCharacter());
         String separator = applyPlaceholders(service.getSeparatorTemplate(), base);
         if (hadCharacter) {

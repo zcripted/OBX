@@ -10,6 +10,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 
+import java.util.List;
+
 /**
  * Click dispatch for the auction GUIs. Both views are read-only (all movement
  * cancelled); the actual buy/cancel safety lives in {@link AuctionService}'s
@@ -48,16 +50,44 @@ public final class AuctionListener implements Listener {
             case AuctionMenu.NAV_TOGGLE:
                 AuctionMenu.open(plugin, player,
                         holder.view() == AuctionMenu.ViewType.MINE
-                                ? AuctionMenu.ViewType.BROWSE : AuctionMenu.ViewType.MINE, 0);
+                                ? AuctionMenu.ViewType.BROWSE : AuctionMenu.ViewType.MINE, 0,
+                        holder.category(), holder.sort(), holder.search());
                 return;
             case AuctionMenu.NAV_CLAIM:
                 claim(player, holder);
                 return;
+            case AuctionMenu.NAV_SORT:
+                if (holder.view() == AuctionMenu.ViewType.BROWSE) {
+                    String currentSort = holder.sort();
+                    String nextSort = "newest";
+                    for (int i = 0; i < AuctionMenu.SORT_OPTIONS.length; i++) {
+                        if (AuctionMenu.SORT_OPTIONS[i].equals(currentSort)) {
+                            nextSort = AuctionMenu.SORT_OPTIONS[(i + 1) % AuctionMenu.SORT_OPTIONS.length];
+                            break;
+                        }
+                    }
+                    AuctionMenu.open(plugin, player, holder.view(), 0,
+                            holder.category(), nextSort, holder.search());
+                }
+                return;
+            case AuctionMenu.NAV_CATEGORY:
+                if (holder.view() == AuctionMenu.ViewType.BROWSE) {
+                    cycleCategory(player, holder);
+                }
+                return;
+            case AuctionMenu.NAV_SEARCH:
+                if (holder.view() == AuctionMenu.ViewType.BROWSE && !holder.search().isEmpty()) {
+                    AuctionMenu.open(plugin, player, holder.view(), 0,
+                            holder.category(), holder.sort(), "");
+                }
+                return;
             case AuctionMenu.NAV_PREV:
-                AuctionMenu.open(plugin, player, holder.view(), holder.page() - 1);
+                AuctionMenu.open(plugin, player, holder.view(), holder.page() - 1,
+                        holder.category(), holder.sort(), holder.search());
                 return;
             case AuctionMenu.NAV_NEXT:
-                AuctionMenu.open(plugin, player, holder.view(), holder.page() + 1);
+                AuctionMenu.open(plugin, player, holder.view(), holder.page() + 1,
+                        holder.category(), holder.sort(), holder.search());
                 return;
             default:
                 break;
@@ -103,11 +133,21 @@ public final class AuctionListener implements Listener {
             case SOLD_OUT:
                 plugin.getLanguageManager().send(player, "economy.ah.sold-out");
                 break;
+            case NEEDS_CONFIRM:
+                plugin.getLanguageManager().send(player, "economy.ah.confirm-needed",
+                        dev.zcripted.obx.util.text.Placeholders.with("id", listingId));
+                return; // don't reopen — player must type /ah confirm
+            case BID_PLACED:
+                plugin.getLanguageManager().send(player, "economy.ah.bid-placed");
+                break;
+            case BID_TOO_LOW:
+                plugin.getLanguageManager().send(player, "economy.ah.bid-too-low");
+                break;
             default:
                 plugin.getLanguageManager().send(player, "economy.ah.failed");
                 break;
         }
-        AuctionMenu.open(plugin, player, holder.view(), holder.page());
+        reopen(plugin, player, holder);
     }
 
     private void cancelListing(Player player, AuctionMenu.Holder holder, AuctionService auction, int listingId) {
@@ -119,7 +159,7 @@ public final class AuctionListener implements Listener {
         } else {
             plugin.getLanguageManager().send(player, "economy.ah.sold-out");
         }
-        AuctionMenu.open(plugin, player, holder.view(), holder.page());
+        reopen(plugin, player, holder);
     }
 
     private void claim(Player player, AuctionMenu.Holder holder) {
@@ -133,10 +173,27 @@ public final class AuctionListener implements Listener {
         } else if (delivered[0] == 0 && delivered[1] <= 0) {
             plugin.getLanguageManager().send(player, "economy.ah.claim-empty");
         } else {
-            plugin.getLanguageManager().send(player, "economy.ah.claimed", Placeholders.with(
-                    "items", Math.max(0, delivered[0]), "payouts", delivered[1]));
+        plugin.getLanguageManager().send(player, "economy.ah.claimed", Placeholders.with(
+                "items", Math.max(0, delivered[0]), "payouts", delivered[1]));
         }
-        AuctionMenu.open(plugin, player, holder.view(), holder.page());
+        reopen(plugin, player, holder);
+    }
+
+    private static void reopen(ObxPlugin plugin, Player player, AuctionMenu.Holder holder) {
+        AuctionMenu.open(plugin, player, holder.view(), holder.page(),
+                holder.category(), holder.sort(), holder.search());
+    }
+
+    private void cycleCategory(Player player, AuctionMenu.Holder holder) {
+        AuctionService auction = plugin.getServiceRegistry().get(AuctionService.class);
+        if (auction == null) return;
+        List<String> cats = new java.util.ArrayList<>(auction.knownCategories());
+        cats.add(0, ""); // "All" option
+        String current = holder.category();
+        int idx = cats.indexOf(current);
+        String next = cats.get((idx + 1) % cats.size());
+        AuctionMenu.open(plugin, player, holder.view(), 0,
+                next, holder.sort(), holder.search());
     }
 
     @EventHandler

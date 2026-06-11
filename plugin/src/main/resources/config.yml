@@ -12,55 +12,36 @@
 # ║                                                                               ║
 # ╚═══════════════════════════════════════════════════════════════════════════════╝
 #
-#
-#
-# Player-facing message TEXT (command feedback, join/leave broadcasts, the
-# welcome MOTD, etc.) lives in the language files, not here:
-#   plugins/OBX/languages/language_en.yml   (and sprache_de.yml)
 # This file holds behavioural settings and module toggles only.
 #
 debug: false
 
 # ── Console banner ──────────────────────────────────────────────────────────
 # Styling of the enable/disable console banner:
-#   full    – gradient OBX block logo (█/box-drawing), live hook & storage status
-#             markers (✔ / ⚠ / ✗), and the Docs/Support link rows.
-#   compact – a one-line summary (OBX vX · platform · Java · load time) plus a
-#             single status line with the same live checks.
+#   full    – OBX block logo, live hook & storage status markers, and the Docs/Support links.
+#   compact – a one-line summary plus a single status line with the same live checks.
 # The value is read each time the banner prints, so editing it and running
-# /obx reload applies the new style to the next banner (the disable banner on
-# stop and the enable banner on the following start).
+# /obx reload applies the new style to the next banner.
 console:
   banner-style: full
 
 # ── Update checks & notifications ───────────────────────────────────────────
-# OBX reads the latest release tag from the public zcripted/OBX GitHub repo
-# (the download itself is hosted on BuiltByBit). All checks run off the main
-# thread. Staff holding obx.updates.notify (default: op) are notified IN-GAME
-# by default — on join, and once per new release found while the server runs.
-# Each player (or console) can opt out with /obx updates notify; the choice is
-# saved to the database and survives restarts.
 updates:
   # Check once during startup and report the result to the console.
   check-on-startup: true
   # Re-check every N minutes while the server runs and announce a newly found
-  # release ONCE (console + eligible online players). 0 disables re-checks.
+  # release. 0 disables re-checks.
   check-interval-minutes: 15
-  # Master switch for the in-game notifications (join + announce). Console
-  # startup/announce lines are unaffected. Individual players opt out with
-  # /obx updates notify.
+  # Master switch for the in-game notifications. Console
+  # startup/announce lines are unaffected.
   notify-players: true
 
 # ── Feature module toggles ──────────────────────────────────────────────────
-# Flip a feature module on/off here (also toggleable live via the Module Toggles
-# GUI sub-menu, /obx <module> on|off, or console). Modules not listed default to
-# on. Changes here apply on the next start/reload; runtime toggles are written
-# back to this section automatically.
+# Flip a feature module on/off here
 modules:
-  # Death-item grouping: on death, all dropped items combine into ONE carry-all
-  # entity (a chest, or a bundle on 1.17+) with a floating "x<count>" hologram;
-  # walking over it restores the items to your inventory (overflow stays inside).
-  deathdrop: false
+  # Death-item grouping: on death, all dropped items combine into ONE entity.
+  # walking over it restores the items to your inventory.
+  deathdrop: true
 
 teleport:
   warmup-seconds: 0
@@ -79,14 +60,11 @@ spawn:
 # ────────────────────────────────────────────────────────────────────────────
 # These toggles enable/disable the modules. The MESSAGE TEXT was moved to the
 # language files for one-stop editing:
-#   languages/language_en.yml → welcome.join-message
+#   lang/en.yml → welcome.join-message
 #                               welcome.leave-message
 #                               welcome.first-join-message
 #                               welcome.motd-lines
 #                               welcome.motd-first-join-lines
-# (and the matching keys in sprache_de.yml). Those support full Adventure /
-# MiniMessage markup (gradients, hover, click) and the placeholders
-# {player}, {displayname}, {world}, {online}, {max}, {uuid}.
 #
 # In-game toggles: /obx joinleave <on|off>   and   /obx joinmotd <on|off>
 # ════════════════════════════════════════════════════════════════════════════
@@ -122,7 +100,7 @@ economy:
   currency-name-plural: "Coins"
   # Default balance for players the first time they're queried.
   starting-balance: 100.0
-  # Days of /eco log audit history to keep (0 = keep forever). Pruned on load/reload.
+  # Days of /eco log audit history to keep (0 = keep forever).
   log-retention-days: 90
   pay:
     # Payments at or above this amount require /pay confirm (0 disables the gate).
@@ -133,11 +111,27 @@ economy:
     # Max money each player can earn from selling per day (0 = unlimited).
     # Applies to /sell, /sellall, shop right-click sells and the Sell-Items GUI.
     daily-cap: 0.0
+    # Material for the sell-all-from-chest wand item (default: BLAZE_ROD).
+    wand-item: "BLAZE_ROD"
+    # Display name for the wand item (& codes supported).
+    wand-name: "&6&lSell &e&lWand"
   bank:
     # /bank — interest-bearing savings. Interest accrues lazily (daily compound).
     enabled: true
     interest-percent-daily: 0.5
     max-balance: 1000000000.0
+    # Tiered interest rates (optional). Remove or leave empty for a flat rate.
+    # Each tier has a rate (percent daily) plus EITHER min-balance (balance tier)
+    # OR permission (rank tier — give the node via your permissions plugin; it is
+    # matched while the owner is online, which is when interest is applied).
+    # The highest matching rate wins.
+    # tiers:
+    #   - min-balance: 100000
+    #     rate: 0.75
+    #   - min-balance: 1000000
+    #     rate: 1.0
+    #   - permission: obx.bank.tier.vip
+    #     rate: 1.25
   payday:
     # Scheduled salary for online players holding obx.payday.
     enabled: false
@@ -148,10 +142,41 @@ economy:
     enabled: true
     max-listings: 5
     duration-hours: 48
-    # Charged when listing an item (0 = free).
+    # Charged when listing an item (0 = free). Collected by the server account.
+    # (visible via /eco server)
     listing-fee: 0.0
-    # Percent of the sale price kept by the house (money sink; 0 = seller gets all).
+    # Percent of the sale price kept by the house (0 = seller gets all).
+    # Collected by the server account (visible via /eco server).
     tax-percent: 0.0
+    # Purchases at or above this amount require a second confirmation click.
+    # 0 disables the confirmation gate.
+    confirm-threshold: 10000.0
+  banknote:
+    # Optional list of fixed denominations for /withdraw tab-completion.
+    # When empty, any amount can be withdrawn (single note).
+    denominations: [10, 50, 100, 500, 1000, 5000, 10000, 50000]
+    # Craft redemption: banknotes placed ALONE in a crafting grid show a
+    # "Redeem" result — clicking it cashes every note in the grid at once.
+    craft-redeem: true
+  sinks:
+    # Fee charged when a player takes an item from an anvil. 0 = disabled.
+    # Collected by the server account (visible via /eco server).
+    anvil-repair-fee: 0.0
+    claim-upkeep:
+      # Daily upkeep per land claim, charged to ONLINE owners (max 7 days of
+      # backlog) and collected by the server account. Needs a supported claims
+      # plugin — currently GriefPrevention (OBX has no claims module of its
+      # own) without one the sink stays idle. obx.upkeep.exempt skips a player.
+      enabled: false
+      fee-per-claim: 25.0
+    weekly-top:
+      # Take a snapshot of the top N balances every Monday for /baltop weekly.
+      enabled: true
+      top-size: 50
+  reporting:
+    # Optional Discord webhook URL for weekly economy digests.
+    # Leave empty to only log to console.
+    discord-webhook: ""
 moderation:
   defaults:
     reason: "No reason provided."
@@ -188,23 +213,18 @@ discord:
     channel-id: ""
     webhook-url: ""
     webhook-username: "OBX Moderation"
-    avatar-url: "https://i.ibb.co/4w4n3Chc/Logo-with-backgroundpng.png"
-    footer-icon-url: "https://i.ibb.co/4w4n3Chc/Logo-with-backgroundpng.png"
+    avatar-url: "https://i.ibb.co/gFXmQ3Tk/obx-icon-512.png"
+    footer-icon-url: "https://i.ibb.co/gFXmQ3Tk/obx-icon-512.png"
     log-to-console: true
-testing:
-  fake-profiles:
-    ChanceDaRepper:
-      name: "ChanceDaRepper"
-      uuid: "8c8a5cf2-224e-4a65-ae78-59d0ba8ec6d1"
-      note: "Regression profile for bans, kicks, and warns."
-    HotPotato:
-      name: "HotPotato"
-      uuid: "4a5be1f8-57f8-4e70-9df1-0895e1d26f3d"
-      note: "Regression profile for chat mute and unmute flows."
-    VeryPotter:
-      name: "VeryPotter"
-      uuid: "11c0d534-1e39-44eb-b2cd-90fb5e2b12d7"
-      note: "Regression profile for tempban and banlist output."
+
+# Startup warnings about settings that still hold their shipped blank/placeholder values.
+warnings:
+  # While any Discord webhook setting above is unconfigured,
+  # OBX warns the console on startup and admins on join.
+  # The warnings stop automatically once real values are in place.
+  # Toggle live with /obx warn on|off or the Admin GUI Module Toggles
+  # Use /obx reload (or /obx reload config) to take effect.
+  webhook-unconfigured: true
 links:
   builtbybit: "https://builtbybit.com/resources/OBX"
   wiki: "https://github.com/zcripted/OBX"

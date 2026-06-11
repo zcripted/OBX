@@ -125,6 +125,9 @@ public class ObxCommand extends AbstractObxCommand implements TabCompleter {
             case "deathdrop":
                 modulesView.handleDeathDrop(sender, args);
                 return true;
+            case "warn":
+                modulesView.handleWarn(sender, args);
+                return true;
             case "plugininfo":
                 // Hidden click-bridge from the /pl plugin list: render one plugin's
                 // detailed info box. Permission (obx.pl) is enforced inside the handler.
@@ -163,7 +166,7 @@ public class ObxCommand extends AbstractObxCommand implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> suggestions = new ArrayList<>();
         if (args.length == 1) {
-            suggestions.addAll(Arrays.asList("help", "info", "about", "permissions", "commands", "reload", "diagnostics", "health", "version", "updates", "config", "debug", "joinleave", "joinmotd", "afk", "deathdrop"));
+            suggestions.addAll(Arrays.asList("help", "info", "about", "permissions", "commands", "reload", "diagnostics", "health", "version", "updates", "config", "debug", "joinleave", "joinmotd", "afk", "deathdrop", "warn"));
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase(Locale.ENGLISH);
             switch (sub) {
@@ -193,6 +196,7 @@ public class ObxCommand extends AbstractObxCommand implements TabCompleter {
                 case "joinmotd":
                 case "afk":
                 case "deathdrop":
+                case "warn":
                     suggestions.addAll(Arrays.asList("on", "off", "status"));
                     break;
                 default:

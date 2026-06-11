@@ -1,6 +1,7 @@
 package dev.zcripted.obx.feature.hub.gui;
 
 import dev.zcripted.obx.core.gui.MenuHolder;
+import dev.zcripted.obx.core.gui.main.MainMenuHolder;
 
 import java.util.HashMap;
 import java.util.Map;

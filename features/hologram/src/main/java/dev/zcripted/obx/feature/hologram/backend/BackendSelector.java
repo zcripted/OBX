@@ -2,6 +2,7 @@ package dev.zcripted.obx.feature.hologram.backend;
 
 import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.core.platform.PlatformInfo;
+import dev.zcripted.obx.util.ClassUtil;
 
 /**
  * Picks the appropriate {@link HologramBackend} at service load time.
@@ -36,11 +37,6 @@ public final class BackendSelector {
     }
 
     private static boolean hasClass(String name) {
-        try {
-            Class.forName(name);
-            return true;
-        } catch (Throwable ignored) {
-            return false;
-        }
+        return ClassUtil.hasClass(name);
     }
 }

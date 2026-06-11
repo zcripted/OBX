@@ -14,6 +14,22 @@ breakdown written as release/patch notes.
 
 ## Commits — newest → oldest
 
+### 2026-06-07
+| Commit | Status | One-liner |
+|--------|--------|-----------|
+| [Custom Player-Command Console Log](2026-06-07/custom-command-console-log.md) | 🟡 Ready to commit | Vanilla "issued server command" line replaced by a styled, configurable [COMMAND] log with world/date/time context; suppression via a version-tolerant log4j proxy filter; console.command-log config section. |
+| [Command Log Hardcoded + Purple Consistency](2026-06-07/command-log-hardcoded-purple-fix.md) | 🟡 Ready to commit | Command log config section removed — values hardcoded; [COMMAND] now uses same ANSI pipeline as OBX brand tags so both render identical light purple. |
+| [Unconfigured-Webhook Warnings](2026-06-07/webhook-unconfigured-warnings.md) | 🟡 Ready to commit | Console warns at startup + admins on join (above the welcome MOTD, hover lists the paths) while Discord webhook settings hold placeholder/blank values; stops once configured; toggle via /obx warn (instant), Admin GUI tile, or config (reload). |
+| [Reply Button Centered](2026-06-07/reply-button-centered.md) | 🟡 Ready to commit | PM reply button un-bolded, » lead removed, and horizontally centered in chat via a new pixel-measured padding helper; still click-runs /rply. EN/DE/ES. |
+| [Shop Quantity Menu](2026-06-07/shop-quantity-menu.md) | 🟡 Ready to commit | Clicking a shop item opens a per-item submenu: buy/sell toggle, ±1/5/10/30/50 amount steps, live receipt (unit price, total, balance, stock), guarded confirm; shift-click quick actions kept. EN/DE/ES. |
+| [Diagnostics Fixes + Death Grouping Default](2026-06-07/diagnostics-fixes-deathdrop-default.md) | 🟡 Ready to commit | Per-issue hovers on the diagnostics Errors row; false "moderation.yml missing" removed (moderation is SQLite, the yml is migrate-once legacy); deathdrop module now enabled by default. |
+| [Shop Result Hover Tooltips](2026-06-07/shop-result-hover-tooltips.md) | 🟡 Ready to commit | Buy/sell/bulk-sell result messages carry a full receipt hover (item, amount, unit price, boost, gain/cost, balance before → after, stock left); bulk sales list each item type sold. EN/DE/ES. |
+| [Chat-Prompt Input Leak Fix](2026-06-07/chat-prompt-input-leak-fix.md) | 🟡 Ready to commit | Prompt replies (shop-editor prices/categories/cancel, warp & staff menu prompts, /spawn delete confirm) were broadcast to public chat before being swallowed — the chat formatter at the same HIGHEST priority registered earlier and hand-delivered the line first; prompt capture moved to LOWEST. |
+| [/unbreakable Fix — Flag Was Never Applied](2026-06-07/unbreakable-reflection-fix.md) | 🟡 Ready to commit | Command always replied "not supported": reflection on the package-private CraftMetaItem threw IllegalAccessException on every server; now uses the direct ItemMeta API (1.11+) with a Spigot-legacy fallback for 1.8.8–1.10. |
+| [String-Encryption Obfuscation Layer + Permission-Cycle Crash Fix](2026-06-07/string-encryption-obfuscation-layer.md) | 🟡 Ready to commit | Post-ProGuard ASM step encrypts all 25,390 string literals (decoded at runtime); booting the obfuscated jar caught + fixed a pre-existing self-referential plugin.yml permission that StackOverflowed on enable; new runServerObf verification task. |
+| [Economy Round 11 — Verification Gap Closures](2026-06-07/economy-round-11-gap-closures.md) | 🟡 Ready to commit | Shop editor GUI made real (click handlers + YAML persistence), AH tax/fees → visible server account (/eco server), /ah search/confirm/bid/auction entry points, digest top movers + sinks + async webhook, real banknote craft redemption, rank-based bank tiers, claim-upkeep sink (GriefPrevention); bank-history SQL fix + withdrawn-all typo fix. |
+| [Economy Round 10 — Feature-Complete](2026-06-07/economy-round-10-feature-complete.md) | 🟡 Ready to commit | Auction storage-race/claim-loss fixes, bank atomicity, PAPI caching, Vault unregister, craft arbitrage patches, shop stock limits + dynamic pricing, bank GUI, sell wand, shop editor, economy sinks (weekly-top, anvil fee), report service, pay confirm + tax, daily sell cap, rank multipliers, log filter, i18n parity. |
+
 ### 2026-06-06
 | Commit | Status | One-liner |
 |--------|--------|-----------|

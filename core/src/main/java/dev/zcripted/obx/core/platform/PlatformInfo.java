@@ -2,6 +2,7 @@ package dev.zcripted.obx.core.platform;
 
 import org.bukkit.Bukkit;
 
+import dev.zcripted.obx.util.ClassUtil;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -233,14 +234,7 @@ public final class PlatformInfo implements Platform {
     }
 
     private static boolean hasClass(String name) {
-        try {
-            Class.forName(name);
-            return true;
-        } catch (ClassNotFoundException ignored) {
-            return false;
-        } catch (Throwable ignored) {
-            return false;
-        }
+        return ClassUtil.hasClass(name);
     }
 
     public enum ServerType {

@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MailService {
 
-    public static final int MAILBOX_LIMIT = 50;
+    private int mailboxLimit = 50;
 
     public static final class MailEntry {
         private final String from;
@@ -39,7 +39,7 @@ public class MailService {
     }
 
     private static final DateTimeFormatter DISPLAY_TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a z")
-            .withZone(ZoneId.of("America/Detroit"));
+            .withZone(ZoneId.systemDefault());
 
     private final ObxPlugin plugin;
     private final SqliteDataStore store;
@@ -51,11 +51,16 @@ public class MailService {
         this.store = plugin.getDataStore();
     }
 
+    public int getMailboxLimit() {
+        return mailboxLimit;
+    }
+
     public void load() {
         if (!store.isAvailable()) {
             plugin.getLogger().warning("MailService disabled — SQLite store unavailable.");
             return;
         }
+        mailboxLimit = plugin.getConfig().getInt("mail.mailbox-limit", 50);
         store.execute("CREATE TABLE IF NOT EXISTS ignores (" +
                 "owner_uuid TEXT NOT NULL," +
                 "target_uuid TEXT NOT NULL," +
@@ -181,7 +186,7 @@ public class MailService {
     public MailResult sendMail(UUID recipient, String recipientName, UUID fromUuid, String fromName, String body) {
         if (recipient == null || !store.isAvailable()) return MailResult.OK;
         int count = mailCount(recipient);
-        if (count >= MAILBOX_LIMIT) return MailResult.MAILBOX_FULL;
+        if (count >= mailboxLimit) return MailResult.MAILBOX_FULL;
         store.executeUpdate(
                 "INSERT INTO mail (recipient_uuid, from_uuid, from_name, body, sent_at) VALUES (?, ?, ?, ?, ?)",
                 recipient,

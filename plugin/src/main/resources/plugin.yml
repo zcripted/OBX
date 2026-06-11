@@ -1,14 +1,12 @@
 name: OBX
 main: dev.zcripted.obx.OBX
-version: 1.0.0
+version: 1.1.0
 description: "Obsidian eXtended — Forged from Obsidian. Essentials-style core utilities. Single JAR, runtime-adapts to Paper / Spigot / PurPur / Folia from 1.8.8 to 26.1.x."
 author: zcripted
 website: https://obx.zcripted.dev
 folia-supported: true
 load: POSTWORLD
-api-version: '1.13'
-# Enable OBX AFTER these (when present): the banner's functional hook probes and the
-# Vault economy-provider registration then see their final enabled state.
+api-version: '1.21'
 softdepend: [Vault, PlaceholderAPI, ProtocolLib]
 libraries:
   - org.xerial:sqlite-jdbc:3.45.3.0
@@ -109,9 +107,9 @@ commands:
     usage: "/<command>"
     permission: obx.disposal
   eco:
-    description: Manage player balances (staff).
+    description: Manage player balances, the audit log, and the server account (staff).
     aliases: [economy]
-    usage: "/<command> <give|take|set|reset> <player> [amount]"
+    usage: "/<command> <give|take|set|reset|log|server|digest> [player] [amount]"
     permission: obx.eco
   enchant:
     description: Open a virtual enchanting table.
@@ -410,21 +408,21 @@ commands:
   shop:
     description: Open the categorized buy/sell shop GUI.
     aliases: [market]
-    usage: "/<command> [category|sell|reload]"
+    usage: "/<command> [category|sell|admin|reload]"
     permission: obx.shop
   withdraw:
     description: Convert wallet money into a redeemable banknote item.
     aliases: [banknote, cheque]
-    usage: "/<command> <amount>"
+    usage: "/<command> <amount|all>"
     permission: obx.withdraw
   bank:
     description: Interest-bearing savings account (balance/deposit/withdraw).
-    usage: "/<command> [balance|deposit <amount>|withdraw <amount>]"
+    usage: "/<command> [balance|menu|deposit <amount>|withdraw <amount>]"
     permission: obx.bank
   ah:
-    description: Player auction house — browse, sell, claim returns.
+    description: Player auction house — browse, sell, bid, search, claim returns.
     aliases: [auction, auctionhouse]
-    usage: "/<command> [sell <price>|mine|claim]"
+    usage: "/<command> [sell <price> [category]|auction <startingBid> [buyout] [category]|bid <id> <amount>|search <text>|confirm|mine|claim]"
     permission: obx.ah
   sethome:
     description: Set a named home at your current location.
@@ -689,6 +687,7 @@ permissions:
       obx.warp.*: true
       obx.balance: true
       obx.baltop: true
+      obx.baltop.weekly: true
       obx.pay: true
       obx.sell: true
       obx.sellall: true
@@ -766,6 +765,7 @@ permissions:
       obx.admin.modules.joinmotd: true
       obx.admin.modules.afk: true
       obx.admin.modules.deathdrop: true
+      obx.admin.warnings: true
       obx.admin.reload: true
       obx.admin.reload.config: true
       obx.admin.reload.features: true
@@ -794,6 +794,9 @@ permissions:
     default: op
   obx.admin.modules.deathdrop:
     description: Allows toggling the death-item grouping module via /obx deathdrop.
+    default: op
+  obx.admin.warnings:
+    description: Receives the unconfigured-webhook warnings on join and allows toggling them via /obx warn.
     default: op
   obx.admin.reload:
     description: Allows running /obx reload.
@@ -1342,12 +1345,14 @@ permissions:
     description: Allows selling all sellable items via /sellall.
     default: true
   obx.shop.*:
-    description: Full shop access (browse/buy/sell + admin reload).
+    description: Full shop access (browse/buy/sell + admin reload + sell wand + all categories).
     default: op
     children:
       obx.shop: true
       obx.shop.sell: true
       obx.shop.admin: true
+      obx.shop.sellwand: true
+      obx.shop.category.*: true
   obx.shop:
     description: Allows browsing and buying in the /shop GUI.
     default: true
@@ -1376,6 +1381,7 @@ permissions:
       obx.ah: true
       obx.ah.sell: true
       obx.ah.admin: true
+      obx.ah.confirm.bypass: true
   obx.ah:
     description: Allows browsing and buying in the auction house (/ah).
     default: true
@@ -1385,6 +1391,24 @@ permissions:
   obx.ah.admin:
     description: Allows cancelling any player's auction listings.
     default: op
+  obx.ah.confirm.bypass:
+    description: Bypasses the high-value purchase confirmation prompt.
+    default: op
+  obx.shop.sellwand:
+    description: Allows using the sell-all-from-chest wand.
+    default: op
+  obx.shop.category.*:
+    description: Access to all shop categories.
+    default: true
+  obx.baltop.weekly:
+    description: Allows viewing the weekly balance leaderboard.
+    default: true
+  obx.upkeep.exempt:
+    description: Exempts a player from the daily claim-upkeep fee.
+    default: op
+  obx.bank.tier.*:
+    description: Rank-based bank interest tiers (matched against the nodes named in economy.bank.tiers).
+    default: false
   obx.kit:
     description: Allows claiming kits via /kit.
     default: true

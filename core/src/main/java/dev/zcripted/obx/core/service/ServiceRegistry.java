@@ -1,7 +1,7 @@
 package dev.zcripted.obx.core.service;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Type-keyed container for the plugin's shared services.
@@ -12,12 +12,12 @@ import java.util.Map;
  * the codebase via {@code plugin.getXService()}), so the bootstrap no longer needs
  * to know how to construct every subsystem.
  *
- * <p>Not thread-safe by design: registration happens on the main thread during
- * enable/disable, and lookups are reads of an already-populated map.
+ * <p>Thread-safe: backed by {@link ConcurrentHashMap} so lookups from async
+ * threads are safe even while modules register/unregister on the main thread.
  */
 public final class ServiceRegistry {
 
-    private final Map<Class<?>, Object> services = new LinkedHashMap<>();
+    private final Map<Class<?>, Object> services = new ConcurrentHashMap<>();
 
     /** Registers (or replaces) the instance stored under {@code type}. */
     public <T> void register(Class<T> type, T instance) {

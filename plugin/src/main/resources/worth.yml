@@ -8,7 +8,7 @@
 #
 # VERSION COVERAGE: this database spans 1.8.8 → the latest release. Each
 # server only "sees" the entries whose material exists on its version —
-# unknown names are simply ignored, never errors. Legacy (pre-1.13) name
+# unknown names are simply ignored. Legacy (pre-1.13) name
 # aliases live at the bottom so 1.8.8–1.12.2 servers price the same items.
 # ════════════════════════════════════════════════════════════════════════════
 worth:

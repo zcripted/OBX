@@ -168,8 +168,13 @@ public class SpawnCommand extends AbstractObxCommand implements TabCompleter, Li
         languages.send(player, "teleport.spawn.deleted");
     }
 
-    /** Captures a bare "confirm" chat line while a delete confirmation is pending. */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    /**
+     * Captures a bare "confirm" chat line while a delete confirmation is pending.
+     * LOWEST: must run before the chat feature's ChatManagementListener (HIGHEST),
+     * which dispatches the formatted line to recipients itself — a later cancel
+     * would arrive after "confirm" is already in everyone's chat.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     public void onConfirmChat(AsyncPlayerChatEvent event) {
         final Player player = event.getPlayer();
         if (!deleteConfirmations.containsKey(player.getUniqueId())) {

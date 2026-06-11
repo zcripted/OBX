@@ -230,8 +230,10 @@ class ObxDiagnosticsView {
         }
         Collections.sort(disabledModules, String.CASE_INSENSITIVE_ORDER);
 
+        // moderation.yml is deliberately absent: moderation data lives in SQLite, and the
+        // yml is a legacy file that is migrated once and renamed to .migrated — don't flag it.
         List<String> missingConfigs = new ArrayList<>();
-        for (String keyFile : new String[]{"config.yml", "moderation.yml", "systems/tablist.yml", "systems/scoreboard.yml"}) {
+        for (String keyFile : new String[]{"config.yml", "systems/tablist.yml", "systems/scoreboard.yml"}) {
             if (!new File(plugin.getDataFolder(), keyFile).exists()) {
                 missingConfigs.add(keyFile);
             }
@@ -322,10 +324,10 @@ class ObxDiagnosticsView {
             if (problems.isEmpty()) {
                 languages.send(sender, "commands.obx.diagnostics.errors", extra);
             } else {
-                // Errors row: hover (on just the error text, not the "Errors ›" label) shows the
-                // actual cause/source of each recorded issue.
-                sendHoverValueLine(sender, "commands.obx.diagnostics.errors", "errors", extra,
-                        extra.get("errors"), buildErrorsHover(storageOk, missingConfigs, disabledModules));
+                // Errors row: every listed issue is its OWN hover part — hovering
+                // "1 config file(s) missing" shows just the missing files, hovering
+                // "2 module(s) disabled" shows just those modules, etc.
+                sendErrorsLine(sender, extra, storageOk, missingConfigs, disabledModules);
             }
         }
         sender.sendMessage("");
@@ -391,28 +393,60 @@ class ObxDiagnosticsView {
         return hover;
     }
 
-    /** Hover body: each recorded issue with its contents / cause / source, in the /obx reload hover style. */
-    private List<String> buildErrorsHover(boolean storageOk, List<String> missingConfigs, List<String> disabledModules) {
-        List<String> hover = new ArrayList<>();
-        hover.add(hoverHeader("Recorded Issues"));
-        hover.add(HOVER_DIVIDER);
+    /**
+     * Sends the "Errors ›" diagnostics row where EACH recorded issue is its own hover-bearing
+     * part: hovering an item shows the details for that item only (storage cause, the actual
+     * missing files, the actual disabled modules). Items are joined with gray commas; console
+     * receives the plain joined line.
+     */
+    private void sendErrorsLine(CommandSender sender, Map<String, String> placeholders,
+                                boolean storageOk, List<String> missingConfigs, List<String> disabledModules) {
+        Map<String, String> labelOnly = new LinkedHashMap<>(placeholders);
+        labelOnly.put("errors", "");
+        String label = languages.get(sender, "commands.obx.diagnostics.errors", labelOnly);
+        String separator = ChatColor.translateAlternateColorCodes('&', "&7, ");
+        List<ComponentMessenger.InteractiveMessagePart> parts = new ArrayList<>();
+        parts.add(ComponentMessenger.InteractiveMessagePart.plain(label));
         if (!storageOk) {
-            hover.add("  &c● &7Storage unavailable");
-            hover.add("    &8• &7The SQLite data store failed to open.");
-            hover.add("    &8• &8source: &7SqliteDataStore");
+            List<String> hover = new ArrayList<>();
+            hover.add(hoverHeader("Storage Unavailable"));
+            hover.add(HOVER_DIVIDER);
+            hover.add("  &c● &7The SQLite data store failed to open.");
+            hover.add("  &8source: &7SqliteDataStore &8(&7obx.db&8)");
+            hover.add("  &8fix: &7check disk space / file permissions, then restart");
+            addErrorPart(parts, separator, "&cstorage unavailable", hover);
         }
         if (!missingConfigs.isEmpty()) {
-            hover.add("  &c● &7Missing config files");
+            List<String> hover = new ArrayList<>();
+            hover.add(hoverHeader("Missing Config Files"));
+            hover.add(HOVER_DIVIDER);
             for (String file : missingConfigs) {
-                hover.add("    &8• &7" + file);
+                hover.add("  &c● &7" + file);
             }
+            hover.add("  &8fix: &7run &d/obx reload &7or restart to regenerate");
+            addErrorPart(parts, separator, "&c" + missingConfigs.size() + " config file(s) missing", hover);
         }
         if (!disabledModules.isEmpty()) {
-            hover.add("  &c● &7Disabled modules");
-            hover.add("    &8• &7" + String.join("&8, &7", disabledModules));
-            hover.add("    &8• &8cause: &7enabled:false in config");
+            List<String> hover = new ArrayList<>();
+            hover.add(hoverHeader("Disabled Modules"));
+            hover.add(HOVER_DIVIDER);
+            for (String module : disabledModules) {
+                hover.add("  &c○ &8" + module);
+            }
+            hover.add("  &8cause: &7toggled off &8(&7config or /obx <module> off&8)");
+            addErrorPart(parts, separator, "&c" + disabledModules.size() + " module(s) disabled", hover);
         }
-        return hover;
+        ComponentMessenger.sendJoinedHoverMessages(sender, parts);
+    }
+
+    /** Appends one hover-bearing error item, prefixing a gray comma when it isn't the first item. */
+    private void addErrorPart(List<ComponentMessenger.InteractiveMessagePart> parts, String separator,
+                              String text, List<String> hoverLines) {
+        if (parts.size() > 1) { // index 0 is always the "Errors ›" label
+            parts.add(ComponentMessenger.InteractiveMessagePart.plain(separator));
+        }
+        parts.add(ComponentMessenger.InteractiveMessagePart.interactive(
+                ChatColor.translateAlternateColorCodes('&', text), colorizeLines(hoverLines), null, false));
     }
 
     private String formatMillis(long nanos) {
@@ -455,7 +489,8 @@ class ObxDiagnosticsView {
             states.put("config_state", ok);
             states.put("data_state", new File(plugin.getDataFolder(), "data.yml").exists() ? ok : missing);
             states.put("motd_state", new File(plugin.getDataFolder(), "motd.yml").exists() ? ok : missing);
-            states.put("moderation_state", new File(plugin.getDataFolder(), "moderation.yml").exists() ? ok : missing);
+            // Moderation moved to SQLite (moderation.yml is migrate-once legacy) — validate the store instead.
+            states.put("moderation_state", plugin.getDataStore() != null && plugin.getDataStore().isAvailable() ? ok : missing);
             states.put("tablist_state", new File(plugin.getDataFolder(), "systems/tablist.yml").exists() ? ok : missing);
             states.put("scoreboard_state", new File(plugin.getDataFolder(), "systems/scoreboard.yml").exists() ? ok : missing);
             languages.send(sender, "commands.obx.config.validation", states);

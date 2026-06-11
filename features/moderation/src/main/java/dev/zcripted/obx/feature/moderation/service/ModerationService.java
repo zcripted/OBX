@@ -41,7 +41,7 @@ public class ModerationService implements dev.zcripted.obx.api.moderation.Modera
     private static final String DEFAULT_TEMPBAN_DURATION = "7d";
     private static final long DEFAULT_TEMPBAN_MILLIS = 7L * 24L * 60L * 60L * 1000L;
     private static final DateTimeFormatter DISPLAY_TIMESTAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a z")
-            .withZone(ZoneId.of("America/Detroit"));
+            .withZone(ZoneId.systemDefault());
 
     private final ObxPlugin plugin;
     private final SqliteDataStore store;

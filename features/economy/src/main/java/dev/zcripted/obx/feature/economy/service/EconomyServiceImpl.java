@@ -251,8 +251,20 @@ public class EconomyServiceImpl implements EconomyService {
 
     @Override
     public List<BalanceEntry> topBalances(int limit) {
-        String sql = "SELECT uuid, name, balance FROM economy ORDER BY balance DESC" +
-                (limit > 0 ? " LIMIT " + limit : "");
+        String sql = "SELECT uuid, name, balance FROM economy ORDER BY balance DESC";
+        if (limit > 0) {
+            sql += " LIMIT ?";
+            return store.queryAll(sql, rs -> {
+                UUID uuid;
+                try { uuid = UUID.fromString(rs.getString("uuid")); } catch (IllegalArgumentException ex) { return null; }
+                String name = rs.getString("name");
+                if (name == null) {
+                    OfflinePlayer offline = plugin.getServer().getOfflinePlayer(uuid);
+                    name = offline.getName() == null ? uuid.toString().substring(0, 8) : offline.getName();
+                }
+                return new BalanceEntry(uuid, name, rs.getDouble("balance"));
+            }, limit);
+        }
         return store.queryAll(sql, rs -> {
             UUID uuid;
             try { uuid = UUID.fromString(rs.getString("uuid")); } catch (IllegalArgumentException ex) { return null; }
@@ -330,7 +342,9 @@ public class EconomyServiceImpl implements EconomyService {
             sql.append(target != null ? " AND" : " WHERE").append(" action = ?");
             params.add(action.trim().toUpperCase(java.util.Locale.ENGLISH));
         }
-        sql.append(" ORDER BY id DESC LIMIT ").append(capped).append(" OFFSET ").append(skip);
+        sql.append(" ORDER BY id DESC LIMIT ? OFFSET ?");
+        params.add(capped);
+        params.add(skip);
         SqliteDataStore.RowMapper<TransactionEntry> mapper = rs -> {
             UUID uuid = null;
             String raw = rs.getString("target_uuid");

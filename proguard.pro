@@ -52,6 +52,13 @@
 # --- Keep attributes useful for reflection ---------------------------------
 -keepattributes *Annotation*,Signature,InnerClasses
 
+# --- String-encryption pass -------------------------------------------------
+# The `encryptStrings` build step (buildSrc/StringEncryptTask) rewrites string
+# literals and injects a per-build POOL of varied decoder classes AFTER ProGuard
+# runs. Because that injection happens post-ProGuard, the decoders need no
+# keep-rules here — ProGuard never sees them, and the task picks generated class
+# names that don't collide with ProGuard's obfuscated output.
+
 # --- Plugin entry point -----------------------------------------------------
 # Bukkit reads plugin.yml, then loads our Main class by name and invokes its
 # lifecycle methods. Keep the class name (referenced by plugin.yml) and the

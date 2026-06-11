@@ -19,7 +19,7 @@ import java.util.logging.Level;
  *
  * <ul>
  *   <li>the prefix is rendered exactly once and in OBX's light-purple brand
- *       palette (matching the startup banner);</li>
+ *       palette;</li>
  *   <li>the platform (Spigot / Paper / PurPur / Folia, 1.12 → 1.21) converts the
  *       legacy section-codes to ANSI escape sequences on a colour-capable
  *       terminal, and strips them cleanly when piped to a file;</li>

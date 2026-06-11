@@ -7,6 +7,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import dev.zcripted.obx.util.ClassUtil;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -314,12 +315,7 @@ public final class ComponentMessenger {
     }
 
     private static boolean hasClass(String name) {
-        try {
-            Class.forName(name);
-            return true;
-        } catch (ClassNotFoundException ignored) {
-            return false;
-        }
+        return ClassUtil.hasClass(name);
     }
 
     public static final class InteractiveMessagePart {

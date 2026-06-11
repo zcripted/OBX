@@ -39,7 +39,7 @@ public class ShopCommand extends AbstractObxCommand implements TabCompleter {
             if (shop != null) {
                 shop.reload();
                 languages.send(sender, "shop.reloaded",
-                        Placeholders.with("count", shop.getCategories().size()));
+                        Placeholders.with("count", shop.categories().size()));
             }
             return true;
         }
@@ -55,6 +55,13 @@ public class ShopCommand extends AbstractObxCommand implements TabCompleter {
                 return true;
             }
             ShopMenu.openSellGui(plugin, player);
+            return true;
+        }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("admin")) {
+            if (!requirePermission(player, "obx.shop.admin")) {
+                return true;
+            }
+            ShopEditorMenu.openCategories(plugin, player);
             return true;
         }
         if (args.length >= 1) {
@@ -74,6 +81,7 @@ public class ShopCommand extends AbstractObxCommand implements TabCompleter {
         options.add("sell");
         if (sender.hasPermission("obx.shop.admin")) {
             options.add("reload");
+            options.add("admin");
         }
         ShopService shop = plugin.getServiceRegistry().get(ShopService.class);
         if (shop != null) {

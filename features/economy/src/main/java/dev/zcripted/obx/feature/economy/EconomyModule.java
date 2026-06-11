@@ -6,6 +6,7 @@ import dev.zcripted.obx.core.module.AbstractModule;
 import dev.zcripted.obx.feature.economy.auction.AuctionCommand;
 import dev.zcripted.obx.feature.economy.auction.AuctionListener;
 import dev.zcripted.obx.feature.economy.auction.AuctionService;
+import dev.zcripted.obx.feature.economy.bank.BankMenuListener;
 import dev.zcripted.obx.feature.economy.command.BalTopCommand;
 import dev.zcripted.obx.feature.economy.command.BalanceCommand;
 import dev.zcripted.obx.feature.economy.command.BankCommand;
@@ -15,11 +16,15 @@ import dev.zcripted.obx.feature.economy.command.SellAllCommand;
 import dev.zcripted.obx.feature.economy.command.SellCommand;
 import dev.zcripted.obx.feature.economy.command.WithdrawCommand;
 import dev.zcripted.obx.feature.economy.command.WorthCommand;
+import dev.zcripted.obx.feature.economy.report.EconomyReportService;
 import dev.zcripted.obx.feature.economy.service.BankService;
 import dev.zcripted.obx.feature.economy.service.BanknoteService;
 import dev.zcripted.obx.feature.economy.service.SellLimitTracker;
 import dev.zcripted.obx.feature.economy.service.WorthService;
 import dev.zcripted.obx.feature.economy.shop.ShopPricing;
+import dev.zcripted.obx.feature.economy.sink.RepairFeeListener;
+import dev.zcripted.obx.feature.economy.sink.WeeklyTopService;
+import dev.zcripted.obx.feature.economy.shop.SellWandListener;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.entity.Player;
 
@@ -60,16 +65,32 @@ public final class EconomyModule extends AbstractModule {
         AuctionService auction = service(AuctionService.class, new AuctionService(plugin));
         auction.load();
 
+        // Sinks + reporting
+        dev.zcripted.obx.feature.economy.sink.ServerAccountService serverAccount = service(
+                dev.zcripted.obx.feature.economy.sink.ServerAccountService.class,
+                new dev.zcripted.obx.feature.economy.sink.ServerAccountService(plugin));
+        serverAccount.load();
+        dev.zcripted.obx.feature.economy.sink.ClaimUpkeepService claimUpkeep = service(
+                dev.zcripted.obx.feature.economy.sink.ClaimUpkeepService.class,
+                new dev.zcripted.obx.feature.economy.sink.ClaimUpkeepService(plugin));
+        claimUpkeep.load();
+        WeeklyTopService weeklyTop = service(WeeklyTopService.class, new WeeklyTopService(plugin));
+        weeklyTop.load();
+        EconomyReportService report = service(EconomyReportService.class, new EconomyReportService(plugin));
+
         if (VaultEconomyProvider.register(plugin, economy)) {
-            // Drop the registration on disable so a module reload can't stack a stale proxy.
             onDisable(() -> VaultEconomyProvider.unregister(plugin));
         }
         registerPlaceholderExpansion(plugin);
 
         listener(new dev.zcripted.obx.feature.economy.listener.EconomyJoinListener(economy));
         listener(new dev.zcripted.obx.feature.economy.shop.ShopListener(plugin));
+        listener(new dev.zcripted.obx.feature.economy.shop.ShopEditorListener(plugin));
         listener(new dev.zcripted.obx.feature.economy.listener.BanknoteListener(plugin, banknotes));
         listener(new AuctionListener(plugin));
+        listener(new BankMenuListener(plugin));
+        listener(new RepairFeeListener(plugin));
+        listener(new SellWandListener(plugin));
 
         command("balance", new BalanceCommand(plugin));
         command("baltop", new BalTopCommand(plugin));
@@ -91,6 +112,31 @@ public final class EconomyModule extends AbstractModule {
                 sweep.cancel();
             }
         });
+
+        // Weekly top snapshot + digest, every 7 days (initial delay: 1 hour).
+        if (plugin.getConfig().getBoolean("economy.sinks.weekly-top.enabled", true)) {
+            final dev.zcripted.obx.core.platform.scheduler.CancellableTask weekly =
+                    plugin.getSchedulerAdapter().runRepeating(() -> {
+                        weeklyTop.snapshot();
+                        report.generateDigest();
+                    }, 72000L, 7L * 24L * 3600L * 20L); // 1 hour initial, then every 7 days
+            onDisable(() -> {
+                if (weekly != null) {
+                    weekly.cancel();
+                }
+            });
+        }
+
+        // Claim upkeep sweep: hourly check, charges each online owner once per day.
+        if (claimUpkeep.isEnabled()) {
+            final dev.zcripted.obx.core.platform.scheduler.CancellableTask upkeep =
+                    plugin.getSchedulerAdapter().runRepeating(claimUpkeep::sweep, 1200L, 72000L);
+            onDisable(() -> {
+                if (upkeep != null) {
+                    upkeep.cancel();
+                }
+            });
+        }
 
         startPayday(plugin, economy);
     }

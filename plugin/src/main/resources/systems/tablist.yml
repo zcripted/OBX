@@ -2,7 +2,7 @@
 # OBX Tablist
 # ────────────────────────────────────────────────────────────────────────────
 # Customise the in-game player list (TAB) header, footer, and individual
-# entry name. Every template accepts the full Adventure / MiniMessage tag
+# entry name.
 # set:
 #   • Legacy color codes  &a, &l, etc.
 #   • Hex colors          &#RRGGBB or <#RRGGBB>
@@ -11,7 +11,7 @@
 #   • Decorations         <bold>, <italic>, <underlined>, <strikethrough>
 #   • Hover tooltip       <hover:show_text:'line one\nline two'>...</hover>
 #   • Click events        <click:run_command:'/obx'>...</click>
-#   • Shadow color        <shadow:#RRGGBB>...</shadow>   (1.21.4+ Adventure)
+#   • Shadow color        <shadow:#RRGGBB>...</shadow>
 #
 # Adventure MiniMessage reference:
 #   https://docs.advntr.dev/minimessage/format.html
@@ -22,7 +22,7 @@
 #   {world}        - World the player is currently in
 #   {online}       - Online player count
 #   {max}          - Server slot count
-#   {ping}         - Player's latency in ms (best-effort, "?" on legacy servers)
+#   {ping}         - Player's latency in ms
 #   {time}         - Current server wall-clock time (HH:mm:ss)
 #   {tps}          - Server TPS rounded to one decimal (best-effort)
 #   {uptime}       - Server uptime since start (e.g. "3d 04:21:07"), live-ticking
@@ -33,19 +33,9 @@ enabled: true
 
 # How often (in server ticks, 20 ticks = 1 second) the tablist is refreshed
 # for every online player so that live placeholders ({online}, {ping}, {tps},
-# {uptime}, {time}) tick in real time. This is set low (2 ticks ≈ 100 ms) so the
-# uptime seconds and TPS/ping readouts update sub-second and never look stale.
-# Raise it if you run a very large server and want fewer tablist packets; set to
-# 0 (or negative) to update only on join.
+# {uptime}, {time}) tick in real time.
 refresh-interval-ticks: 10
 
-# Header lines shown above the player list. Lines are joined with newlines.
-# Brand theme: bold violet gradient title, gray labels, light-purple values.
-# NOTE: the value/label lines use legacy &-codes (not <named>/<#hex> tags) on purpose —
-# they render on EVERY tablist transport (Adventure, Spigot BaseComponent, and the
-# legacy setPlayerListHeader(String) fallback). Only the brand lines keep a
-# <gradient> tag (which needs a component transport; it degrades to plain text on the
-# oldest legacy fallback, while the &-coded lines stay colored everywhere).
 header:
   - " "
   - "          <gradient:#9D4EDD:#C77DFF><bold>OBX Network</bold></gradient>          "
@@ -65,20 +55,10 @@ footer:
 player-format: "<#AAAAAA>{player}</#AAAAAA>"
 
 # Group staff (OP players) together, separated from regular players, in the TAB
-# list. This uses scoreboard-team sort order (no extra plugins): OP players are
-# always grouped at the TOP of the list with their own name format below, and
-# everyone else uses "player-format" above.
-#
-# Note on columns: the client automatically lays the player list out into
-# columns of ~20 and distributes everyone evenly. Staff occupy their own column
-# only once the list is large enough to wrap into multiple columns; with a small
-# list they sit at the top of the single column. (A strictly fixed staff column
-# would require packet-level fake entries / ProtocolLib, which OBX avoids.)
+# list.
 staff-grouping:
   enabled: true
-  # Tablist name for OP/staff. Default prepends the red, bold "ѕᴛᴀꜰꜰ┃" tag
-  # (matching the chat tag) to the gray name. Accepts the same MiniMessage tags
-  # and {placeholders} as player-format.
+  # Tablist name for OP/staff.
   player-format: "<red><bold>ѕᴛᴀꜰꜰ ┃ </bold></red><red>{player}</red>"
 #
 #

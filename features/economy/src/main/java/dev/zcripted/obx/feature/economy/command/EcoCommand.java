@@ -36,6 +36,18 @@ public class EcoCommand extends AbstractObxCommand implements TabCompleter {
         if (args.length >= 1 && args[0].equalsIgnoreCase("log")) {
             return showLog(sender, args);
         }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("server")) {
+            return serverAccount(sender, args);
+        }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("digest")) {
+            dev.zcripted.obx.feature.economy.report.EconomyReportService report =
+                    plugin.getServiceRegistry().get(dev.zcripted.obx.feature.economy.report.EconomyReportService.class);
+            if (report != null) {
+                report.generateDigest();
+                languages.send(sender, "economy.eco.digest-sent");
+            }
+            return true;
+        }
         if (args.length < 2) {
             languages.send(sender, "economy.eco.usage");
             return true;
@@ -124,11 +136,67 @@ public class EcoCommand extends AbstractObxCommand implements TabCompleter {
         return true;
     }
 
+    /**
+     * {@code /eco server} — the visible sink-revenue account: balance plus a
+     * 7-day per-source breakdown (AH tax/fees, anvil fees, claim upkeep).
+     * {@code /eco server withdraw <amount>} moves revenue into the admin's
+     * wallet (for prize pools, refunds, …) and audits it as SERVER_WITHDRAW.
+     */
+    private boolean serverAccount(CommandSender sender, String[] args) {
+        dev.zcripted.obx.feature.economy.sink.ServerAccountService account =
+                plugin.getServiceRegistry().get(dev.zcripted.obx.feature.economy.sink.ServerAccountService.class);
+        if (account == null) {
+            languages.send(sender, "economy.eco.server.unavailable");
+            return true;
+        }
+        if (args.length >= 3 && args[1].equalsIgnoreCase("withdraw")) {
+            if (!(sender instanceof Player)) {
+                languages.send(sender, "core.player-only");
+                return true;
+            }
+            double amount;
+            try {
+                amount = Double.parseDouble(args[2]);
+            } catch (NumberFormatException ignored) {
+                languages.send(sender, "economy.invalid-amount", Placeholders.with("input", args[2]));
+                return true;
+            }
+            if (!Double.isFinite(amount) || amount <= 0.0) {
+                languages.send(sender, "economy.amount-positive");
+                return true;
+            }
+            if (account.withdrawTo((Player) sender, amount)) {
+                languages.send(sender, "economy.eco.server.withdrawn", Placeholders.with(
+                        "amount", economy.format(amount),
+                        "balance", economy.format(account.balance())));
+            } else {
+                languages.send(sender, "economy.eco.server.withdraw-failed", Placeholders.with(
+                        "amount", economy.format(amount),
+                        "balance", economy.format(account.balance())));
+            }
+            return true;
+        }
+        languages.send(sender, "economy.eco.server.header",
+                Placeholders.with("balance", economy.format(account.balance())));
+        List<dev.zcripted.obx.feature.economy.sink.ServerAccountService.SourceTotal> sources =
+                account.sourceTotals(System.currentTimeMillis() - 7L * 86_400_000L);
+        if (sources.isEmpty()) {
+            languages.send(sender, "economy.eco.server.none");
+        }
+        for (dev.zcripted.obx.feature.economy.sink.ServerAccountService.SourceTotal source : sources) {
+            languages.send(sender, "economy.eco.server.source", Placeholders.with(
+                    "source", source.action, "amount", economy.format(source.total)));
+        }
+        languages.send(sender, "economy.eco.server.footer");
+        return true;
+    }
+
     /** Audited actions an admin can filter the log by (tab-complete + validation). */
     private static final List<String> LOG_ACTIONS = Arrays.asList(
             "GIVE", "TAKE", "SET", "RESET", "PAY", "RECEIVE", "TAX", "SELL", "SHOP_BUY", "SHOP_SELL",
             "WITHDRAW", "REDEEM", "BANK_DEPOSIT", "BANK_WITHDRAW", "BANK_INTEREST",
-            "AH_BUY", "AH_SELL", "PAYDAY");
+            "AH_BUY", "AH_SELL", "AH_BUYOUT", "AH_BID", "AH_BID_REFUND", "AH_TAX", "AH_LISTING_FEE",
+            "ANVIL_REPAIR", "SELL_WAND", "CLAIM_UPKEEP", "SERVER_WITHDRAW", "PAYDAY");
 
     private static final int LOG_PAGE_SIZE = 10;
 
@@ -201,8 +269,13 @@ public class EcoCommand extends AbstractObxCommand implements TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) return filter(Arrays.asList("give", "take", "set", "reset", "log"), args[0]);
+        if (args.length == 1) {
+            return filter(Arrays.asList("give", "take", "set", "reset", "log", "server", "digest"), args[0]);
+        }
         if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("server")) {
+                return filter(Arrays.asList("withdraw"), args[1]);
+            }
             List<String> names = new ArrayList<>();
             if (args[0].equalsIgnoreCase("log")) names.add("*");
             for (Player online : Bukkit.getOnlinePlayers()) names.add(online.getName());

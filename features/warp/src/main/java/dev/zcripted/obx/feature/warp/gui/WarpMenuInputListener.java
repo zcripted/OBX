@@ -15,7 +15,10 @@ public class WarpMenuInputListener implements Listener {
         this.inputManager = inputManager;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    // LOWEST: must run before the chat feature's ChatManagementListener (HIGHEST),
+    // which dispatches the formatted line to recipients itself — a later cancel
+    // would arrive after the prompt input is already in everyone's chat.
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     public void onChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         WarpMenuInputManager.PendingInput input = inputManager.get(player.getUniqueId());
@@ -28,8 +31,8 @@ public class WarpMenuInputListener implements Listener {
 
     /**
      * Drops any pending prompt when the player leaves. Without this the entry
-     * leaked forever AND the HIGHEST-priority chat hook above would swallow the
-     * player's first chat line when they rejoined.
+     * leaked forever AND the chat hook above would swallow the player's first
+     * chat line when they rejoined.
      */
     @EventHandler
     public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {

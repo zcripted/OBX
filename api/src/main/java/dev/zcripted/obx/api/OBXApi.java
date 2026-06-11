@@ -2,11 +2,15 @@ package dev.zcripted.obx.api;
 
 import dev.zcripted.obx.api.chat.ChatService;
 import dev.zcripted.obx.api.economy.EconomyService;
+import dev.zcripted.obx.api.hub.HubApi;
 import dev.zcripted.obx.api.hub.HubItemUseListener;
 import dev.zcripted.obx.api.hub.HubKitApplier;
+import dev.zcripted.obx.api.jail.JailApi;
+import dev.zcripted.obx.api.moderation.ModerationApi;
 import dev.zcripted.obx.api.playerinfo.JoinLeaveService;
 import dev.zcripted.obx.api.playerstate.AfkService;
 import dev.zcripted.obx.api.scoreboard.ScoreboardService;
+import dev.zcripted.obx.api.staff.VanishApi;
 import dev.zcripted.obx.api.tablist.TablistService;
 import dev.zcripted.obx.api.teleport.TeleportManager;
 
@@ -43,4 +47,12 @@ public interface OBXApi {
     HubKitApplier getHubKitApplier();
 
     HubItemUseListener getHubItemUseListener();
+
+    ModerationApi getModerationApi();
+
+    VanishApi getVanishApi();
+
+    JailApi getJailApi();
+
+    HubApi getHubApi();
 }

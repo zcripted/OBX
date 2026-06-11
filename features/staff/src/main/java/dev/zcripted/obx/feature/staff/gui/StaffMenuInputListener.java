@@ -21,7 +21,10 @@ public final class StaffMenuInputListener implements Listener {
         this.inputManager = inputManager;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    // LOWEST: must run before the chat feature's ChatManagementListener (HIGHEST),
+    // which dispatches the formatted line to recipients itself — a later cancel
+    // would arrive after the prompt input is already in everyone's chat.
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     public void onChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         if (!inputManager.isPending(player.getUniqueId())) {

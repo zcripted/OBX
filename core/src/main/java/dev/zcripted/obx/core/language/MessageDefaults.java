@@ -31,7 +31,7 @@ import java.util.Map;
 public final class MessageDefaults {
 
     /** Informational only (see class javadoc); the real count is {@code EN.size()}. */
-    private static final String KEY_COUNT_DOC = "1097";
+    private static final String KEY_COUNT_DOC = "1130";
 
     private static final LinkedHashMap<String, Object> EN = new LinkedHashMap<String, Object>();
     private static final LinkedHashMap<String, Object> DE = new LinkedHashMap<String, Object>();

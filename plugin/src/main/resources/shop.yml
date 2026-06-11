@@ -1,10 +1,9 @@
 # ═══════════════════════════════════════════════════════════════════════════
 # OBX Shop — Main Menu
 # ─────────────────────────────────────────────────────────────────────────────
-# The /shop category menu. Each category points at shops/<file>.yml. Slots are
-# 0-based; the BOTTOM ROW of the menu is reserved for navigation (sell tile,
-# balance, close) — place category tiles above it. Icons/names/lore accept
-# legacy &-color codes. Apply edits with /shop reload (obx.shop.admin) or the
+# The /shop category menu. Each category points at shops/<file>.yml.
+# Icons/names/lore accept legacy &-color codes.
+# Apply edits with /shop reload (obx.shop.admin) or the
 # Admin GUI → Economy → Shop tile (right-click).
 # ═══════════════════════════════════════════════════════════════════════════
 enabled: true
@@ -32,7 +31,7 @@ categories:
       - "&7wood, and terrain."
     file: blocks
   ores:
-    slot: 12
+    slot: 11
     icon: DIAMOND
     name: "&bOres & Minerals"
     lore:
@@ -40,7 +39,7 @@ categories:
       - "&7mining resources."
     file: ores
   farming:
-    slot: 14
+    slot: 12
     icon: WHEAT
     name: "&eFarming"
     lore:
@@ -48,7 +47,7 @@ categories:
       - "&7everything that grows."
     file: farming
   food:
-    slot: 16
+    slot: 14
     icon: COOKED_BEEF
     name: "&6Food"
     lore:
@@ -56,7 +55,7 @@ categories:
       - "&7snacks for the road."
     file: food
   mobdrops:
-    slot: 20
+    slot: 15
     icon: ROTTEN_FLESH
     name: "&cMob Drops"
     lore:
@@ -64,7 +63,7 @@ categories:
       - "&7that go bump at night."
     file: mobdrops
   redstone:
-    slot: 24
+    slot: 16
     icon: REDSTONE
     name: "&4Redstone"
     lore:

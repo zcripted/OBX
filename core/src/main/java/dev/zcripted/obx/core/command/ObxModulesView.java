@@ -210,6 +210,74 @@ class ObxModulesView implements org.bukkit.event.Listener {
     }
 
     /**
+     * /obx warn <on|off|status> — toggles the unconfigured-webhook startup/join
+     * warnings. Takes effect immediately (no reload) and persists to config.yml.
+     */
+    void handleWarn(CommandSender sender, String[] args) {
+        if (!ensurePermission(sender, dev.zcripted.obx.core.diagnostics.WebhookWarningService.PERMISSION)) {
+            return;
+        }
+        dev.zcripted.obx.core.diagnostics.WebhookWarningService warnings = plugin.getServiceRegistry()
+                .get(dev.zcripted.obx.core.diagnostics.WebhookWarningService.class);
+        if (warnings == null) {
+            return;
+        }
+        boolean current = warnings.isEnabled();
+        if (args.length < 2) {
+            sendWebhookWarnBox(sender, warnings, current);
+            return;
+        }
+        String action = args[1].toLowerCase(Locale.ENGLISH);
+        if (action.equals("on") || action.equals("enable") || action.equals("true")) {
+            if (!current) {
+                warnings.setEnabled(true);
+            }
+            sendWebhookWarnBox(sender, warnings, true);
+            logWebhookWarnToggle(sender, true);
+            return;
+        }
+        if (action.equals("off") || action.equals("disable") || action.equals("false")) {
+            if (current) {
+                warnings.setEnabled(false);
+            }
+            sendWebhookWarnBox(sender, warnings, false);
+            logWebhookWarnToggle(sender, false);
+            return;
+        }
+        // status / info / anything else → show the current state box.
+        sendWebhookWarnBox(sender, warnings, current);
+    }
+
+    /** Box-style webhook-warnings status (with the live unconfigured count) + a toggle button row. */
+    private void sendWebhookWarnBox(CommandSender sender,
+                                    dev.zcripted.obx.core.diagnostics.WebhookWarningService warnings,
+                                    boolean enabled) {
+        java.util.Map<String, String> placeholders = Collections.singletonMap(
+                "count", String.valueOf(warnings.unconfigured().size()));
+        languages.send(sender, enabled ? "admin.modules.warn.enabled" : "admin.modules.warn.disabled",
+                placeholders);
+        if (!(sender instanceof org.bukkit.entity.Player)) {
+            return;
+        }
+        String opposite = enabled ? "off" : "on";
+        java.util.List<dev.zcripted.obx.util.text.ComponentMessenger.InteractiveMessagePart> row =
+                new java.util.ArrayList<>();
+        row.add(dev.zcripted.obx.util.text.ComponentMessenger.InteractiveMessagePart.plain(
+                org.bukkit.ChatColor.translateAlternateColorCodes('&', "  &8» ")));
+        row.add(dev.zcripted.obx.util.text.ComponentMessenger.InteractiveMessagePart.interactive(
+                languages.get(sender, "admin.modules.warn.button"),
+                languages.list(sender, "admin.modules.warn.button.hover", Collections.<String, String>emptyMap()),
+                "/obx warn " + opposite, true));
+        dev.zcripted.obx.util.text.ComponentMessenger.sendJoinedHoverMessages(sender, row);
+    }
+
+    /** Console audit line whenever the webhook warnings are toggled (command or GUI). */
+    private void logWebhookWarnToggle(CommandSender sender, boolean enabled) {
+        dev.zcripted.obx.util.message.ConsoleLog.info(plugin,
+                "Webhook warnings " + (enabled ? "§aenabled" : "§cdisabled") + "§7 by §f" + sender.getName());
+    }
+
+    /**
      * Sends the box-style death-grouping status/toggle message. In-game it is followed by a
      * one-button toggle row (a click runs {@code /obx deathdrop <opposite>}); console gets the
      * box only — it can't click, so no button row is sent.

@@ -1,14 +1,7 @@
 # ════════════════════════════════════════════════════════════════════════════
 # OBX Scoreboard (sidebar)
 # ────────────────────────────────────────────────────────────────────────────
-# A FeatherBoard-style sidebar shown to every player. Each player gets their own
-# board so live, per-player fields (health, hearts) work. Re-read on /obx reload.
-#
-# Colors in the title and lines use legacy codes:
-#   • Color / format codes   &a, &c, &l, &o, ...
-#   • Hex colors             &#RRGGBB   (renders on 1.16+; degrades on older)
-# (The sidebar is drawn with scoreboard teams, which carry legacy text — not the
-#  MiniMessage <tag> set used by the tablist/chat. Use &-codes here.)
+# A sidebar shown to every player.
 #
 # Placeholders available in the title and every line:
 #   {plugin}          - Plugin name (OBX)
@@ -20,7 +13,7 @@
 #   {health}          - Current health (rounded)
 #   {max_health}      - Maximum health (rounded)
 #   {health_percent}  - Health as a percentage, e.g. 93
-#   {hearts}          - A 10-icon ❤/♡ bar that fills with current health
+#   {hearts}          - A ❤/♡ bar that fills with current health
 #   {balance}         - Player's full economy balance with the currency symbol ($1,250.00)
 #   {bank}            - Alias of {balance}
 #   {ip}              - server-ip below
@@ -37,12 +30,7 @@ enabled: true
 # How often (server ticks; 20 = 1s) the sidebar is re-rendered for live fields.
 refresh-interval-ticks: 20
 
-# Sidebar title. Bold brand-violet gradient across "OBX".
-# The title is rendered with the Adventure component API (objective displayName),
-# which has NO 32-char limit — so a full bold per-letter gradient renders cleanly
-# (servers without the component API fall back to a truncated legacy string). You
-# may use MiniMessage <tag> syntax here (gradient, bold, color names/hex). The
-# legacy &-code / &#RRGGBB forms still work too.
+# Sidebar title.
 title: "<gradient:#9D4EDD:#C77DFF><bold>OBX</bold></gradient>"
 
 # Server address + website shown via {ip} / {website}.
@@ -50,25 +38,10 @@ server-ip: "play.example.net"
 server-website: "example.net"
 
 # Sidebar lines, top to bottom.
-#
-# {divider} expands at render time to a dark-gray strikethrough sized to the
-# longest visible content line on the board (color codes don't count toward
-# width). So the divider always fits the widest line and never widens the
-# sidebar past it.
-# Each field carries a small icon to its left (in the field's accent color) so the
-# board reads at a glance, chosen to clearly represent each field:
-#   ☻ player (person) · ❤ health · ● online (green status dot) · ⛁ bank (coin stack) ·
-#   ⇆ ip (connection) · ⊕ web (globe).
 lines:
   - "{divider}"
   - "&d☻ &7Player &8» &f{player}"
   - "&c❤ &7Health &8» {hearts}"
-  # The heart bar is ALWAYS 10 icons (filled + empty), so its first heart sits at
-  # a fixed position no matter the health level — a constant indent therefore keeps
-  # the percentage aligned for every value (7%, 93%, 100%). Minecraft's font is
-  # PROPORTIONAL, so this indent is tuned in pixels, not characters: the icon "❤ "
-  # (~12px) plus the label "Health > " (~45px) is ~57px and a space is ~4px, so 14
-  # spaces (~56px) puts the first digit under the first heart. Nudge by a space if needed.
   - "              &c{health_percent}%"
   - "&a● &7Online &8» &a{online}&7/&a{max}"
   - "&a⛁ &7Bank &8» &a{balance}"

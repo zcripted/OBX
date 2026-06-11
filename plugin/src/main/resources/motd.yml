@@ -1,7 +1,6 @@
 # =============================================================================
 # OBX MOTD configuration
-# Use <center>...</center> on either line for pixel-based centering in the
-# Minecraft server list. Placeholders: {online}, {max}, {real_online}, {real_max}
+# Placeholders: {online}, {max}, {real_online}, {real_max}
 # =============================================================================
 
 enabled: true
@@ -26,7 +25,7 @@ player-count:
     lines:
       # NOTE: the server-list player-count hover renders sample names with the 16
       # STANDARD legacy colors only — &x truecolor hex / <gradient> shows up white
-      # here (unlike chat). So this line uses &d (light purple) + &5 (dark purple)
+      # here. So this line uses &d (light purple) + &5 (dark purple)
       # to stay on-brand and actually display.
       - "&d&lOBX &5&o— Forged from Obsidian"
       - "&7Displayed Count: &f{online}&7/&f{max}"

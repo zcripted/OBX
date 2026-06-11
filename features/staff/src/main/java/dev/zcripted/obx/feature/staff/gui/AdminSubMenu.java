@@ -1609,7 +1609,8 @@ public final class AdminSubMenu {
         JOIN_MOTD("Welcome MOTD", "admin.gui.module.join-motd", 14, new String[]{"PAINTING"}),
         HUB("Hub / Lobby", "admin.gui.module.hub", 15, new String[]{"COMPASS"}),
         AFK("AFK System", "admin.gui.module.afk", 16, new String[]{"FEATHER"}),
-        DEATHDROP("Death Grouping", "admin.gui.module.deathdrop", 17, new String[]{"CHEST"});
+        DEATHDROP("Death Grouping", "admin.gui.module.deathdrop", 17, new String[]{"CHEST"}),
+        WEBHOOK_WARNINGS("Webhook Warnings", "admin.gui.module.webhook-warn", 19, new String[]{"BELL", "NOTE_BLOCK", "NOTEBLOCK"});
 
         private final String display;
         private final String nameKey;
@@ -1666,6 +1667,11 @@ public final class AdminSubMenu {
                     return plugin.getAfkService() != null && plugin.getAfkService().isEnabled();
                 case DEATHDROP:
                     return plugin.getModuleManager() != null && plugin.getModuleManager().isEnabled("deathdrop");
+                case WEBHOOK_WARNINGS: {
+                    dev.zcripted.obx.core.diagnostics.WebhookWarningService warnings = plugin.getServiceRegistry()
+                            .get(dev.zcripted.obx.core.diagnostics.WebhookWarningService.class);
+                    return warnings != null && warnings.isEnabled();
+                }
                 default:
                     return false;
             }
@@ -1700,6 +1706,12 @@ public final class AdminSubMenu {
                 case DEATHDROP:
                     if (plugin.getModuleManager() != null) plugin.getModuleManager().setEnabled("deathdrop", value);
                     break;
+                case WEBHOOK_WARNINGS: {
+                    dev.zcripted.obx.core.diagnostics.WebhookWarningService warnings = plugin.getServiceRegistry()
+                            .get(dev.zcripted.obx.core.diagnostics.WebhookWarningService.class);
+                    if (warnings != null) warnings.setEnabled(value); // immediate + persisted to config.yml
+                    break;
+                }
                 default:
                     break;
             }

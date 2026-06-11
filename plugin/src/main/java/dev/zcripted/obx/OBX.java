@@ -77,6 +77,8 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
     private TpsService tpsService;
     private dev.zcripted.obx.core.storage.SqliteDataStore dataStore;
     private dev.zcripted.obx.util.update.UpdateNotificationService updateNotificationService;
+    private dev.zcripted.obx.core.diagnostics.WebhookWarningService webhookWarningService;
+    private dev.zcripted.obx.core.console.PlayerCommandConsoleLog commandConsoleLog;
     private SchedulerAdapter scheduler;
     private PlatformInfo platformInfo;
     private String releaseDate = "Unknown";
@@ -129,6 +131,18 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         registerCommands();
         registerListeners();
 
+        // Unconfigured-webhook warnings: console at startup + admin join lines
+        // (toggleable via /obx warn, the Admin GUI tile, or config).
+        webhookWarningService = new dev.zcripted.obx.core.diagnostics.WebhookWarningService(this);
+        serviceRegistry.register(dev.zcripted.obx.core.diagnostics.WebhookWarningService.class, webhookWarningService);
+        getServer().getPluginManager().registerEvents(webhookWarningService, this);
+        webhookWarningService.logStartupWarning();
+
+        // Styled console log for player commands (replaces the vanilla
+        // "<name> issued server command:" line; hardcoded format in PlayerCommandConsoleLog).
+        commandConsoleLog = new dev.zcripted.obx.core.console.PlayerCommandConsoleLog(this);
+        getServer().getPluginManager().registerEvents(commandConsoleLog, this);
+
         tpsService.start();
         updateNotificationService.start();
 
@@ -144,6 +158,10 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
             dataStore.beginShutdown();
         }
         moduleManager.disableAll();
+        if (commandConsoleLog != null) {
+            // The log4j filter can't be detached — make it inert instead.
+            commandConsoleLog.shutdown();
+        }
         if (updateNotificationService != null) {
             updateNotificationService.stop();
         }
@@ -324,6 +342,26 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         return serviceRegistry.get(HubItemUseListener.class);
     }
 
+    @Override
+    public dev.zcripted.obx.api.moderation.ModerationApi getModerationApi() {
+        return getModerationService();
+    }
+
+    @Override
+    public dev.zcripted.obx.api.staff.VanishApi getVanishApi() {
+        return getVanishManager();
+    }
+
+    @Override
+    public dev.zcripted.obx.api.jail.JailApi getJailApi() {
+        return getJailService();
+    }
+
+    @Override
+    public dev.zcripted.obx.api.hub.HubApi getHubApi() {
+        return getHubService();
+    }
+
     public EnchantService getEnchantService() {
         return serviceRegistry.get(EnchantService.class);
     }
@@ -365,6 +403,10 @@ public class OBX extends JavaPlugin implements dev.zcripted.obx.core.ObxPlugin {
         java.util.LinkedHashMap<String, Long> times = new java.util.LinkedHashMap<String, Long>();
         long s;
         s = System.nanoTime(); reloadConfig(); times.put("config.yml", System.nanoTime() - s);
+        if (webhookWarningService != null) {
+            // Re-reads warnings.webhook-unconfigured (config-file edits apply here).
+            webhookWarningService.reload();
+        }
         s = System.nanoTime(); languageManager.reload(); times.put("languages", System.nanoTime() - s);
         s = System.nanoTime(); dataService.reload(); times.put("data.yml", System.nanoTime() - s);
         if (motdService != null) {

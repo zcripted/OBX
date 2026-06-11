@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Registers every feature {@link Module} and drives its lifecycle.
@@ -23,7 +24,7 @@ public final class ModuleManager {
     private final ObxPlugin plugin;
     /** Insertion-ordered: registration order, used as the tie-breaker within a dependency level. */
     private final Map<String, Module> modules = new LinkedHashMap<>();
-    private final Map<String, Boolean> active = new LinkedHashMap<>();
+    private final Map<String, Boolean> active = new ConcurrentHashMap<>();
     private List<Module> enableOrder;
 
     public ModuleManager(ObxPlugin plugin) {

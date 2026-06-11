@@ -4,6 +4,7 @@ import dev.zcripted.obx.core.ObxPlugin;
 import dev.zcripted.obx.api.economy.EconomyService;
 import dev.zcripted.obx.core.command.AbstractObxCommand;
 import dev.zcripted.obx.feature.economy.service.BankService;
+import dev.zcripted.obx.feature.economy.bank.BankMenu;
 import dev.zcripted.obx.util.text.Placeholders;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -46,6 +47,10 @@ public class BankCommand extends AbstractObxCommand implements TabCompleter {
         }
         if (args.length == 0 || args[0].equalsIgnoreCase("balance")) {
             sendOverview(player, bank);
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("gui") || args[0].equalsIgnoreCase("menu")) {
+            BankMenu.open(plugin, player, 0);
             return true;
         }
         String action = args[0].toLowerCase(java.util.Locale.ENGLISH);
@@ -97,7 +102,7 @@ public class BankCommand extends AbstractObxCommand implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
             List<String> options = new java.util.ArrayList<>();
-            for (String option : Arrays.asList("balance", "deposit", "withdraw")) {
+            for (String option : Arrays.asList("balance", "deposit", "withdraw", "gui", "menu")) {
                 if (option.startsWith(args[0].toLowerCase(java.util.Locale.ENGLISH))) {
                     options.add(option);
                 }

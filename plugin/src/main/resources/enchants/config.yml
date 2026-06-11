@@ -1,26 +1,13 @@
 # ════════════════════════════════════════════════════════════════════════════
-# OBX — Arcanum Enchantment Module (master config)
-# ────────────────────────────────────────────────────────────────────────────
-# This module adds custom "Arcanum" enchantments delivered via scrolls, world
-# loot, and an admin GUI. Per-enchant definitions live in enchants/*.yml
-# (one file per category). Scroll tuning is in scrolls.yml; world-loot toggles
-# are in loot.yml.
-#
-# Enchantment data is stored on items via structured lore (no NBT/PDC needed),
-# so it works on every supported server version (1.8.8 → 1.21.x).
+# OBX — Arcanum Enchantment Module
 # ════════════════════════════════════════════════════════════════════════════
-
-# Master toggle. When false, the whole module is dormant: listeners early-exit,
-# commands report "module disabled", and no effects fire.
+# Master toggle. When false, the whole module is dormant and no effects fire.
 enabled: true
 
 # Logs every enchantment proc for admins who ran /obxench debug on. Off globally
 # by default; the per-admin toggle is independent of this flag.
 debug: false
 
-# Item enchantment tooltips. OBX restyles enchanted items into themed
-# Enchantments / Curses / Vanilla sections, each with a tiered dot bar
-# (●●●●○) and roman level. Custom Arcanum enchants are always styled.
 lore:
   # When true, VANILLA enchantments are also styled into their own "Vanilla"
   # section (and the default blue enchantment lines are hidden to avoid
@@ -33,8 +20,6 @@ security:
   # Anti-forge protection. Custom enchants live in item lore (the only store that
   # works across 1.8 -> 1.21), so anyone able to edit lore (anvils, written books,
   # NBT/creative tools) could otherwise hand-craft a fully-working max-level enchant.
-  # Every enchanted item is stamped with an INVISIBLE HMAC signature (a per-server
-  # key in plugins/OBX/enchant-signing.key) covering its exact enchant set.
   #
   #   true  (default) - signatures are written but NOT enforced; lore is trusted as
   #                     before. Safe for existing worlds; lets already-circulating
@@ -42,20 +27,16 @@ security:
   #   false (strict)  - an enchant set without a matching signature is ignored and the
   #                     item behaves as unenchanted. Forged lore stops working.
   #
-  # MIGRATION WARNING for strict mode: an item that carries UNSIGNED (legacy, pre-update)
-  # custom enchants is treated as forged. Not only does it read as unenchanted in combat —
-  # ANY write that re-renders its lore (applying/removing an enchant, OR a vanilla anvil
-  # rename/repair or enchanting-table use) drops the unsigned enchants instead of re-signing
-  # them. Only flip this to false AFTER players' items have each been re-saved once by the
-  # plugin (any legitimate OBX enchant edit re-signs them); otherwise legacy items lose their
-  # enchants the first time they pass through an anvil/table.
+  # MIGRATION WARNING for strict mode: Only flip this to false AFTER players' items have each
+  # been re-saved once by the plugin (any legitimate OBX enchant edit re-signs them); otherwise
+  # legacy items lose their enchants the first time they pass through an anvil/table.
   trust_unsigned_lore: true
 
 apply:
   # Maximum number of enchantments allowed on a single item.
   max_enchants_per_item: 6
   # If false, Cursed enchants do NOT count toward the cap above — this rewards
-  # players willing to take on drawbacks (recommended default from the design).
+  # players willing to take on drawbacks.
   cursed_count_toward_cap: false
   # Scroll-application failures: if true the item is destroyed on a failed apply
   # (unless a Protection Scroll is used); if false the item survives and only the
@@ -68,13 +49,11 @@ pvp:
   cursed_in_pvp: true
   mystic_in_pvp: true
 
-# Combat-category presentation & safety toggles. (Module-wide settings live here
-# in config.yml, NOT in combat.yml — combat.yml's top-level keys are parsed as
-# enchantment definitions.)
+# Combat-category presentation & safety toggles.
 combat_global:
-  # Holographic damage numbers above hit mobs (added in a later phase).
+  # Holographic damage numbers above hit mobs.
   damage_numbers: true
-  # Kill / killstreak banners above the killer (added in a later phase).
+  # Kill / killstreak banners above the killer.
   kill_banners: true
   # Particle density: full / reduced / off.
   particle_intensity: full
@@ -82,7 +61,7 @@ combat_global:
   sound_volume_multiplier: 1.0
   # Action-bar proc feedback (e.g. "Lifesteal +4 ❤", Soulreaver stacks).
   action_bar_feedback: true
-  # Safety cap on simultaneous holograms per player (later phase).
+  # Safety cap on simultaneous holograms per player.
   max_holograms_per_player: 12
   # Bloodletter: drop a private gravestone marker at a victim's bleed-out death
   # location (visible only to that victim) and how long it lasts before vanishing.

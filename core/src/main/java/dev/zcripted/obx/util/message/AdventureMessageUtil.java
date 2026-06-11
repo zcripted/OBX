@@ -2172,12 +2172,7 @@ public final class AdventureMessageUtil {
     }
 
     private static boolean hasClass(String name) {
-        try {
-            Class.forName(name);
-            return true;
-        } catch (ClassNotFoundException ignored) {
-            return false;
-        }
+        return dev.zcripted.obx.util.ClassUtil.hasClass(name);
     }
 
     // -------------------------------------------------------------------------
